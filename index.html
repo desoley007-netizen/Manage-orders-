@@ -616,7 +616,8 @@ function cloudSave() {
       ts_si: JSON.stringify(SI),
       ts_np: JSON.stringify(NP),
       ts_thc: String(TH_C),
-      ts_thl: String(TH_L)
+      ts_thl: String(TH_L),
+      ts_users: JSON.stringify(USERS)
     };
     fetch(CLOUD_URL, {
       method: "POST",
@@ -657,6 +658,8 @@ function cloudLoad(manual) {
       if (d.data.ts_np && d.data.ts_np !== JSON.stringify(NP)) { NP = JSON.parse(d.data.ts_np); localStorage.setItem("ts_np", d.data.ts_np); changed = true; }
       if (d.data.ts_thc) { TH_C = parseInt(d.data.ts_thc) || 7; localStorage.setItem("ts_thc", TH_C); }
       if (d.data.ts_thl) { TH_L = parseInt(d.data.ts_thl) || 14; localStorage.setItem("ts_thl", TH_L); }
+      // อัปเดต USERS จาก cloud ด้วย (เพื่อให้ login ซิงค์ข้ามเครื่อง)
+      if (d.data.ts_users) { try{var cu=JSON.parse(d.data.ts_users);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
       if (changed) {
         // Re-render ทุกอย่าง
         cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
@@ -1830,7 +1833,6 @@ function rcvSearch(){
 }
 function rcvImgSearch(){
   var el=document.getElementById("rcvSug");
-  // Collect all SKUs from active orders with images
   var imgs=[];var seen={};
   O.forEach(function(o,oi){
     if(o.status!=="pending"&&o.status!=="shipped")return;
@@ -1838,26 +1840,47 @@ function rcvImgSearch(){
       if(seen[x.sku])return;seen[x.sku]=1;
       var im=gimg(x.sku);if(!im)return;
       var it=I.find(function(p){return p.sku===x.sku||gb(p.sku)===gb(x.sku)});
-      imgs.push({sku:x.sku,name:it?it.name:"",img:im,oi:oi,oid:o.name||o.id,odate:o.date,ostatus:o.status});
+      imgs.push({sku:x.sku,name:it?it.name:"",img:im,oi:oi,oid:o.name||o.id,odate:o.date,ostatus:o.status,sel:false});
     });
   });
   if(imgs.length===0){el.innerHTML="<div style='padding:12px;color:var(--t2)'>ไม่พบรูปภาพในคำสั่งซื้อ</div>";return}
+  window._rcvImgs=imgs;
+  rcvRenderImgGrid();
+}
+function rcvRenderImgGrid(){
+  var el=document.getElementById("rcvSug");
+  var imgs=window._rcvImgs;if(!imgs)return;
+  var selN=imgs.filter(function(m){return m.sel}).length;
+  var allSel=selN===imgs.length&&imgs.length>0;
   var h="<div style='background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-top:8px'>";
-  h+="<div style='font-size:14px;font-weight:700;margin-bottom:10px'>&#128247; เลือกสินค้าจากรูปภาพ ("+imgs.length+" รายการ)</div>";
+  h+="<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px'>";
+  h+="<div style='font-size:14px;font-weight:700'>&#128247; เลือกสินค้าจากรูปภาพ ("+imgs.length+")</div>";
+  h+="<label style='font-size:12px;color:var(--p);cursor:pointer;display:flex;align-items:center;gap:4px'><input type='checkbox' "+(allSel?"checked":"")+" onchange='rcvImgToggleAll(this.checked)' style='width:18px;height:18px;accent-color:var(--p)'>เลือกทั้งหมด</label>";
+  h+="</div>";
   h+="<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px'>";
   imgs.forEach(function(m,i){
-    h+="<div style='cursor:pointer;text-align:center;background:var(--bg);border-radius:8px;padding:6px;border:2px solid transparent;transition:border .2s' onclick=\"rcvPickImg("+i+")\" onmouseover=\"this.style.borderColor='var(--p)'\" onmouseout=\"this.style.borderColor='transparent'\">";
-    h+="<img src='"+m.img+"' style='width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px' onerror=\"this.parentNode.style.display='none'\">";
+    var brd=m.sel?"var(--p)":"transparent";
+    var bg=m.sel?"var(--glow)":"var(--bg)";
+    h+="<div style='cursor:pointer;text-align:center;background:"+bg+";border-radius:8px;padding:6px;border:2px solid "+brd+";transition:all .15s;position:relative' onclick='rcvImgToggle("+i+")'>";
+    if(m.sel)h+="<div style='position:absolute;top:3px;right:3px;width:20px;height:20px;background:var(--p);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(99,102,241,.4);z-index:1'>&#10003;</div>";
+    h+="<img src='"+m.img+"' style='width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px"+(m.sel?";opacity:.85":"")+"' onerror=\"this.parentNode.style.display='none'\">";
     h+="<div style='font-size:10px;font-weight:600;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+m.sku+"</div>";
     h+="</div>";
   });
-  h+="</div></div>";
+  h+="</div>";
+  if(selN>0){
+    h+="<button class='btn bp' onclick='rcvImgAddSelected()' style='width:100%;padding:14px;font-size:15px;margin-top:10px'>&#10003; เพิ่มรายการที่เลือก ("+selN+" SKU)</button>";
+  }
+  h+="</div>";
   el.innerHTML=h;
-  window._rcvImgs=imgs;
 }
-function rcvPickImg(i){
-  var m=window._rcvImgs[i];if(!m)return;
-  _rcvSearchResults=[{sku:m.sku,name:m.name,img:m.img,oi:m.oi,oid:m.oid,odate:m.odate,ostatus:m.ostatus,checked:true}];
+function rcvImgToggle(i){window._rcvImgs[i].sel=!window._rcvImgs[i].sel;rcvRenderImgGrid()}
+function rcvImgToggleAll(v){window._rcvImgs.forEach(function(m){m.sel=v});rcvRenderImgGrid()}
+function rcvImgAddSelected(){
+  var imgs=window._rcvImgs;if(!imgs)return;
+  var sel=imgs.filter(function(m){return m.sel});
+  if(sel.length===0){alert("เลือกอย่างน้อย 1 รายการ");return}
+  _rcvSearchResults=sel.map(function(m){return{sku:m.sku,name:m.name,img:m.img,oi:m.oi,oid:m.oid,odate:m.odate,ostatus:m.ostatus,checked:true}});
   rcvRenderSug();
 }
 function rcvNewProducts(){
@@ -2381,8 +2404,7 @@ var CUR_USER=null;
 function svUsers(){localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
 function cloudSaveUsers(){
   if(!CLOUD_URL)return;
-  var body="key=ts_users&value="+encodeURIComponent(JSON.stringify(USERS));
-  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body}).catch(function(){});
+  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({ts_users:JSON.stringify(USERS)})}).catch(function(){});
 }
 
 var _cloudReady=false;
@@ -2394,8 +2416,12 @@ function _loginOK(u){
   initApp();
 }
 function _fetchCloudUsers(){
-  return fetch(CLOUD_URL+"?key=ts_users&t="+Date.now()).then(function(r){return r.json()}).then(function(d){
-    if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
+  return fetch(CLOUD_URL+"?t="+Date.now()).then(function(r){return r.json()}).then(function(d){
+    var cu=null;
+    // รองรับทั้ง 2 รูปแบบ: {status:"ok",data:{ts_users:...}} หรือ {value:...}
+    if(d&&d.status==="ok"&&d.data&&d.data.ts_users){try{cu=JSON.parse(d.data.ts_users)}catch(e){}}
+    if(!cu&&d&&d.value){try{cu=JSON.parse(d.value)}catch(e){}}
+    if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}
     _cloudReady=true;
   }).catch(function(){_cloudReady=true});
 }
