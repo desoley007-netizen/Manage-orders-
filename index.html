@@ -658,27 +658,34 @@ function cloudForceSave(cb){
   if(!CLOUD_URL){if(cb)cb();return;}
   clearTimeout(_cloudSaveTimer);
   stopAutoRefresh();
-  // ถ้า cloud กำลัง busy อยู่ รอก่อน
-  if(_cloudBusy){setTimeout(function(){cloudForceSave(cb)},300);return;}
-  _cloudBusy=true;
-  syncUI("saving");
-  var payload={
+  // === Snapshot ข้อมูลทันที ก่อนที่ cloudLoad จะเขียนทับ ===
+  var snap={
     ts_o:JSON.stringify(O),ts_l:JSON.stringify(L),ts_rc:JSON.stringify(RC),
     ts_si:JSON.stringify(SI),ts_np:JSON.stringify(NP),
     ts_thc:String(TH_C),ts_thl:String(TH_L),ts_users:JSON.stringify(USERS)
   };
-  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)})
-  .then(function(r){return r.json()})
-  .then(function(d){
-    _cloudBusy=false;
-    if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);}
-    else{syncUI("err","Save failed");}
-    // รัน callback ก่อน แล้วค่อย restart auto-refresh (หลัง 3 วินาที)
-    // เพื่อป้องกัน cloudLoad ดึงข้อมูลเก่าจาก server มาเขียนทับทันที
-    if(cb)cb();
-    setTimeout(function(){startAutoRefresh();},3000);
-  })
-  .catch(function(){_cloudBusy=false;syncUI("err","Offline");if(cb)cb();setTimeout(function(){startAutoRefresh();},3000);});
+  function _doSave(){
+    // ถ้า cloud busy อยู่ รอก่อน (แต่ใช้ snap ที่ถ่ายไว้แล้ว ไม่ใช่ O ที่อาจถูกเขียนทับ)
+    if(_cloudBusy){setTimeout(_doSave,300);return;}
+    _cloudBusy=true;
+    syncUI("saving");
+    fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(snap)})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      _cloudBusy=false;
+      // Restore snapshot กลับ (ป้องกัน cloudLoad เขียนทับระหว่างรอ)
+      try{O=JSON.parse(snap.ts_o);localStorage.setItem("ts_o",snap.ts_o)}catch(e){}
+      try{NP=JSON.parse(snap.ts_np);localStorage.setItem("ts_np",snap.ts_np)}catch(e){}
+      try{L=JSON.parse(snap.ts_l);localStorage.setItem("ts_l",snap.ts_l)}catch(e){}
+      if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);}
+      else{syncUI("err","Save failed");}
+      if(cb)cb();
+      // Restart auto-refresh หลัง 5 วินาที โดยไม่ดึงข้อมูลทันที (skipFirstLoad=true)
+      setTimeout(function(){startAutoRefresh(true);},5000);
+    })
+    .catch(function(){_cloudBusy=false;syncUI("err","Offline");if(cb)cb();setTimeout(function(){startAutoRefresh(true);},5000);});
+  }
+  _doSave();
 }
 
 function cloudLoad(manual) {
@@ -718,12 +725,12 @@ function cloudLoad(manual) {
 
 // Auto-refresh ทุก 30 วินาที
 var _autoRefresh = null;
-function startAutoRefresh() {
+function startAutoRefresh(skipFirstLoad) {
   if (!CLOUD_URL) return;
   stopAutoRefresh();
   _autoRefresh = setInterval(function() { cloudLoad(false); }, 30000);
-  // โหลดครั้งแรก
-  cloudLoad(true);
+  // โหลดครั้งแรก (ยกเว้นหลัง force save เพื่อป้องกัน overwrite)
+  if(!skipFirstLoad) cloudLoad(true);
 }
 function stopAutoRefresh() { if (_autoRefresh) { clearInterval(_autoRefresh); _autoRefresh = null; } }
 
