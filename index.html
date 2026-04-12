@@ -86,6 +86,57 @@ tr:hover td{background:var(--glow)}
 .mtb:hover{border-color:var(--a2)}
 .mtb.act{background:var(--a2);color:#fff;border-color:var(--a2);box-shadow:0 2px 8px rgba(139,92,246,.3)}
 .emp{text-align:center;padding:60px 20px;color:var(--t2)}
+/* ===== LOGIN & AUTH ===== */
+.login-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--c1);border:1px solid var(--bd);border-radius:20px;padding:40px;width:360px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center}
+.login-box h2{font-size:22px;font-weight:800;margin-bottom:6px}
+.login-box h2 span{background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.login-box p{color:var(--t2);font-size:13px;margin-bottom:24px}
+.login-box input{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;color:var(--t);font-size:14px;margin-bottom:12px;outline:none;transition:border .2s}
+.login-box input:focus{border-color:var(--a);box-shadow:0 0 0 3px var(--glow)}
+.login-box .btn{width:100%;padding:14px;font-size:15px;margin-top:4px}
+.login-err{color:var(--r);font-size:12px;margin-top:8px;min-height:18px}
+.user-badge{display:flex;align-items:center;gap:8px;background:var(--glass);padding:5px 12px;border-radius:8px;border:1px solid var(--bd);font-size:12px;color:var(--t2);cursor:pointer}
+.user-badge:hover{border-color:var(--a)}
+.user-badge .uname{font-weight:600;color:var(--t)}
+/* Admin Panel */
+.adm-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:300;display:none}
+.adm-pn{position:fixed;top:0;right:0;width:560px;max-width:95vw;height:100vh;background:var(--c1);z-index:301;overflow-y:auto;display:none;border-left:1px solid var(--bd);padding:28px;box-shadow:-8px 0 40px rgba(0,0,0,.3)}
+.adm-pn h2{font-size:18px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+.usr-card{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px;transition:all .2s}
+.usr-card:hover{border-color:rgba(99,102,241,.3)}
+.usr-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.usr-name{font-weight:700;font-size:14px}
+.usr-role{font-size:11px;padding:3px 10px;border-radius:6px;font-weight:600}
+.usr-role.admin{background:rgba(99,102,241,.15);color:var(--a)}
+.usr-role.user{background:rgba(16,185,129,.15);color:var(--g)}
+.perm-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.perm-tag{font-size:11px;padding:4px 10px;border-radius:6px;background:var(--c2);color:var(--t2);border:1px solid var(--bd)}
+.perm-tag.on{background:rgba(99,102,241,.12);color:var(--a);border-color:rgba(99,102,241,.3)}
+.perm-tag.off{opacity:.4;text-decoration:line-through}
+.perm-cb{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;cursor:pointer}
+.perm-cb input[type="checkbox"]{width:18px;height:18px;accent-color:var(--a)}
+@media(max-width:768px){
+.login-ov{padding:16px}
+.login-box{padding:28px 20px;width:100%;max-width:360px}
+.login-box h2{font-size:20px}
+.login-box input{font-size:16px;padding:14px}
+.login-box .btn{padding:16px;font-size:16px}
+.user-badge{padding:4px 8px;font-size:11px;gap:4px}
+.user-badge .uname{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#logoutBtn{padding:4px 8px;font-size:11px}
+.adm-ov{z-index:300}
+.adm-pn{width:100%;padding:16px;z-index:301}
+.adm-pn h2{font-size:16px}
+.usr-card{padding:12px}
+.usr-name{font-size:13px}
+.perm-grid{gap:5px}
+.perm-tag{font-size:10px;padding:4px 8px}
+#addUserForm{padding:12px}
+#addUserForm .fg input{font-size:15px;padding:12px}
+.perm-cb{font-size:12px;padding:4px 0}
+.perm-cb input[type="checkbox"]{width:22px;height:22px}
+}
 .lk{color:var(--a);text-decoration:none;font-size:12px;font-weight:500}
 .lk:hover{text-decoration:underline}
 .pz{border:2px dashed var(--bd);border-radius:var(--radius);padding:30px;text-align:center;cursor:text;transition:.2s;background:var(--glass);min-height:150px}
@@ -105,10 +156,12 @@ tr:hover td{background:var(--glow)}
 .ist b{display:block;font-size:20px;margin-top:2px;font-weight:800}
 .ist.ig b{color:var(--g)}.ist.ib b{color:var(--a)}.ist.iy b{color:var(--y)}
 @media(max-width:768px){
-.hd{padding:10px 14px}
-.hd h1{font-size:15px;gap:6px}
+.hd{padding:10px 14px;flex-wrap:wrap;gap:8px}
+.hd h1{font-size:14px;gap:6px;flex:1;min-width:0}
 .hd h1::before{content:'';display:none}
-.db{font-size:10px;padding:4px 10px}
+.hd-right{gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.db{font-size:10px;padding:4px 8px;display:none}
+.theme-btn{width:32px;height:32px;font-size:14px}
 .mn{padding:10px}
 .kg{grid-template-columns:repeat(2,1fr);gap:8px}
 .kp{padding:12px}
@@ -230,7 +283,40 @@ td{padding:7px 8px;font-size:11px}
 </style>
 </head>
 <body>
-<div class="hd"><h1>&#128230; <span>THAISURE</span> ระบบจัดการสั่งซื้อ</h1><div class="hd-right"><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
+<!-- LOGIN SCREEN -->
+<div class="login-ov" id="loginScreen">
+<div class="login-box">
+<div style="font-size:40px;margin-bottom:10px">&#128230;</div>
+<h2><span>THAISURE</span></h2>
+<p>ระบบจัดการสั่งซื้อ — กรุณาเข้าสู่ระบบ</p>
+<input type="text" id="loginUser" placeholder="&#128100; ชื่อผู้ใช้" onkeydown="if(event.key==='Enter')doLogin()">
+<input type="password" id="loginPass" placeholder="&#128274; รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
+<button class="btn bp" onclick="doLogin()">เข้าสู่ระบบ</button>
+<div class="login-err" id="loginErr"></div>
+</div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="adm-ov" id="admOv" onclick="closeAdmin()"></div>
+<div class="adm-pn" id="admPn">
+<h2>&#128101; จัดการผู้ใช้ & สิทธิ์ <button class="cb" onclick="closeAdmin()">&times;</button></h2>
+<div id="admContent"></div>
+<div style="margin-top:16px"><button class="btn bp" onclick="showAddUser()" style="width:100%">+ เพิ่มผู้ใช้ใหม่</button></div>
+<div id="addUserForm" style="display:none;margin-top:16px;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:16px">
+<div style="font-weight:700;margin-bottom:12px">&#10024; เพิ่มผู้ใช้ใหม่</div>
+<div class="fg"><label>ชื่อผู้ใช้ (สำหรับ Login)</label><input type="text" id="newUid" placeholder="เช่น emp1"></div>
+<div class="fg"><label>ชื่อแสดง</label><input type="text" id="newUname" placeholder="เช่น พนักงาน 1"></div>
+<div class="fg"><label>รหัสผ่าน</label><input type="text" id="newUpass" placeholder="ตั้งรหัสผ่าน"></div>
+<div style="font-size:12px;font-weight:600;color:var(--t2);margin:10px 0 6px">สิทธิ์การใช้งาน:</div>
+<div id="newPermChecks"></div>
+<div style="display:flex;gap:8px;margin-top:14px">
+<button class="btn bg" onclick="saveNewUser()">&#128190; บันทึก</button>
+<button class="btn bs b2" onclick="document.getElementById('addUserForm').style.display='none'">ยกเลิก</button>
+</div>
+</div>
+</div>
+
+<div class="hd"><h1>&#128230; <span>THAISURE</span> ระบบจัดการสั่งซื้อ</h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()" style="display:none">&#128100; <span class="uname" id="dispName"></span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="display:none;cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
 <div class="mn">
 <div class="kg" id="kpiCards">
 <div class="kp kr" onclick="cf='o';rt()"><div class="kl">&#128308; หมดสต็อก</div><div class="kv" id="k1">0</div><div class="ks">ต้องสั่งด่วน!</div></div>
@@ -831,8 +917,14 @@ function sw(t){
   ["inv","ord","lnk","rcv"].forEach(function(x){document.getElementById("t-"+x).style.display="none"});
   document.querySelectorAll(".tab").forEach(function(e){e.classList.remove("act")});
   document.getElementById("t-"+t).style.display="block";
-  document.querySelector("[data-t=\""+t+"\"]").classList.add("act");
+  var tabEl=document.querySelector("[data-t=\""+t+"\"]");
+  if(tabEl)tabEl.classList.add("act");
   cf="a";
+  // Auto-set rcv mode based on perms
+  if(t==="rcv"&&CUR_USER&&CUR_USER.role!=="admin"){
+    if(hasPerm("rcv_count")&&!hasPerm("rcv_check")){rcvMode="count";rrcv()}
+    else if(hasPerm("rcv_check")&&!hasPerm("rcv_count")){rcvMode="check";rrcv()}
+  }
 }
 
 // ===== ORDERS =====
@@ -2179,7 +2271,229 @@ function siClear(){
   SI=[];sv();renderSI();
 }
 
-// INIT
+// ===== LOGIN & PERMISSION SYSTEM =====
+var PERMS_LIST=[
+  {key:"inv",label:"\u{1F4CB} \u0e04\u0e33\u0e41\u0e19\u0e30\u0e19\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d",tab:"inv"},
+  {key:"ord",label:"\u{1F4E6} \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d",tab:"ord"},
+  {key:"rcv_count",label:"\u{1F4DD} \u0e23\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32: \u0e19\u0e31\u0e1a",tab:"rcv"},
+  {key:"rcv_check",label:"\u{1F50D} \u0e23\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32: \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a",tab:"rcv"},
+  {key:"si",label:"\u{1F4E6} \u0e40\u0e02\u0e49\u0e32\u0e04\u0e25\u0e31\u0e07 (Stock In)",tab:"rcv"},
+  {key:"np",label:"\u{1F381} \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48",tab:"rcv"},
+  {key:"lnk",label:"\u{1F517} \u0e25\u0e34\u0e07\u0e04\u0e4c 1688",tab:"lnk"},
+  {key:"kpi",label:"\u{1F4CA} KPI Dashboard",tab:"_"},
+  {key:"settings",label:"\u2699\uFE0F \u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32",tab:"_"}
+];
+
+// Default admin user
+var DEF_USERS=[{id:"admin",name:"\u0e40\u0e08\u0e49\u0e32\u0e02\u0e2d\u0e07",pass:"1234",role:"admin",perms:PERMS_LIST.map(function(p){return p.key})}];
+var USERS=JSON.parse(localStorage.getItem("ts_users")||"null")||DEF_USERS;
+var CUR_USER=null;
+
+function svUsers(){localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
+function cloudSaveUsers(){
+  if(!CLOUD_URL)return;
+  var body="key=ts_users&value="+encodeURIComponent(JSON.stringify(USERS));
+  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body}).catch(function(){});
+}
+
+function doLogin(){
+  var uid=document.getElementById("loginUser").value.trim().toLowerCase();
+  var pw=document.getElementById("loginPass").value;
+  var u=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
+  if(!u){document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07";return}
+  CUR_USER=u;
+  localStorage.setItem("ts_login",JSON.stringify({id:u.id}));
+  document.getElementById("loginScreen").style.display="none";
+  applyPerms();
+  initApp();
+}
+
+function doLogout(){
+  CUR_USER=null;
+  localStorage.removeItem("ts_login");
+  document.getElementById("loginScreen").style.display="flex";
+  document.getElementById("loginUser").value="";
+  document.getElementById("loginPass").value="";
+  document.getElementById("loginErr").textContent="";
+  document.getElementById("loginUser").focus();
+  // Hide main content
+  document.querySelector(".mn").style.display="none";
+  document.querySelector(".hd").style.display="none";
+  document.querySelector(".fab").style.display="none";
+  document.getElementById("userBadge").style.display="none";
+  document.getElementById("logoutBtn").style.display="none";
+  stopAutoRefresh();
+}
+
+function checkSession(){
+  var s=JSON.parse(localStorage.getItem("ts_login")||"null");
+  if(!s)return false;
+  var u=USERS.find(function(x){return x.id===s.id});
+  if(!u)return false;
+  CUR_USER=u;
+  return true;
+}
+
+function hasPerm(key){
+  if(!CUR_USER)return false;
+  if(CUR_USER.role==="admin")return true;
+  return CUR_USER.perms&&CUR_USER.perms.indexOf(key)>=0;
+}
+
+function applyPerms(){
+  if(!CUR_USER)return;
+  // Show header and main
+  document.querySelector(".hd").style.display="";
+  document.querySelector(".mn").style.display="";
+  document.querySelector(".fab").style.display="";
+  document.getElementById("loginScreen").style.display="none";
+  // User badge
+  document.getElementById("dispName").textContent=CUR_USER.name;
+  document.getElementById("userBadge").style.display=CUR_USER.role==="admin"?"flex":"none";
+  document.getElementById("logoutBtn").style.display="flex";
+  // KPI cards
+  document.getElementById("kpiCards").style.display=hasPerm("kpi")?"":"none";
+  // Tabs visibility
+  var tabs=document.querySelectorAll(".tabs .tab");
+  var tabKeys=["inv","ord","rcv","lnk"];
+  var firstVisible=null;
+  tabs.forEach(function(tb,i){
+    var tk=tabKeys[i];
+    var show=false;
+    if(tk==="rcv")show=hasPerm("rcv_count")||hasPerm("rcv_check")||hasPerm("si")||hasPerm("np");
+    else show=hasPerm(tk);
+    tb.style.display=show?"":"none";
+    if(show&&!firstVisible)firstVisible=tk;
+  });
+  // RCV sub-modes visibility
+  if(document.getElementById("rvCount"))document.getElementById("rvCount").style.display=hasPerm("rcv_count")?"":"none";
+  if(document.getElementById("rvCheck"))document.getElementById("rvCheck").style.display=hasPerm("rcv_check")?"":"none";
+  // Stock In panel visibility controlled by rcv_check+si perm
+  // NP button visibility
+  var npBtn=document.querySelector("[onclick='rcvNewProducts()']");
+  if(npBtn)npBtn.style.display=hasPerm("np")?"":"none";
+  // Settings: BigSeller import, threshold edit
+  var impBtn=document.querySelector("[onclick*='impXlsx']");
+  if(impBtn)impBtn.style.display=hasPerm("settings")?"":"none";
+  // Switch to first visible tab
+  if(firstVisible)sw(firstVisible);
+}
+
+// ===== ADMIN PANEL =====
+function openAdmin(){
+  if(!CUR_USER||CUR_USER.role!=="admin")return;
+  document.getElementById("admOv").style.display="block";
+  document.getElementById("admPn").style.display="block";
+  renderAdmin();
+}
+function closeAdmin(){
+  document.getElementById("admOv").style.display="none";
+  document.getElementById("admPn").style.display="none";
+  document.getElementById("addUserForm").style.display="none";
+}
+function renderAdmin(){
+  var h="";
+  USERS.forEach(function(u,i){
+    h+="<div class='usr-card'>";
+    h+="<div class='usr-hd'><div><span class='usr-name'>"+u.name+"</span> <span style='color:var(--t2);font-size:12px'>("+u.id+")</span></div>";
+    h+="<span class='usr-role "+(u.role==="admin"?"admin":"user")+"'>"+(u.role==="admin"?"\u0e41\u0e2d\u0e14\u0e21\u0e34\u0e19":"\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49")+"</span></div>";
+    if(u.role!=="admin"){
+      h+="<div style='font-size:11px;color:var(--t2);margin-bottom:6px'>\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19: "+u.pass+"</div>";
+      h+="<div class='perm-grid'>";
+      PERMS_LIST.forEach(function(p){
+        var on=u.perms&&u.perms.indexOf(p.key)>=0;
+        h+="<span class='perm-tag "+(on?"on":"off")+"' onclick='togglePerm("+i+",\""+p.key+"\")' style='cursor:pointer' title='\u0e01\u0e14\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19'>"+p.label+"</span>";
+      });
+      h+="</div>";
+      h+="<div style='margin-top:10px;display:flex;gap:6px'>";
+      h+="<button class='btn bs brd' onclick='delUser("+i+")'>\u0e25\u0e1a\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49</button>";
+      h+="<button class='btn bs b2' onclick='resetPass("+i+")'>\u0e23\u0e35\u0e40\u0e0b\u0e47\u0e15\u0e23\u0e2b\u0e31\u0e2a</button>";
+      h+="</div>";
+    } else {
+      h+="<div style='font-size:11px;color:var(--t2);margin-bottom:10px'>\u0e40\u0e02\u0e49\u0e32\u0e16\u0e36\u0e07\u0e44\u0e14\u0e49\u0e17\u0e38\u0e01\u0e1f\u0e31\u0e07\u0e01\u0e4c\u0e0a\u0e31\u0e19</div>";
+      h+="<div style='display:flex;gap:6px'>";
+      h+="<button class='btn bs b2' onclick='editAdminName()'>\u270F\uFE0F \u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d</button>";
+      h+="<button class='btn bs b2' onclick='editAdminPass()'>\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19</button>";
+      h+="</div>";
+    }
+    h+="</div>";
+  });
+  document.getElementById("admContent").innerHTML=h;
+}
+
+function togglePerm(ui,key){
+  var u=USERS[ui];
+  if(!u||u.role==="admin")return;
+  if(!u.perms)u.perms=[];
+  var idx=u.perms.indexOf(key);
+  if(idx>=0)u.perms.splice(idx,1);
+  else u.perms.push(key);
+  svUsers();renderAdmin();
+}
+
+function delUser(ui){
+  var u=USERS[ui];
+  if(!u||u.role==="admin")return;
+  if(!confirm("\u0e25\u0e1a\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49 '"+u.name+"' ?"))return;
+  USERS.splice(ui,1);
+  svUsers();renderAdmin();
+}
+
+function editAdminName(){
+  var adm=USERS.find(function(x){return x.role==="admin"});
+  if(!adm)return;
+  var nn=prompt("\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e2a\u0e14\u0e07\u0e40\u0e1b\u0e47\u0e19:",adm.name);
+  if(!nn||!nn.trim())return;
+  adm.name=nn.trim();
+  svUsers();renderAdmin();
+  document.getElementById("dispName").textContent=adm.name;
+}
+function editAdminPass(){
+  var adm=USERS.find(function(x){return x.role==="admin"});
+  if(!adm)return;
+  var op=prompt("\u0e01\u0e23\u0e2d\u0e01\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19:");
+  if(op!==adm.pass){alert("\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07");return}
+  var np=prompt("\u0e15\u0e31\u0e49\u0e07\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e43\u0e2b\u0e21\u0e48:");
+  if(!np||!np.trim())return;
+  adm.pass=np.trim();
+  svUsers();renderAdmin();
+  alert("\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e40\u0e23\u0e35\u0e22\u0e1a\u0e23\u0e49\u0e2d\u0e22\u0e41\u0e25\u0e49\u0e27");
+}
+function resetPass(ui){
+  var np=prompt("\u0e15\u0e31\u0e49\u0e07\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e43\u0e2b\u0e21\u0e48\u0e2a\u0e33\u0e2b\u0e23\u0e31\u0e1a "+USERS[ui].name+":");
+  if(!np)return;
+  USERS[ui].pass=np;
+  svUsers();renderAdmin();
+}
+
+function showAddUser(){
+  document.getElementById("addUserForm").style.display="block";
+  document.getElementById("newUid").value="";
+  document.getElementById("newUname").value="";
+  document.getElementById("newUpass").value="";
+  // Render permission checkboxes
+  var h="";
+  PERMS_LIST.forEach(function(p){
+    h+="<label class='perm-cb'><input type='checkbox' value='"+p.key+"'> "+p.label+"</label>";
+  });
+  document.getElementById("newPermChecks").innerHTML=h;
+}
+
+function saveNewUser(){
+  var uid=document.getElementById("newUid").value.trim();
+  var uname=document.getElementById("newUname").value.trim();
+  var upass=document.getElementById("newUpass").value.trim();
+  if(!uid||!uname||!upass){alert("\u0e01\u0e23\u0e38\u0e13\u0e32\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e43\u0e2b\u0e49\u0e04\u0e23\u0e1a");return}
+  if(USERS.find(function(x){return x.id.toLowerCase()===uid.toLowerCase()})){alert("\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e19\u0e35\u0e49\u0e21\u0e35\u0e41\u0e25\u0e49\u0e27");return}
+  var perms=[];
+  document.querySelectorAll("#newPermChecks input:checked").forEach(function(cb){perms.push(cb.value)});
+  USERS.push({id:uid,name:uname,pass:upass,role:"user",perms:perms});
+  svUsers();
+  document.getElementById("addUserForm").style.display="none";
+  renderAdmin();
+}
+
+// ===== MODIFIED INIT =====
 document.getElementById("cd").textContent=new Date().toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"});
 // Theme toggle
 function toggleTheme(){
@@ -2190,9 +2504,34 @@ function toggleTheme(){
 }
 (function(){var th=localStorage.getItem("ts_theme");if(th==="light"){document.documentElement.setAttribute("data-theme","light");document.getElementById("themeBtn").innerHTML="&#9728;&#65039;"}})();
 
-uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels();
-// เริ่ม cloud sync (ถ้าตั้งค่าแล้ว)
-startAutoRefresh();
+function initApp(){
+  uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels();
+  startAutoRefresh();
+  applyPerms();
+}
+
+// Auto-login check
+(function(){
+  // Try cloud load users first
+  if(CLOUD_URL){
+    fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
+      if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
+      doAutoLogin();
+    }).catch(function(){doAutoLogin()});
+  } else {doAutoLogin()}
+})();
+
+function doAutoLogin(){
+  if(checkSession()){
+    document.getElementById("loginScreen").style.display="none";
+    initApp();
+  } else {
+    // Hide main content until login
+    document.querySelector(".mn").style.display="none";
+    document.querySelector(".fab").style.display="none";
+    document.getElementById("loginUser").focus();
+  }
+}
 
 // ===== FLOATING MENU =====
 var fabOpen=false;
