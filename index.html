@@ -156,32 +156,33 @@ tr:hover td{background:var(--glow)}
 .ist b{display:block;font-size:20px;margin-top:2px;font-weight:800}
 .ist.ig b{color:var(--g)}.ist.ib b{color:var(--a)}.ist.iy b{color:var(--y)}
 @media(max-width:768px){
-.hd{padding:10px 14px;flex-wrap:wrap;gap:8px}
-.hd h1{font-size:14px;gap:6px;flex:1;min-width:0}
-.hd h1::before{content:'';display:none}
-.hd-right{gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.db{font-size:10px;padding:4px 8px;display:none}
-.theme-btn{width:32px;height:32px;font-size:14px}
+.hd{padding:8px 12px;gap:4px}
+.hd h1{font-size:14px;gap:4px;white-space:nowrap;overflow:hidden}
+.hd h1 .hd-sub{display:none}
+.hd-right{gap:4px;flex-shrink:0}
+.db{display:none}
+.theme-btn{width:30px;height:30px;font-size:13px;border-radius:8px}
 .mn{padding:10px}
 .kg{grid-template-columns:repeat(2,1fr);gap:8px}
-.kp{padding:12px}
-.kl{font-size:10px}
-.kv{font-size:22px}
-.ks{font-size:9px}
+.kp{padding:14px}
+.kl{font-size:11px}
+.kv{font-size:26px}
+.ks{font-size:10px}
 .tabs{flex-wrap:wrap;gap:0;padding:3px}
-.tab{flex:0 0 auto;padding:8px 10px;font-size:11px;min-width:0}
+.tab{flex:0 0 auto;padding:10px 12px;font-size:12px;min-width:0}
 .badge{font-size:9px;padding:1px 6px;margin-left:3px}
 .tb{flex-direction:column;gap:8px}
-.sb{min-width:0;font-size:15px;padding:12px}
-.sel{font-size:13px;padding:10px;width:100%}
-.ss{flex-direction:column;gap:6px;font-size:12px;padding:10px 14px}
+.sb{min-width:0;font-size:16px;padding:14px}
+.sel{font-size:14px;padding:12px;width:100%}
+.ss{flex-direction:column;gap:6px;font-size:13px;padding:12px 14px}
 .tw{border-radius:10px}
 .ts{max-height:50vh}
-table{font-size:11px}
-th{padding:8px 8px;font-size:10px}
-td{padding:7px 8px;font-size:11px}
+table{font-size:12px}
+th{padding:8px 8px;font-size:11px}
+td{padding:8px 8px;font-size:12px}
 .pn{width:100%;border-radius:0}
-.fg input,.fg select,.fg textarea{font-size:15px;padding:12px}
+.fg input,.fg select,.fg textarea{font-size:16px;padding:14px}
+.btn{font-size:14px;padding:12px 18px}
 /* Employee 1 count area mobile */
 #rcv-count .tb{flex-direction:column;gap:8px}
 #rcv-count .tb .sb{font-size:18px!important;padding:16px!important;width:100%!important;flex:none!important}
@@ -193,8 +194,10 @@ td{padding:7px 8px;font-size:11px}
 .rcv-item{flex-wrap:wrap;gap:8px;padding:10px 12px}
 .rcv-item img{width:36px;height:36px}
 .rcv-item input[type="number"]{width:60px;font-size:14px;padding:6px}
-.rcv-sug{flex-wrap:wrap;padding:10px 12px}
-.rcv-sug img{width:38px;height:38px}
+.rcv-sug{flex-wrap:nowrap;padding:12px}
+.rcv-sug img{width:44px;height:44px}
+.rcv-sug div[style*="font-weight:700"]{font-size:15px!important}
+.rcv-sug div[style*="font-size:11px"]{font-size:13px!important}
 /* View toggle mobile */
 .view-toggle{width:100%}
 .vt-btn{flex:1;padding:10px 8px;font-size:12px;text-align:center}
@@ -316,7 +319,7 @@ td{padding:7px 8px;font-size:11px}
 </div>
 </div>
 
-<div class="hd"><h1>&#128230; <span>THAISURE</span> ระบบจัดการสั่งซื้อ</h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()" style="display:none">&#128100; <span class="uname" id="dispName"></span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="display:none;cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
+<div class="hd"><h1>&#128230; <span>THAISURE</span> <span class="hd-sub">ระบบจัดการสั่งซื้อ</span></h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()" style="display:none">&#128100; <span class="uname" id="dispName"></span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="display:none;cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
 <div class="mn">
 <div class="kg" id="kpiCards">
 <div class="kp kr" onclick="cf='o';rt()"><div class="kl">&#128308; หมดสต็อก</div><div class="kv" id="k1">0</div><div class="ks">ต้องสั่งด่วน!</div></div>
@@ -1724,7 +1727,8 @@ var _rcvSearchResults=[];
 function rcvSearch(){
   var q=document.getElementById("rcvSku").value.trim().toLowerCase();
   var el=document.getElementById("rcvSug");
-  if(!q||q.length<1){el.innerHTML="";_rcvSearchResults=[];return}
+  if(!q||q.length<1){el.innerHTML="";_rcvSearchResults=[];_sugShowAll=false;return}
+  _sugShowAll=false;
   var mode=document.getElementById("rcvMode").value;
   var qb=gb(q.toUpperCase()).toLowerCase();
   _rcvSearchResults=[];
@@ -1867,43 +1871,55 @@ function rcvAddNP(npi){
   var dh=details.map(function(d){return "<div style='font-size:13px;padding:3px 0'>&#9989; "+d+"</div>"}).join("");
   el.innerHTML="<div style='padding:14px;text-align:center;font-size:14px'>&#128203; ส่งตรวจสอบแล้ว! <b>"+p.name+"</b><br><div style='margin:10px auto;max-width:350px;text-align:left;background:var(--bg);border-radius:8px;padding:10px'>"+dh+"</div><div style='font-weight:700;color:var(--a);margin-top:6px;font-size:15px'>รวม "+totalQty+" ชิ้น → รอพนักงาน 2 ตรวจสอบ</div><div style='margin-top:10px;display:flex;gap:8px;justify-content:center'><button class='btn bs' onclick='rcvNewProducts()'>&#8592; นับสินค้าใหม่อื่น</button></div></div>";
 }
+var _sugShowAll=false;
+function rcvShowAllSug(){_sugShowAll=true;rcvRenderSug()}
 function rcvRenderSug(){
   var el=document.getElementById("rcvSug");
   var rs=_rcvSearchResults;
+  var isMob=window.innerWidth<768;
+  var MAX_SHOW=_sugShowAll?9999:(isMob?5:20);
   var checkedN=rs.filter(function(r){return r.checked}).length;
-  var h="<div style='display:flex;align-items:center;justify-content:space-between;padding:8px 0'>";
-  h+="<div style='font-size:12px;color:var(--t2)'>&#128204; พบ <b>"+rs.length+"</b> รายการ (ไม่แสดงจำนวนที่สั่ง) — ติ๊กเลือก แล้วกดเพิ่ม</div>";
-  h+="<label style='font-size:12px;color:var(--p);cursor:pointer;white-space:nowrap'><input type='checkbox' "+(checkedN===rs.length?"checked":"")+" onchange='rcvToggleAll(this.checked)' style='margin-right:4px'>เลือกทั้งหมด</label></div>";
+  var h="<div style='display:flex;align-items:center;justify-content:space-between;padding:8px 0;flex-wrap:wrap;gap:4px'>";
+  h+="<div style='font-size:12px;color:var(--t2)'>&#128204; พบ <b>"+rs.length+"</b> รายการ — ติ๊กเลือก แล้วกดเพิ่ม</div>";
+  h+="<label style='font-size:12px;color:var(--p);cursor:pointer;white-space:nowrap'><input type='checkbox' "+(checkedN===rs.length?"checked":"")+" onchange='rcvToggleAll(this.checked)' style='margin-right:4px;width:16px;height:16px;accent-color:var(--p)'>เลือกทั้งหมด</label></div>";
   // Group by order
   var groups={};
   rs.forEach(function(r,i){if(!groups[r.oi])groups[r.oi]={oid:r.oid,odate:r.odate,ostatus:r.ostatus,items:[]};groups[r.oi].items.push({r:r,i:i})});
+  var totalShown=0;var hitLimit=false;
   Object.keys(groups).forEach(function(oi){
+    if(hitLimit)return;
     var g=groups[oi];
     var stl=STS[g.ostatus];
     h+="<div style='background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;margin-bottom:8px'>";
-    h+="<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px'>";
+    h+="<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap'>";
     h+="<span style='font-size:13px;font-weight:700;color:var(--p)'>"+g.oid+"</span>";
     h+="<span style='font-size:11px;color:var(--t2)'>"+g.odate+"</span>";
     if(stl)h+="<span style='font-size:10px;padding:2px 8px;border-radius:99px;background:var(--c2);color:var(--t2)'>"+stl.i+" "+stl.l+"</span>";
     h+="</div>";
     g.items.forEach(function(gi){
+      if(hitLimit)return;
+      if(totalShown>=MAX_SHOW){hitLimit=true;return}
       var m=gi.r,idx=gi.i;
       h+="<div class='rcv-sug"+(m.checked?" rcv-sug-on":"")+"' onclick='rcvToggleOne("+idx+")'>";
-      h+="<input type='checkbox' "+(m.checked?"checked":"")+" style='width:20px;height:20px;accent-color:var(--p);flex-shrink:0;pointer-events:none'>";
+      h+="<input type='checkbox' "+(m.checked?"checked":"")+" style='width:22px;height:22px;accent-color:var(--p);flex-shrink:0;pointer-events:none'>";
       if(m.img)h+="<img src='"+m.img+"' onerror=\"this.style.display='none'\">";
       else h+="<div style='width:44px;height:44px;background:var(--bd);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0'>&#128247;</div>";
       h+="<div style='flex:1;min-width:0'><div style='font-weight:700;font-size:14px'>"+m.sku+"</div>";
-      if(m.name)h+="<div style='font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+m.name+"</div>";
+      if(m.name)h+="<div style='font-size:12px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+m.name+"</div>";
       h+="</div></div>";
+      totalShown++;
     });
     h+="</div>";
   });
+  if(hitLimit&&rs.length>MAX_SHOW){
+    h+="<button class='btn bs b2' onclick='rcvShowAllSug()' style='width:100%;padding:12px;font-size:14px;margin-top:4px'>&#128071; แสดงทั้งหมด ("+rs.length+" รายการ)</button>";
+  }
   if(checkedN>0){
     h+="<button class='btn bp' onclick='rcvAddChecked()' style='width:100%;padding:14px;font-size:15px;margin-top:4px'>&#10003; เพิ่มรายการที่เลือก ("+checkedN+" SKU)</button>";
   }
   el.innerHTML=h;
 }
-function rcvToggleAll(v){_rcvSearchResults.forEach(function(r){r.checked=v});rcvRenderSug()}
+function rcvToggleAll(v){_rcvSearchResults.forEach(function(r){r.checked=v});_sugShowAll=true;rcvRenderSug()}
 function rcvToggleOne(i){_rcvSearchResults[i].checked=!_rcvSearchResults[i].checked;rcvRenderSug()}
 function rcvAddChecked(){
   var checked=_rcvSearchResults.filter(function(r){return r.checked});
@@ -2510,28 +2526,30 @@ function initApp(){
   applyPerms();
 }
 
-// Auto-login check
+// Auto-login: ตรวจ localStorage ทันที ไม่ต้องรอ cloud
 (function(){
-  // Try cloud load users first
-  if(CLOUD_URL){
-    fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
-      if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
-      doAutoLogin();
-    }).catch(function(){doAutoLogin()});
-  } else {doAutoLogin()}
-})();
-
-function doAutoLogin(){
   if(checkSession()){
+    // Login สำเร็จจาก localStorage ทันที
     document.getElementById("loginScreen").style.display="none";
     initApp();
+    // Sync users จาก cloud ทีหลัง (background)
+    if(CLOUD_URL){
+      fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
+        if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
+      }).catch(function(){});
+    }
   } else {
-    // Hide main content until login
+    // ไม่มี session → โหลด users จาก cloud ก่อนแสดง login
     document.querySelector(".mn").style.display="none";
     document.querySelector(".fab").style.display="none";
+    if(CLOUD_URL){
+      fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
+        if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
+      }).catch(function(){});
+    }
     document.getElementById("loginUser").focus();
   }
-}
+})();
 
 // ===== FLOATING MENU =====
 var fabOpen=false;
