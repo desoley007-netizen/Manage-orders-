@@ -149,171 +149,183 @@ tr:hover td{background:var(--glow)}
 .ist b{display:block;font-size:20px;margin-top:2px;font-weight:800}
 .ist.ig b{color:var(--g)}.ist.ib b{color:var(--a)}.ist.iy b{color:var(--y)}
 @media(max-width:768px){
-/* ===== MOBILE CLEAN & COMPACT REDESIGN ===== */
+/* ============================================================
+   MOBILE-FIRST REDESIGN — THAISURE v2
+   Bottom Nav + Full-screen Panels + Card Layout
+   ============================================================ */
 
-/* --- HEADER: slimmer, cleaner --- */
-.hd{padding:6px 10px;gap:2px}
-.hd h1{font-size:14px;gap:4px;white-space:nowrap;overflow:hidden}
+/* --- BODY: space for bottom nav --- */
+body{padding-bottom:64px}
+
+/* --- HEADER: slim, 1-line --- */
+.hd{padding:8px 12px;gap:6px}
+.hd h1{font-size:15px;gap:6px;white-space:nowrap;overflow:hidden}
 .hd h1 .hd-sub{display:none}
-.hd-right{gap:4px;flex-shrink:0;flex-wrap:nowrap}
-/* ซ่อนวันที่บนมือถือ */
+.hd-right{gap:6px;flex-shrink:0;flex-wrap:nowrap}
 .db{display:none!important}
-/* Sync badge เล็กลง */
-#syncStatus{font-size:9px!important;padding:2px 6px!important;border-radius:4px!important}
-.theme-btn{width:26px;height:26px;font-size:11px;border-radius:6px}
-.user-badge{padding:3px 8px;font-size:10px;gap:3px;border-radius:6px}
-.user-badge .uname{max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#logoutBtn{padding:3px 6px;font-size:9px}
+#syncStatus{font-size:9px!important;padding:3px 8px!important;border-radius:6px!important}
+.theme-btn{width:30px;height:30px;font-size:13px;border-radius:8px}
+.user-badge{padding:4px 10px;font-size:11px;gap:4px;border-radius:8px}
+.user-badge .uname{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#logoutBtn{padding:4px 8px;font-size:10px;border-radius:6px}
 
 /* --- MAIN AREA --- */
-.mn{padding:8px}
+.mn{padding:10px 8px 16px}
 
-/* --- KPI CARDS: 2-col compact --- */
-.kg{grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
-.kp{padding:10px 12px;border-radius:10px}
-.kl{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
-.kv{font-size:24px}
-.ks{font-size:9px;margin-top:2px}
-
-/* --- TABS: icon + short text, 1 row, equal width --- */
-.tabs{display:flex!important;flex-wrap:nowrap!important;gap:0;padding:2px;margin-bottom:10px;border-radius:10px}
-.tab{flex:1!important;padding:8px 4px!important;font-size:0!important;border-radius:8px;display:flex!important;flex-direction:column!important;align-items:center!important;gap:2px!important;min-width:0!important;line-height:1}
-/* Show only emoji + short label on mobile via data attributes */
-.tab .badge{font-size:7px;padding:1px 4px;margin:0;position:absolute;margin-top:-8px;margin-left:10px}
-.tab::after{font-size:10px!important;font-weight:600;display:block;white-space:nowrap}
+/* --- BOTTOM NAVIGATION BAR --- */
+.tabs{position:fixed!important;bottom:0!important;left:0!important;right:0!important;z-index:200!important;margin:0!important;padding:0!important;border-radius:0!important;background:var(--c1)!important;border:none!important;border-top:1px solid var(--bd)!important;box-shadow:0 -2px 20px rgba(0,0,0,.3)!important;display:flex!important;flex-wrap:nowrap!important;gap:0!important;height:60px!important;align-items:stretch!important;-webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important}
+.tab{flex:1!important;padding:6px 4px 8px!important;font-size:0!important;border-radius:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;min-width:0!important;line-height:1!important;position:relative!important;transition:all .15s!important}
+.tab.act{background:transparent!important;box-shadow:none!important;color:var(--a)!important}
+.tab.act::before{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:var(--a);border-radius:0 0 3px 3px}
+.tab .badge{font-size:8px;padding:1px 5px;margin:0;position:absolute;top:4px;right:calc(50% - 22px);min-width:16px;text-align:center;border-radius:8px;z-index:1}
+.tab::after{font-size:10px!important;font-weight:600!important;display:block!important;white-space:nowrap!important;color:inherit!important}
 .tab[data-t="inv"]::after{content:'สั่งซื้อ'}
 .tab[data-t="ord"]::after{content:'ออเดอร์'}
 .tab[data-t="rcv"]::after{content:'รับสินค้า'}
 .tab[data-t="lnk"]::after{content:'ลิงค์'}
-/* Hide original text, show only emoji */
 .tab .m-hide{display:none!important}
 
-/* --- SUB-TABS (RCV): pill toggle compact --- */
-#t-rcv>.tb>.view-toggle{display:flex;background:var(--c1);border-radius:10px;padding:2px;border:1px solid var(--bd);width:100%}
-#t-rcv>.tb>.view-toggle .vt-btn{flex:1;padding:7px 4px;font-size:11px;text-align:center;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* Order selector: pill card style */
-#rcvOrd,#rcvOrdNP{width:100%;font-size:13px;padding:10px 12px;border-radius:10px}
+/* --- KPI CARDS: horizontal scroll strip --- */
+.kg{display:flex!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;gap:8px!important;margin-bottom:12px!important;padding-bottom:4px!important;scroll-snap-type:x mandatory!important}
+.kg::-webkit-scrollbar{display:none}
+.kp{min-width:130px!important;max-width:160px!important;flex-shrink:0!important;padding:10px 12px!important;border-radius:12px!important;scroll-snap-align:start!important}
+.kl{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
+.kv{font-size:22px}
+.ks{font-size:9px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* --- WORK AREA (rcv-count): compact card --- */
-#rcv-count>.ss{padding:10px 12px;margin-bottom:6px;border-radius:10px;gap:4px;border-left:3px solid var(--a)}
-#rcv-count>.ss div:first-child{font-size:13px!important}
-#rcv-count>.ss div:last-child{font-size:11px!important;display:none}
+/* --- TOOLBAR: vertical stack with better spacing --- */
+.tb{flex-direction:column;gap:8px}
+.sb{min-width:0;width:100%;font-size:16px;padding:12px 14px;border-radius:12px}
+.sel{font-size:14px;padding:10px 12px;width:100%;border-radius:12px}
+.btn{font-size:14px;padding:11px 18px;border-radius:12px;min-height:44px}
+.bs{min-height:36px}
 
-/* Form: search + camera in 1 row, qty + add in 1 row */
-#rcv-count .tb{display:flex!important;flex-wrap:wrap!important;flex-direction:row!important;gap:6px!important;margin-top:6px!important}
-#rcv-count .tb .sel{flex:0 0 auto;width:auto!important;min-width:70px!important;font-size:13px!important;padding:10px 6px!important;border-radius:8px!important}
-#rcv-count .tb .sb{flex:1!important;min-width:0!important;font-size:15px!important;padding:10px 12px!important;border-radius:10px!important;width:auto!important}
-#rcv-count .tb .btn.bs.b2{flex:0 0 auto!important;width:42px!important;height:42px!important;padding:0!important;font-size:16px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
-#rcv-count .tb .btn.bs[style*="background:var(--y)"]{flex:0 0 auto!important;width:auto!important;padding:8px 12px!important;font-size:12px!important;border-radius:8px!important;display:flex!important;align-items:center!important}
-/* Qty + Add button row */
-#rcv-count .tb input[type="number"]{flex:1!important;width:auto!important;min-width:60px!important;font-size:20px!important;padding:10px 8px!important;text-align:center!important;border-radius:10px!important}
-#rcv-count .tb .btn.bp{flex:0 0 auto!important;width:auto!important;padding:10px 20px!important;font-size:14px!important;border-radius:10px!important}
-
-/* Scanned items list compact */
-.rcv-item{flex-wrap:nowrap;gap:6px;padding:8px 10px;border-radius:8px;margin-bottom:4px}
-.rcv-item img{width:32px;height:32px;border-radius:6px}
-.rcv-item input[type="number"]{width:50px;font-size:14px;padding:4px}
-
-/* Search suggestions compact */
-.rcv-sug{flex-wrap:nowrap;padding:10px 12px;border-radius:8px;margin-bottom:3px;gap:8px}
-.rcv-sug img{width:40px;height:40px;border-radius:6px}
-.rcv-sug div[style*="font-weight:700"]{font-size:14px!important}
-.rcv-sug div[style*="font-size:11px"]{font-size:12px!important}
-
-/* Save button sticky */
-#rcvActions{position:sticky;bottom:0;z-index:50;background:var(--bg);padding:8px 0;margin-top:6px}
-#rcvActions .btn{font-size:15px;padding:12px;border-radius:10px}
-
-/* --- OTHER TABS --- */
-/* Toolbar general */
-.tb{flex-direction:column;gap:6px}
-.sb{min-width:0;font-size:15px;padding:10px 12px;border-radius:10px}
-.sel{font-size:13px;padding:10px;width:100%;border-radius:10px}
-.ss{flex-direction:row;flex-wrap:wrap;gap:4px 8px;font-size:11px;padding:8px 10px;border-radius:10px}
+/* --- STATS SUMMARY: wrap nicely --- */
+.ss{flex-direction:row;flex-wrap:wrap;gap:4px 10px;font-size:11px;padding:10px 12px;border-radius:12px}
 .ss span{white-space:nowrap}
-.btn{font-size:13px;padding:10px 16px;border-radius:10px}
-
-/* Inventory tab: search + toggle in 1 row */
-#t-inv>.tb{gap:6px}
-#t-inv>.tb>.view-toggle{order:1}
-#t-inv>.tb>.sb{order:0;font-size:14px;padding:10px 12px}
-#t-inv>.tb>.btn{order:2;font-size:12px;padding:8px 12px}
-#t-inv>.tb>.sel{order:3;font-size:12px;padding:8px 10px}
-
-/* View toggle compact */
-.view-toggle{width:100%;border-radius:10px}
-.vt-btn{flex:1;padding:7px 4px;font-size:11px;text-align:center;border-radius:8px}
-
-/* Stats summary inline */
 .ss b{font-size:12px}
 
-/* Tables compact */
-.tw{border-radius:10px}
-.ts{max-height:55vh}
-table{font-size:11px}
-th{padding:6px 6px;font-size:10px}
-td{padding:6px 6px;font-size:11px}
+/* --- FILTER BAR: horizontal scroll, bigger touch targets --- */
+.fbar{gap:6px;margin-bottom:10px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scroll-snap-type:x proximity}
+.fbar::-webkit-scrollbar{display:none}
+.fb{padding:8px 14px;font-size:12px;border-radius:16px;flex-shrink:0;min-height:36px;scroll-snap-align:start}
 
-/* Panels full width */
-.pn{width:100%;border-radius:0}
-.fg input,.fg select,.fg textarea{font-size:16px;padding:12px}
+/* --- TABLES: compact with horizontal scroll --- */
+.tw{border-radius:12px;overflow:hidden}
+.ts{max-height:60vh;-webkit-overflow-scrolling:touch}
+table{font-size:12px}
+th{padding:8px 8px;font-size:10px;position:sticky;top:0;z-index:5}
+td{padding:8px 8px;font-size:12px}
+.grp-name,td.nm{min-width:100px;max-width:150px}
+.sku-img{width:32px;height:32px;border-radius:6px;margin-right:6px}
+.sku-img:hover{transform:scale(2.5)}
 
-/* Order cards */
-.oc{padding:10px 12px;border-radius:10px;margin-bottom:6px}
-.och{flex-direction:column;gap:4px}
+/* --- PANELS: full screen slide-up --- */
+.ov{z-index:500}
+.pn{width:100%!important;height:100%!important;border-radius:0!important;border-left:none!important;padding:16px!important;z-index:501!important}
+.pn h2{font-size:16px;margin-bottom:14px;position:sticky;top:0;background:var(--c1);padding:8px 0;z-index:2}
+.cb{font-size:28px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.fg input,.fg select,.fg textarea{font-size:16px;padding:12px 14px;border-radius:12px}
 
-/* Order tab: compact action bar */
-#ord-tb{flex-wrap:nowrap!important;gap:5px!important;align-items:center}
-#ord-tb .sel{flex:1.2;min-width:0;font-size:11px!important;padding:6px 6px!important}
-#ord-tb .mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px;flex:none}
-#ord-tb .mt .mtb{flex-shrink:0;font-size:11px;padding:5px 10px}
-.ord-act{flex-shrink:0!important;width:36px!important;height:36px!important;padding:0!important;font-size:16px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+/* --- ORDER CARDS: mobile-friendly --- */
+.oc{padding:12px;border-radius:12px;margin-bottom:8px}
+.och{flex-direction:column;gap:6px}
+.os{font-size:12px}
 
-/* Lnk tab: compact action bar */
-#lnk-tb{flex-wrap:nowrap!important;gap:5px!important;align-items:center}
-.lnk-act{flex-shrink:0!important;width:36px!important;height:36px!important;padding:0!important;font-size:16px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+/* --- INVENTORY TAB --- */
+#t-inv>.tb{gap:8px}
+#t-inv>.tb>.view-toggle{order:1;width:100%}
+#t-inv>.tb>.sb{order:0;font-size:15px;padding:12px 14px}
+#t-inv>.tb>.btn{order:2;font-size:13px;padding:10px 14px;width:100%}
+#t-inv>.tb>.sel{order:3;font-size:13px;padding:10px 12px;width:100%}
+.view-toggle{width:100%;border-radius:12px}
+.vt-btn{flex:1;padding:10px 4px;font-size:12px;text-align:center;border-radius:10px;min-height:40px}
 
-#ordSub-normal>.tb>.mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px}
-#ordSub-normal>.tb>.mt .mtb{flex-shrink:0;font-size:11px;padding:5px 10px}
+/* --- ORDER TAB: toolbar --- */
+#ord-tb{flex-direction:row!important;flex-wrap:wrap!important;gap:6px!important;align-items:center}
+#ord-tb .sel{flex:1;min-width:0;font-size:12px!important;padding:8px 10px!important;border-radius:10px!important}
+#ord-tb .mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;width:100%}
+#ord-tb .mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px;min-height:36px}
+.ord-act{flex-shrink:0!important;width:40px!important;height:40px!important;padding:0!important;font-size:18px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#ordSub-normal>.tb>.mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px}
+#ordSub-normal>.tb>.mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px}
+#ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:12px;padding:10px 4px;border-radius:10px;min-height:40px}
 
-/* Order sub-tab toggle */
-#ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:11px;padding:7px 4px;border-radius:8px}
-
-/* FAB: smaller */
-.fab{bottom:14px;right:14px}
-.fab-btn{width:44px;height:44px;font-size:16px;border-radius:12px}
-.fab-menu{width:calc(100vw - 28px);max-width:none;right:0;border-radius:14px;padding:14px}
-
-/* Filter bar compact scrollable */
-.fbar{gap:3px;margin-bottom:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
-.fb{padding:4px 8px;font-size:10px;border-radius:12px;flex-shrink:0}
-
-/* NP cards */
-.st{padding:8px;min-width:0}
+/* --- LINK TAB: toolbar --- */
+#lnk-tb{flex-direction:row!important;flex-wrap:wrap!important;gap:6px!important;align-items:center}
+.lnk-act{flex-shrink:0!important;width:40px!important;height:40px!important;padding:0!important;font-size:18px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+.lnk-card{flex-direction:column}
+.sr{flex-wrap:wrap;gap:8px}
+.st{padding:10px;min-width:0}
 .st div:first-child{font-size:16px!important}
 
-/* Links tab */
-.lnk-card{flex-direction:column}
-.sr{flex-wrap:wrap;gap:6px}
+/* --- RCV TAB --- */
+#t-rcv>.tb>.view-toggle{display:flex;background:var(--c1);border-radius:12px;padding:3px;border:1px solid var(--bd);width:100%}
+#t-rcv>.tb>.view-toggle .vt-btn{flex:1;padding:10px 4px;font-size:12px;text-align:center;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:40px}
+#rcvOrd,#rcvOrdNP{width:100%;font-size:14px;padding:12px 14px;border-radius:12px}
 
-/* Verification cards */
-#rcvCheckList .oc{padding:8px 10px}
+/* Work area */
+#rcv-count>.ss{padding:12px;margin-bottom:8px;border-radius:12px;gap:6px;border-left:3px solid var(--a)}
+#rcv-count>.ss div:first-child{font-size:14px!important}
+#rcv-count>.ss div:last-child{font-size:11px!important;display:none}
 
-/* Admin panel mobile */
-.adm-ov{z-index:300}
-.adm-pn{width:100%;padding:14px;z-index:301}
-.adm-pn h2{font-size:15px}
-.usr-card{padding:10px}
-.usr-name{font-size:12px}
-.perm-grid{gap:4px}
-.perm-tag{font-size:9px;padding:3px 6px}
-#addUserForm{padding:10px}
-#addUserForm .fg input{font-size:15px;padding:12px}
-.perm-cb{font-size:12px;padding:4px 0}
+/* Search form */
+#rcv-count .tb{display:flex!important;flex-wrap:wrap!important;flex-direction:row!important;gap:8px!important;margin-top:8px!important}
+#rcv-count .tb .sel{flex:0 0 auto;width:auto!important;min-width:70px!important;font-size:14px!important;padding:10px 8px!important;border-radius:10px!important;min-height:44px!important}
+#rcv-count .tb .sb{flex:1!important;min-width:0!important;font-size:16px!important;padding:12px 14px!important;border-radius:12px!important;width:auto!important;min-height:44px!important}
+#rcv-count .tb .btn.bs.b2{flex:0 0 auto!important;width:44px!important;height:44px!important;padding:0!important;font-size:18px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#rcv-count .tb .btn.bs[style*="background:var(--y)"]{flex:0 0 auto!important;width:auto!important;padding:10px 14px!important;font-size:13px!important;border-radius:10px!important;min-height:44px!important}
+#rcv-count .tb input[type="number"]{flex:1!important;width:auto!important;min-width:60px!important;font-size:22px!important;padding:10px 8px!important;text-align:center!important;border-radius:12px!important;min-height:44px!important}
+#rcv-count .tb .btn.bp{flex:0 0 auto!important;width:auto!important;padding:12px 24px!important;font-size:15px!important;border-radius:12px!important;min-height:44px!important}
+
+/* Scanned items */
+.rcv-item{flex-wrap:nowrap;gap:8px;padding:10px 12px;border-radius:10px;margin-bottom:6px}
+.rcv-item img{width:36px;height:36px;border-radius:8px}
+.rcv-item input[type="number"]{width:56px;font-size:16px;padding:6px;min-height:40px;border-radius:8px}
+.rcv-sug{flex-wrap:nowrap;padding:12px 14px;border-radius:10px;margin-bottom:4px;gap:10px;min-height:56px}
+.rcv-sug img{width:44px;height:44px;border-radius:8px}
+.rcv-sug div[style*="font-weight:700"]{font-size:15px!important}
+.rcv-sug div[style*="font-size:11px"]{font-size:12px!important}
+
+/* Save button */
+#rcvActions{position:sticky;bottom:64px;z-index:50;background:var(--bg);padding:10px 0;margin-top:8px}
+#rcvActions .btn{font-size:16px;padding:14px;border-radius:12px;min-height:50px}
+#rcvCheckList .oc{padding:10px 12px}
+
+/* --- FAB: above bottom nav --- */
+.fab{bottom:76px!important;right:14px}
+.fab-btn{width:50px;height:50px;font-size:18px;border-radius:14px}
+.fab-menu{width:calc(100vw - 20px);max-width:none;right:-4px;border-radius:16px;padding:16px;max-height:60vh}
+
+/* --- ADMIN PANEL --- */
+.adm-ov{z-index:600}
+.adm-pn{width:100%!important;padding:16px!important;z-index:601!important}
+.adm-pn h2{font-size:16px}
+.usr-card{padding:12px;border-radius:12px}
+.usr-name{font-size:13px}
+.perm-grid{gap:6px}
+.perm-tag{font-size:10px;padding:4px 8px;border-radius:6px}
+#addUserForm{padding:14px;border-radius:12px}
+#addUserForm .fg input{font-size:16px;padding:12px 14px}
+.perm-cb{font-size:13px;padding:6px 0;min-height:40px}
 .perm-cb input[type="checkbox"]{width:22px;height:22px}
 
-/* Empty states compact */
-.emp{padding:30px 16px}
+/* --- LOGIN --- */
+.login-ov{padding:16px}
+.login-box{padding:28px 20px;width:100%;max-width:360px}
+.login-box h2{font-size:20px}
+.login-box input{font-size:16px;padding:14px}
+.login-box .btn{padding:16px;font-size:16px;min-height:50px}
+
+/* --- NP cards --- */
+.st{padding:10px;min-width:0}
+
+/* --- EMPTY STATE --- */
+.emp{padding:40px 20px}
+
+/* --- PREVENT HORIZONTAL OVERFLOW --- */
+html,body{overflow-x:hidden!important}
+.mn{overflow-x:hidden}
 }
 .grp{background:var(--glass);cursor:pointer;transition:.15s}
 .grp:hover{background:var(--glow)}
@@ -658,7 +670,7 @@ function _chunkSplit(key, str) {
   if (str.length <= CHUNK_SIZE) {
     result[key] = str;
     // ลบ chunk เก่าที่อาจเหลืออยู่ (ส่ง empty string เพื่อล้าง)
-    for (var i = 2; i <= 10; i++) { result[key + "_" + i] = ""; }
+    for (var i = 2; i <= 30; i++) { result[key + "_" + i] = ""; }
     return result;
   }
   var chunks = [];
@@ -670,7 +682,7 @@ function _chunkSplit(key, str) {
     result[key + "_" + (i + 1)] = chunks[i];
   }
   // ลบ chunk เก่าที่ไม่ใช้แล้ว
-  for (var j = chunks.length + 1; j <= 10; j++) { result[key + "_" + j] = ""; }
+  for (var j = chunks.length + 1; j <= 30; j++) { result[key + "_" + j] = ""; }
   return result;
 }
 
@@ -678,7 +690,7 @@ function _chunkSplit(key, str) {
 function _chunkJoin(key, data) {
   if (!data[key]) return null;
   var str = data[key];
-  for (var i = 2; i <= 10; i++) {
+  for (var i = 2; i <= 30; i++) {
     var ck = key + "_" + i;
     if (data[ck] && data[ck].length > 0) { str += data[ck]; }
     else { break; }
@@ -697,7 +709,8 @@ function _buildCloudPayload() {
     ts_np: JSON.stringify(NP),
     ts_disc: JSON.stringify(DISC),
     ts_hold: JSON.stringify(HOLD),
-    ts_users: JSON.stringify(USERS)
+    ts_users: JSON.stringify(USERS),
+    ts_r: JSON.stringify(R)
   };
   for (var k in bigKeys) {
     var chunks = _chunkSplit(k, bigKeys[k]);
@@ -745,7 +758,7 @@ function cloudForceSave(cb){
   // === Snapshot ข้อมูลทันที (ใช้ chunking) ===
   var snap=_buildCloudPayload();
   // เก็บ raw JSON ไว้ restore
-  var snapRaw={ts_o:JSON.stringify(O),ts_np:JSON.stringify(NP),ts_l:JSON.stringify(L)};
+  var snapRaw={ts_o:JSON.stringify(O),ts_np:JSON.stringify(NP),ts_l:JSON.stringify(L),ts_r:JSON.stringify(R)};
   function _doSave(){
     if(_cloudBusy){setTimeout(_doSave,300);return;}
     _cloudBusy=true;
@@ -758,6 +771,7 @@ function cloudForceSave(cb){
       try{O=JSON.parse(snapRaw.ts_o);localStorage.setItem("ts_o",snapRaw.ts_o)}catch(e){}
       try{NP=JSON.parse(snapRaw.ts_np);localStorage.setItem("ts_np",snapRaw.ts_np)}catch(e){}
       try{L=JSON.parse(snapRaw.ts_l);localStorage.setItem("ts_l",snapRaw.ts_l)}catch(e){}
+      try{R=JSON.parse(snapRaw.ts_r);I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});localStorage.setItem("ts_r",snapRaw.ts_r)}catch(e){}
       if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);}
       else{syncUI("err","Save failed");}
       if(cb)cb();
@@ -788,6 +802,7 @@ function cloudLoad(manual) {
       var raw_users = _chunkJoin("ts_users", d.data);
       var raw_disc = _chunkJoin("ts_disc", d.data);
       var raw_hold = _chunkJoin("ts_hold", d.data);
+      var raw_r = _chunkJoin("ts_r", d.data);
 
       if (raw_o && raw_o !== JSON.stringify(O)) { O = JSON.parse(raw_o); localStorage.setItem("ts_o", raw_o); changed = true; }
       if (raw_l && raw_l !== JSON.stringify(L)) { L = JSON.parse(raw_l); localStorage.setItem("ts_l", raw_l); changed = true; }
@@ -796,6 +811,19 @@ function cloudLoad(manual) {
       if (raw_np && raw_np !== JSON.stringify(NP)) { NP = JSON.parse(raw_np); localStorage.setItem("ts_np", raw_np); changed = true; }
       if (d.data.ts_thc) { TH_C = parseInt(d.data.ts_thc) || 7; localStorage.setItem("ts_thc", TH_C); }
       if (d.data.ts_thl) { TH_L = parseInt(d.data.ts_thl) || 14; localStorage.setItem("ts_thl", TH_L); }
+      // อัปเดต R array (ข้อมูล SKU หลัก + รูปภาพ) จาก cloud
+      if (raw_r && raw_r !== JSON.stringify(R)) {
+        try{
+          var cloudR=JSON.parse(raw_r);
+          if(Array.isArray(cloudR)&&cloudR.length>0){
+            R=cloudR;
+            I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});
+            try{localStorage.setItem("ts_r",raw_r)}catch(ex){console.warn("localStorage full for ts_r")}
+            _gimgCache={};
+            changed=true;
+          }
+        }catch(e){console.warn("cloudLoad R parse error",e)}
+      }
       // อัปเดต USERS จาก cloud ด้วย (merge ไม่เขียนทับ)
       if (raw_disc) { try{DISC=JSON.parse(raw_disc);localStorage.setItem("ts_disc",JSON.stringify(DISC))}catch(e){} }
       if (raw_hold) { try{HOLD=JSON.parse(raw_hold);localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
@@ -882,6 +910,7 @@ function _processBigSellerRows(rows,fileCount){
   // Persist imported data to localStorage
   _gimgCache={};
   try{localStorage.setItem("ts_r",JSON.stringify(R));localStorage.setItem("ts_r_date",new Date().toISOString())}catch(e){console.warn("localStorage full, R not saved")}
+  cloudSave();
   rt();rl();ro();rrcv();recalcS();uk();
   if(typeof updateFm==="function")updateFm();
   alert("\u2705 \u0e2d\u0e31\u0e1e\u0e40\u0e14\u0e17\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08! "+fileCount+" \u0e44\u0e1f\u0e25\u0e4c \u0e23\u0e27\u0e21 "+newR.length+" SKU\n\u0e2b\u0e21\u0e14\u0e2a\u0e15\u0e47\u0e2d\u0e01: "+co+" | \u0e27\u0e34\u0e01\u0e24\u0e15: "+cc+" | \u0e43\u0e01\u0e25\u0e49\u0e2b\u0e21\u0e14: "+cl+" | \u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22: "+cs);
