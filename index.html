@@ -615,6 +615,63 @@ function syncUI(state, msg) {
   else if (state === "offline") { el.style.background = "rgba(156,163,175,.15)"; el.style.color = "var(--t2)"; el.innerHTML = "&#128268; Offline — ใช้ข้อมูลในเครื่อง"; }
 }
 
+// === Data Chunking — แบ่งข้อมูลเป็นชิ้นๆ เพื่อหลีกเลี่ยง Google Sheets cell limit 50,000 chars ===
+var CHUNK_SIZE = 40000; // ขนาดแต่ละ chunk (ปลอดภัยกว่า 50K limit)
+
+// แบ่ง string ออกเป็น chunks → { key: chunk1, key_2: chunk2, key_3: chunk3, ... }
+function _chunkSplit(key, str) {
+  var result = {};
+  if (str.length <= CHUNK_SIZE) {
+    result[key] = str;
+    // ลบ chunk เก่าที่อาจเหลืออยู่ (ส่ง empty string เพื่อล้าง)
+    for (var i = 2; i <= 10; i++) { result[key + "_" + i] = ""; }
+    return result;
+  }
+  var chunks = [];
+  for (var i = 0; i < str.length; i += CHUNK_SIZE) {
+    chunks.push(str.substring(i, i + CHUNK_SIZE));
+  }
+  result[key] = chunks[0];
+  for (var i = 1; i < chunks.length; i++) {
+    result[key + "_" + (i + 1)] = chunks[i];
+  }
+  // ลบ chunk เก่าที่ไม่ใช้แล้ว
+  for (var j = chunks.length + 1; j <= 10; j++) { result[key + "_" + j] = ""; }
+  return result;
+}
+
+// รวม chunks กลับเป็น string เดียว จาก cloud data object
+function _chunkJoin(key, data) {
+  if (!data[key]) return null;
+  var str = data[key];
+  for (var i = 2; i <= 10; i++) {
+    var ck = key + "_" + i;
+    if (data[ck] && data[ck].length > 0) { str += data[ck]; }
+    else { break; }
+  }
+  return str;
+}
+
+// สร้าง payload ที่มี chunking สำหรับทุก key ที่อาจมีขนาดใหญ่
+function _buildCloudPayload() {
+  var payload = {};
+  var bigKeys = {
+    ts_o: JSON.stringify(O),
+    ts_l: JSON.stringify(L),
+    ts_rc: JSON.stringify(RC),
+    ts_si: JSON.stringify(SI),
+    ts_np: JSON.stringify(NP),
+    ts_users: JSON.stringify(USERS)
+  };
+  for (var k in bigKeys) {
+    var chunks = _chunkSplit(k, bigKeys[k]);
+    for (var ck in chunks) { payload[ck] = chunks[ck]; }
+  }
+  payload.ts_thc = String(TH_C);
+  payload.ts_thl = String(TH_L);
+  return payload;
+}
+
 function cloudSave() {
   if (!CLOUD_URL) return;
   // Debounce: รอ 2 วินาทีหลังการเปลี่ยนแปลงครั้งสุดท้าย แล้วค่อย save
@@ -623,16 +680,7 @@ function cloudSave() {
     if (_cloudBusy) return;
     _cloudBusy = true;
     syncUI("saving");
-    var payload = {
-      ts_o: JSON.stringify(O),
-      ts_l: JSON.stringify(L),
-      ts_rc: JSON.stringify(RC),
-      ts_si: JSON.stringify(SI),
-      ts_np: JSON.stringify(NP),
-      ts_thc: String(TH_C),
-      ts_thl: String(TH_L),
-      ts_users: JSON.stringify(USERS)
-    };
+    var payload = _buildCloudPayload();
     fetch(CLOUD_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain" },
@@ -658,14 +706,11 @@ function cloudForceSave(cb){
   if(!CLOUD_URL){if(cb)cb();return;}
   clearTimeout(_cloudSaveTimer);
   stopAutoRefresh();
-  // === Snapshot ข้อมูลทันที ก่อนที่ cloudLoad จะเขียนทับ ===
-  var snap={
-    ts_o:JSON.stringify(O),ts_l:JSON.stringify(L),ts_rc:JSON.stringify(RC),
-    ts_si:JSON.stringify(SI),ts_np:JSON.stringify(NP),
-    ts_thc:String(TH_C),ts_thl:String(TH_L),ts_users:JSON.stringify(USERS)
-  };
+  // === Snapshot ข้อมูลทันที (ใช้ chunking) ===
+  var snap=_buildCloudPayload();
+  // เก็บ raw JSON ไว้ restore
+  var snapRaw={ts_o:JSON.stringify(O),ts_np:JSON.stringify(NP),ts_l:JSON.stringify(L)};
   function _doSave(){
-    // ถ้า cloud busy อยู่ รอก่อน (แต่ใช้ snap ที่ถ่ายไว้แล้ว ไม่ใช่ O ที่อาจถูกเขียนทับ)
     if(_cloudBusy){setTimeout(_doSave,300);return;}
     _cloudBusy=true;
     syncUI("saving");
@@ -674,13 +719,12 @@ function cloudForceSave(cb){
     .then(function(d){
       _cloudBusy=false;
       // Restore snapshot กลับ (ป้องกัน cloudLoad เขียนทับระหว่างรอ)
-      try{O=JSON.parse(snap.ts_o);localStorage.setItem("ts_o",snap.ts_o)}catch(e){}
-      try{NP=JSON.parse(snap.ts_np);localStorage.setItem("ts_np",snap.ts_np)}catch(e){}
-      try{L=JSON.parse(snap.ts_l);localStorage.setItem("ts_l",snap.ts_l)}catch(e){}
+      try{O=JSON.parse(snapRaw.ts_o);localStorage.setItem("ts_o",snapRaw.ts_o)}catch(e){}
+      try{NP=JSON.parse(snapRaw.ts_np);localStorage.setItem("ts_np",snapRaw.ts_np)}catch(e){}
+      try{L=JSON.parse(snapRaw.ts_l);localStorage.setItem("ts_l",snapRaw.ts_l)}catch(e){}
       if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);}
       else{syncUI("err","Save failed");}
       if(cb)cb();
-      // Restart auto-refresh หลัง 5 วินาที โดยไม่ดึงข้อมูลทันที (skipFirstLoad=true)
       setTimeout(function(){startAutoRefresh(true);},5000);
     })
     .catch(function(){_cloudBusy=false;syncUI("err","Offline");if(cb)cb();setTimeout(function(){startAutoRefresh(true);},5000);});
@@ -699,18 +743,24 @@ function cloudLoad(manual) {
     _cloudBusy = false;
     if (d.status === "ok" && d.data) {
       var changed = false;
-      // เปรียบเทียบก่อนอัปเดต เพื่อไม่ render ซ้ำถ้าข้อมูลเหมือนเดิม
-      if (d.data.ts_o && d.data.ts_o !== JSON.stringify(O)) { O = JSON.parse(d.data.ts_o); localStorage.setItem("ts_o", d.data.ts_o); changed = true; }
-      if (d.data.ts_l && d.data.ts_l !== JSON.stringify(L)) { L = JSON.parse(d.data.ts_l); localStorage.setItem("ts_l", d.data.ts_l); changed = true; }
-      if (d.data.ts_rc && d.data.ts_rc !== JSON.stringify(RC)) { RC = JSON.parse(d.data.ts_rc); localStorage.setItem("ts_rc", d.data.ts_rc); changed = true; }
-      if (d.data.ts_si && d.data.ts_si !== JSON.stringify(SI)) { SI = JSON.parse(d.data.ts_si); localStorage.setItem("ts_si", d.data.ts_si); changed = true; }
-      if (d.data.ts_np && d.data.ts_np !== JSON.stringify(NP)) { NP = JSON.parse(d.data.ts_np); localStorage.setItem("ts_np", d.data.ts_np); changed = true; }
+      // ใช้ _chunkJoin เพื่อรวม chunks กลับเป็น string เดียว
+      var raw_o = _chunkJoin("ts_o", d.data);
+      var raw_l = _chunkJoin("ts_l", d.data);
+      var raw_rc = _chunkJoin("ts_rc", d.data);
+      var raw_si = _chunkJoin("ts_si", d.data);
+      var raw_np = _chunkJoin("ts_np", d.data);
+      var raw_users = _chunkJoin("ts_users", d.data);
+
+      if (raw_o && raw_o !== JSON.stringify(O)) { O = JSON.parse(raw_o); localStorage.setItem("ts_o", raw_o); changed = true; }
+      if (raw_l && raw_l !== JSON.stringify(L)) { L = JSON.parse(raw_l); localStorage.setItem("ts_l", raw_l); changed = true; }
+      if (raw_rc && raw_rc !== JSON.stringify(RC)) { RC = JSON.parse(raw_rc); localStorage.setItem("ts_rc", raw_rc); changed = true; }
+      if (raw_si && raw_si !== JSON.stringify(SI)) { SI = JSON.parse(raw_si); localStorage.setItem("ts_si", raw_si); changed = true; }
+      if (raw_np && raw_np !== JSON.stringify(NP)) { NP = JSON.parse(raw_np); localStorage.setItem("ts_np", raw_np); changed = true; }
       if (d.data.ts_thc) { TH_C = parseInt(d.data.ts_thc) || 7; localStorage.setItem("ts_thc", TH_C); }
       if (d.data.ts_thl) { TH_L = parseInt(d.data.ts_thl) || 14; localStorage.setItem("ts_thl", TH_L); }
       // อัปเดต USERS จาก cloud ด้วย (merge ไม่เขียนทับ)
-      if (d.data.ts_users) { try{var cu=JSON.parse(d.data.ts_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
+      if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
       if (changed) {
-        // Re-render ทุกอย่าง
         cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
       }
       var t = new Date().toLocaleTimeString("th-TH", {hour:"2-digit",minute:"2-digit"});
@@ -2551,7 +2601,8 @@ var CUR_USER=null;
 function svUsers(){localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
 function cloudSaveUsers(){
   if(!CLOUD_URL)return;
-  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({ts_users:JSON.stringify(USERS)})}).catch(function(){});
+  var payload=_chunkSplit("ts_users",JSON.stringify(USERS));
+  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){});
 }
 
 var _cloudReady=false;
@@ -2574,11 +2625,13 @@ function _loginOK(u){
 function _fetchCloudUsers(){
   return fetch(CLOUD_URL+"?t="+Date.now()).then(function(r){return r.json()}).then(function(d){
     var cu=null;
-    // รองรับทั้ง 2 รูปแบบ: {status:"ok",data:{ts_users:...}} หรือ {value:...}
-    if(d&&d.status==="ok"&&d.data&&d.data.ts_users){try{cu=JSON.parse(d.data.ts_users)}catch(e){}}
+    // รองรับทั้ง chunked format และ flat format
+    if(d&&d.status==="ok"&&d.data){
+      var raw=_chunkJoin("ts_users",d.data);
+      if(raw){try{cu=JSON.parse(raw)}catch(e){}}
+    }
     if(!cu&&d&&d.value){try{cu=JSON.parse(d.value)}catch(e){}}
     if(Array.isArray(cu)&&cu.length>0){
-      // Merge แทนการเขียนทับ — รวม cloud + local เข้าด้วยกัน
       USERS=_mergeUsers(USERS,cu);
       localStorage.setItem("ts_users",JSON.stringify(USERS));
     }
