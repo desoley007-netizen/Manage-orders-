@@ -673,9 +673,12 @@ function cloudForceSave(cb){
     _cloudBusy=false;
     if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);}
     else{syncUI("err","Save failed");}
-    startAutoRefresh();if(cb)cb();
+    // รัน callback ก่อน แล้วค่อย restart auto-refresh (หลัง 3 วินาที)
+    // เพื่อป้องกัน cloudLoad ดึงข้อมูลเก่าจาก server มาเขียนทับทันที
+    if(cb)cb();
+    setTimeout(function(){startAutoRefresh();},3000);
   })
-  .catch(function(){_cloudBusy=false;syncUI("err","Offline");startAutoRefresh();if(cb)cb();});
+  .catch(function(){_cloudBusy=false;syncUI("err","Offline");if(cb)cb();setTimeout(function(){startAutoRefresh();},3000);});
 }
 
 function cloudLoad(manual) {
