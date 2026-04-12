@@ -658,8 +658,8 @@ function cloudLoad(manual) {
       if (d.data.ts_np && d.data.ts_np !== JSON.stringify(NP)) { NP = JSON.parse(d.data.ts_np); localStorage.setItem("ts_np", d.data.ts_np); changed = true; }
       if (d.data.ts_thc) { TH_C = parseInt(d.data.ts_thc) || 7; localStorage.setItem("ts_thc", TH_C); }
       if (d.data.ts_thl) { TH_L = parseInt(d.data.ts_thl) || 14; localStorage.setItem("ts_thl", TH_L); }
-      // อัปเดต USERS จาก cloud ด้วย (เพื่อให้ login ซิงค์ข้ามเครื่อง)
-      if (d.data.ts_users) { try{var cu=JSON.parse(d.data.ts_users);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
+      // อัปเดต USERS จาก cloud ด้วย (merge ไม่เขียนทับ)
+      if (d.data.ts_users) { try{var cu=JSON.parse(d.data.ts_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
       if (changed) {
         // Re-render ทุกอย่าง
         cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
@@ -2408,6 +2408,15 @@ function cloudSaveUsers(){
 }
 
 var _cloudReady=false;
+// Merge users: cloud + local → รวมทั้งสองฝั่ง ไม่เขียนทับ
+function _mergeUsers(local,cloud){
+  var merged=[];var ids={};
+  // cloud users เป็นหลัก (เพราะอาจถูกแก้ไขจากเครื่องอื่น)
+  cloud.forEach(function(u){merged.push(u);ids[u.id.toLowerCase()]=true});
+  // เพิ่ม local-only users ที่ไม่มีใน cloud
+  local.forEach(function(u){if(!ids[u.id.toLowerCase()]){merged.push(u);ids[u.id.toLowerCase()]=true}});
+  return merged;
+}
 function _loginOK(u){
   CUR_USER=u;
   localStorage.setItem("ts_login",JSON.stringify({id:u.id}));
@@ -2421,7 +2430,11 @@ function _fetchCloudUsers(){
     // รองรับทั้ง 2 รูปแบบ: {status:"ok",data:{ts_users:...}} หรือ {value:...}
     if(d&&d.status==="ok"&&d.data&&d.data.ts_users){try{cu=JSON.parse(d.data.ts_users)}catch(e){}}
     if(!cu&&d&&d.value){try{cu=JSON.parse(d.value)}catch(e){}}
-    if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}
+    if(Array.isArray(cu)&&cu.length>0){
+      // Merge แทนการเขียนทับ — รวม cloud + local เข้าด้วยกัน
+      USERS=_mergeUsers(USERS,cu);
+      localStorage.setItem("ts_users",JSON.stringify(USERS));
+    }
     _cloudReady=true;
   }).catch(function(){_cloudReady=true});
 }
@@ -2660,8 +2673,8 @@ function initApp(){
   try{syncUI("loading")}catch(e){}
   try{uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
   try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
-  // Force push users to cloud ทุกครั้งที่เปิดหน้า (แก้ปัญหาข้อมูลเก่าที่ไม่เคยถูก save)
-  try{if(CLOUD_URL && USERS.length>0)cloudSaveUsers()}catch(e){}
+  // Fetch cloud users → merge → push กลับ (ไม่เขียนทับข้อมูลเครื่องอื่น)
+  try{if(CLOUD_URL){_fetchCloudUsers().then(function(){cloudSaveUsers()}).catch(function(){})}}catch(e){}
 }
 
 // Auto-login: ตรวจ localStorage ทันที + preload cloud users
