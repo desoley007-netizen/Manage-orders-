@@ -96,9 +96,11 @@ tr:hover td{background:var(--glow)}
 .login-box input:focus{border-color:var(--a);box-shadow:0 0 0 3px var(--glow)}
 .login-box .btn{width:100%;padding:14px;font-size:15px;margin-top:4px}
 .login-err{color:var(--r);font-size:12px;margin-top:8px;min-height:18px}
-.user-badge{display:flex;align-items:center;gap:8px;background:var(--glass);padding:5px 12px;border-radius:8px;border:1px solid var(--bd);font-size:12px;color:var(--t2);cursor:pointer}
-.user-badge:hover{border-color:var(--a)}
-.user-badge .uname{font-weight:600;color:var(--t)}
+.user-badge{display:flex;align-items:center;gap:6px;background:var(--a);padding:6px 14px;border-radius:8px;border:none;font-size:12px;color:#fff;cursor:pointer;font-weight:600;box-shadow:0 2px 8px rgba(99,102,241,.3)}
+.user-badge:hover{filter:brightness(1.1)}
+.user-badge .uname{font-weight:700;color:#fff}
+#logoutBtn{background:var(--c2);color:var(--t);border:1px solid var(--bd);box-shadow:none}
+#logoutBtn:hover{background:var(--r);color:#fff;border-color:var(--r)}
 /* Admin Panel */
 .adm-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:300;display:none}
 .adm-pn{position:fixed;top:0;right:0;width:560px;max-width:95vw;height:100vh;background:var(--c1);z-index:301;overflow-y:auto;display:none;border-left:1px solid var(--bd);padding:28px;box-shadow:-8px 0 40px rgba(0,0,0,.3)}
@@ -122,20 +124,6 @@ tr:hover td{background:var(--glow)}
 .login-box h2{font-size:20px}
 .login-box input{font-size:16px;padding:14px}
 .login-box .btn{padding:16px;font-size:16px}
-.user-badge{padding:4px 8px;font-size:11px;gap:4px}
-.user-badge .uname{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#logoutBtn{padding:4px 8px;font-size:11px}
-.adm-ov{z-index:300}
-.adm-pn{width:100%;padding:16px;z-index:301}
-.adm-pn h2{font-size:16px}
-.usr-card{padding:12px}
-.usr-name{font-size:13px}
-.perm-grid{gap:5px}
-.perm-tag{font-size:10px;padding:4px 8px}
-#addUserForm{padding:12px}
-#addUserForm .fg input{font-size:15px;padding:12px}
-.perm-cb{font-size:12px;padding:4px 0}
-.perm-cb input[type="checkbox"]{width:22px;height:22px}
 }
 .lk{color:var(--a);text-decoration:none;font-size:12px;font-weight:500}
 .lk:hover{text-decoration:underline}
@@ -156,78 +144,145 @@ tr:hover td{background:var(--glow)}
 .ist b{display:block;font-size:20px;margin-top:2px;font-weight:800}
 .ist.ig b{color:var(--g)}.ist.ib b{color:var(--a)}.ist.iy b{color:var(--y)}
 @media(max-width:768px){
-.hd{padding:8px 12px;gap:4px}
-.hd h1{font-size:14px;gap:4px;white-space:nowrap;overflow:hidden}
+/* ===== MOBILE CLEAN & COMPACT REDESIGN ===== */
+
+/* --- HEADER: slimmer, cleaner --- */
+.hd{padding:6px 12px;gap:4px}
+.hd h1{font-size:15px;gap:6px;white-space:nowrap;overflow:hidden}
 .hd h1 .hd-sub{display:none}
-.hd-right{gap:4px;flex-shrink:0}
-.db{display:none}
-.theme-btn{width:30px;height:30px;font-size:13px;border-radius:8px}
-.mn{padding:10px}
-.kg{grid-template-columns:repeat(2,1fr);gap:8px}
-.kp{padding:14px}
-.kl{font-size:11px}
-.kv{font-size:26px}
-.ks{font-size:10px}
-.tabs{flex-wrap:wrap;gap:0;padding:3px}
-.tab{flex:0 0 auto;padding:10px 12px;font-size:12px;min-width:0}
-.badge{font-size:9px;padding:1px 6px;margin-left:3px}
-.tb{flex-direction:column;gap:8px}
-.sb{min-width:0;font-size:16px;padding:14px}
-.sel{font-size:14px;padding:12px;width:100%}
-.ss{flex-direction:column;gap:6px;font-size:13px;padding:12px 14px}
-.tw{border-radius:10px}
-.ts{max-height:50vh}
-table{font-size:12px}
-th{padding:8px 8px;font-size:11px}
-td{padding:8px 8px;font-size:12px}
+.hd-right{gap:6px;flex-shrink:0}
+.db{font-size:9px;padding:3px 8px;border-radius:6px;background:transparent;border:none;color:var(--g);display:flex;align-items:center;gap:3px}
+.db::before{content:'';width:6px;height:6px;background:var(--g);border-radius:50%;display:inline-block;flex-shrink:0}
+.theme-btn{width:28px;height:28px;font-size:12px;border-radius:8px}
+.user-badge{padding:4px 8px;font-size:10px;gap:3px;border-radius:8px}
+.user-badge .uname{max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#logoutBtn{padding:4px 8px;font-size:10px}
+
+/* --- MAIN AREA --- */
+.mn{padding:8px}
+
+/* --- KPI CARDS: 2-col compact --- */
+.kg{grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
+.kp{padding:10px 12px;border-radius:10px}
+.kl{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
+.kv{font-size:24px}
+.ks{font-size:9px;margin-top:2px}
+
+/* --- TABS: icon + short text, 1 row, equal width --- */
+.tabs{display:flex!important;flex-wrap:nowrap!important;gap:0;padding:2px;margin-bottom:10px;border-radius:10px}
+.tab{flex:1!important;padding:8px 4px!important;font-size:0!important;border-radius:8px;display:flex!important;flex-direction:column!important;align-items:center!important;gap:2px!important;min-width:0!important;line-height:1}
+/* Show only emoji + short label on mobile via data attributes */
+.tab .badge{font-size:7px;padding:1px 4px;margin:0;position:absolute;margin-top:-8px;margin-left:10px}
+.tab::after{font-size:10px!important;font-weight:600;display:block;white-space:nowrap}
+.tab[data-t="inv"]::after{content:'สั่งซื้อ'}
+.tab[data-t="ord"]::after{content:'ออเดอร์'}
+.tab[data-t="rcv"]::after{content:'รับสินค้า'}
+.tab[data-t="lnk"]::after{content:'ลิงค์'}
+/* Hide original text, show only emoji */
+.tab .m-hide{display:none!important}
+
+/* --- SUB-TABS (RCV): pill toggle compact --- */
+#t-rcv>.tb>.view-toggle{display:flex;background:var(--c1);border-radius:10px;padding:2px;border:1px solid var(--bd);width:100%}
+#t-rcv>.tb>.view-toggle .vt-btn{flex:1;padding:7px 4px;font-size:11px;text-align:center;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Order selector: pill card style */
+#rcvOrd,#rcvOrdNP{width:100%;font-size:13px;padding:10px 12px;border-radius:10px}
+
+/* --- WORK AREA (rcv-count): compact card --- */
+#rcv-count>.ss{padding:10px 12px;margin-bottom:6px;border-radius:10px;gap:4px;border-left:3px solid var(--a)}
+#rcv-count>.ss div:first-child{font-size:13px!important}
+#rcv-count>.ss div:last-child{font-size:11px!important;display:none}
+
+/* Form: search + camera in 1 row, qty + add in 1 row */
+#rcv-count .tb{display:flex!important;flex-wrap:wrap!important;flex-direction:row!important;gap:6px!important;margin-top:6px!important}
+#rcv-count .tb .sel{flex:0 0 auto;width:auto!important;min-width:70px!important;font-size:13px!important;padding:10px 6px!important;border-radius:8px!important}
+#rcv-count .tb .sb{flex:1!important;min-width:0!important;font-size:15px!important;padding:10px 12px!important;border-radius:10px!important;width:auto!important}
+#rcv-count .tb .btn.bs.b2{flex:0 0 auto!important;width:42px!important;height:42px!important;padding:0!important;font-size:16px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#rcv-count .tb .btn.bs[style*="background:var(--y)"]{flex:0 0 auto!important;width:auto!important;padding:8px 12px!important;font-size:12px!important;border-radius:8px!important;display:flex!important;align-items:center!important}
+/* Qty + Add button row */
+#rcv-count .tb input[type="number"]{flex:1!important;width:auto!important;min-width:60px!important;font-size:20px!important;padding:10px 8px!important;text-align:center!important;border-radius:10px!important}
+#rcv-count .tb .btn.bp{flex:0 0 auto!important;width:auto!important;padding:10px 20px!important;font-size:14px!important;border-radius:10px!important}
+
+/* Scanned items list compact */
+.rcv-item{flex-wrap:nowrap;gap:6px;padding:8px 10px;border-radius:8px;margin-bottom:4px}
+.rcv-item img{width:32px;height:32px;border-radius:6px}
+.rcv-item input[type="number"]{width:50px;font-size:14px;padding:4px}
+
+/* Search suggestions compact */
+.rcv-sug{flex-wrap:nowrap;padding:10px 12px;border-radius:8px;margin-bottom:3px;gap:8px}
+.rcv-sug img{width:40px;height:40px;border-radius:6px}
+.rcv-sug div[style*="font-weight:700"]{font-size:14px!important}
+.rcv-sug div[style*="font-size:11px"]{font-size:12px!important}
+
+/* Save button sticky */
+#rcvActions{position:sticky;bottom:0;z-index:50;background:var(--bg);padding:8px 0;margin-top:6px}
+#rcvActions .btn{font-size:15px;padding:12px;border-radius:10px}
+
+/* --- OTHER TABS --- */
+/* Toolbar general */
+.tb{flex-direction:column;gap:6px}
+.sb{min-width:0;font-size:15px;padding:12px}
+.sel{font-size:13px;padding:10px;width:100%;border-radius:8px}
+.ss{flex-direction:row;flex-wrap:wrap;gap:6px;font-size:11px;padding:8px 10px;border-radius:8px}
+.ss span{white-space:nowrap}
+.btn{font-size:13px;padding:10px 16px;border-radius:8px}
+
+/* View toggle */
+.view-toggle{width:100%;border-radius:8px}
+.vt-btn{flex:1;padding:8px 6px;font-size:11px;text-align:center;border-radius:6px}
+
+/* Tables compact */
+.tw{border-radius:8px}
+.ts{max-height:55vh}
+table{font-size:11px}
+th{padding:6px 6px;font-size:10px}
+td{padding:6px 6px;font-size:11px}
+
+/* Panels full width */
 .pn{width:100%;border-radius:0}
-.fg input,.fg select,.fg textarea{font-size:16px;padding:14px}
-.btn{font-size:14px;padding:12px 18px}
-/* Employee 1 count area mobile */
-#rcv-count .tb{flex-direction:column;gap:8px}
-#rcv-count .tb .sb{font-size:18px!important;padding:16px!important;width:100%!important;flex:none!important}
-#rcv-count .tb .sel{font-size:15px;padding:14px 10px;width:100%}
-#rcv-count .tb .btn{font-size:16px;padding:14px;width:100%}
-#rcv-count .tb input[type="number"]{width:100%!important;font-size:20px!important;padding:14px!important;text-align:center}
-#rcv-count .tb .btn.bp{width:100%!important;padding:16px!important;font-size:18px!important}
-#rcv-count .tb .btn.bs{width:48%!important;padding:14px!important;font-size:14px!important;display:inline-block!important;text-align:center}
-.rcv-item{flex-wrap:wrap;gap:8px;padding:10px 12px}
-.rcv-item img{width:36px;height:36px}
-.rcv-item input[type="number"]{width:60px;font-size:14px;padding:6px}
-.rcv-sug{flex-wrap:nowrap;padding:12px}
-.rcv-sug img{width:44px;height:44px}
-.rcv-sug div[style*="font-weight:700"]{font-size:15px!important}
-.rcv-sug div[style*="font-size:11px"]{font-size:13px!important}
-/* View toggle mobile */
-.view-toggle{width:100%}
-.vt-btn{flex:1;padding:10px 8px;font-size:12px;text-align:center}
-/* Order cards mobile */
-.oc{padding:12px 14px}
-.och{flex-direction:column;gap:6px}
-/* Fab */
-.fab{bottom:16px;right:16px}
-.fab-btn{width:48px;height:48px;font-size:18px}
-.fab-menu{width:calc(100vw - 32px);max-width:none;right:0}
-/* KPI card grid on very small */
-.fbar{gap:4px}
-.fb{padding:5px 10px;font-size:11px}
+.fg input,.fg select,.fg textarea{font-size:16px;padding:12px}
+
+/* Order cards */
+.oc{padding:10px 12px;border-radius:10px;margin-bottom:6px}
+.och{flex-direction:column;gap:4px}
+
+/* Order sub-tab toggle */
+#ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:11px;padding:7px 6px}
+
+/* FAB: smaller, more subtle */
+.fab{bottom:14px;right:14px}
+.fab-btn{width:44px;height:44px;font-size:16px;border-radius:12px}
+.fab-menu{width:calc(100vw - 28px);max-width:none;right:0;border-radius:14px;padding:14px}
+
+/* Filter bar */
+.fbar{gap:3px;margin-bottom:8px}
+.fb{padding:4px 8px;font-size:10px;border-radius:12px}
+
 /* NP cards */
-.st{padding:10px;min-width:0}
-.st div:first-child{font-size:18px!important}
+.st{padding:8px;min-width:0}
+.st div:first-child{font-size:16px!important}
+
 /* Links tab */
 .lnk-card{flex-direction:column}
-/* Stats summary */
-.sr{flex-wrap:wrap;gap:8px}
-/* Sticky save button for Employee 1 */
-#rcvActions{position:sticky;bottom:0;z-index:50;background:var(--bg);padding:10px 0;margin-top:8px}
-#rcvActions .btn{font-size:16px;padding:14px}
+.sr{flex-wrap:wrap;gap:6px}
+
 /* Verification cards */
-.oc{cursor:pointer}
-#rcvCheckList .oc{padding:10px 12px}
-/* Select dropdowns full width */
-#rcvOrd,#rcvOrdNP{width:100%}
-/* Sub-tab toggle */
-#ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:11px;padding:8px 6px}
+#rcvCheckList .oc{padding:8px 10px}
+
+/* Admin panel mobile */
+.adm-ov{z-index:300}
+.adm-pn{width:100%;padding:14px;z-index:301}
+.adm-pn h2{font-size:15px}
+.usr-card{padding:10px}
+.usr-name{font-size:12px}
+.perm-grid{gap:4px}
+.perm-tag{font-size:9px;padding:3px 6px}
+#addUserForm{padding:10px}
+#addUserForm .fg input{font-size:15px;padding:12px}
+.perm-cb{font-size:12px;padding:4px 0}
+.perm-cb input[type="checkbox"]{width:22px;height:22px}
+
+/* Empty states compact */
+.emp{padding:30px 16px}
 }
 .grp{background:var(--glass);cursor:pointer;transition:.15s}
 .grp:hover{background:var(--glow)}
@@ -319,7 +374,7 @@ td{padding:8px 8px;font-size:12px}
 </div>
 </div>
 
-<div class="hd"><h1>&#128230; <span>THAISURE</span> <span class="hd-sub">ระบบจัดการสั่งซื้อ</span></h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()" style="display:none">&#128100; <span class="uname" id="dispName"></span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="display:none;cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
+<div class="hd"><h1>&#128230; <span>THAISURE</span> <span class="hd-sub">ระบบจัดการสั่งซื้อ</span></h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()">&#128100; <span class="uname" id="dispName">แอดมิน</span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
 <div class="mn">
 <div class="kg" id="kpiCards">
 <div class="kp kr" onclick="cf='o';rt()"><div class="kl">&#128308; หมดสต็อก</div><div class="kv" id="k1">0</div><div class="ks">ต้องสั่งด่วน!</div></div>
@@ -330,10 +385,10 @@ td{padding:8px 8px;font-size:12px}
 <div class="kp kpu" onclick="cf='ord';rt()"><div class="kl">&#128666; รอของเข้า</div><div class="kv" id="k6">0</div><div class="ks">รายการสั่งแล้ว</div></div>
 </div>
 <div class="tabs">
-<button class="tab act" data-t="inv" onclick="sw('inv')">&#128203; คำแนะนำสั่งซื้อ <span class="badge" id="bg1">0</span></button>
-<button class="tab" data-t="ord" onclick="sw('ord')">&#128230; รายการสั่งซื้อ</button>
-<button class="tab" data-t="rcv" onclick="sw('rcv');rrcv()">&#128230; รับสินค้าเข้าคลัง <span class="badge" id="bg2">0</span></button>
-<button class="tab" data-t="lnk" onclick="sw('lnk')">&#128279; ลิงค์ 1688</button>
+<button class="tab act" data-t="inv" onclick="sw('inv')"><span style="font-size:18px">&#128203;</span><span class="m-hide"> คำแนะนำสั่งซื้อ</span> <span class="badge" id="bg1">0</span></button>
+<button class="tab" data-t="ord" onclick="sw('ord')"><span style="font-size:18px">&#128230;</span><span class="m-hide"> รายการสั่งซื้อ</span></button>
+<button class="tab" data-t="rcv" onclick="sw('rcv');rrcv()"><span style="font-size:18px">&#128230;</span><span class="m-hide"> รับสินค้าเข้าคลัง</span> <span class="badge" id="bg2">0</span></button>
+<button class="tab" data-t="lnk" onclick="sw('lnk')"><span style="font-size:18px">&#128279;</span><span class="m-hide"> ลิงค์ 1688</span></button>
 </div>
 
 <!-- TAB: Inventory -->
@@ -390,8 +445,8 @@ td{padding:8px 8px;font-size:12px}
 <div id="t-rcv" style="display:none">
 <div class="tb">
 <div class="view-toggle">
-<button class="vt-btn act" id="rvCount" onclick="rcvMode='count';rrcv()">&#128221; พนักงาน 1: นับของ</button>
-<button class="vt-btn" id="rvCheck" onclick="rcvMode='check';rrcv()">&#128270; พนักงาน 2: ตรวจสอบ</button>
+<button class="vt-btn act" id="rvCount" onclick="rcvMode='count';rrcv()">&#128221; <span class="m-hide">พนักงาน 1: </span>นับของ</button>
+<button class="vt-btn" id="rvCheck" onclick="rcvMode='check';rrcv()">&#128270; <span class="m-hide">พนักงาน 2: </span>ตรวจสอบ</button>
 </div>
 <select class="sel" id="rcvOrd" onchange="document.getElementById('rcvOrdNP').value='';rrcv()" style="flex:1"><option value="">-- เลือกคำสั่งซื้อ --</option></select>
 <select class="sel" id="rcvOrdNP" onchange="document.getElementById('rcvOrd').value='';rrcv()" style="flex:0 0 auto;min-width:180px;background:var(--y);color:#000;font-weight:600;display:none"><option value="">-- สินค้าใหม่ 1688 --</option></select>
@@ -2312,7 +2367,8 @@ function cloudSaveUsers(){
   fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:body}).catch(function(){});
 }
 
-function doLogin(){
+var _cloudReady=false;
+function _tryLogin(){
   var uid=document.getElementById("loginUser").value.trim().toLowerCase();
   var pw=document.getElementById("loginPass").value;
   var u=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
@@ -2322,6 +2378,27 @@ function doLogin(){
   document.getElementById("loginScreen").style.display="none";
   applyPerms();
   initApp();
+}
+function _fetchCloudUsers(){
+  return fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
+    if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
+    _cloudReady=true;
+  }).catch(function(){_cloudReady=true});
+}
+function doLogin(){
+  var uid=document.getElementById("loginUser").value.trim().toLowerCase();
+  var pw=document.getElementById("loginPass").value;
+  if(!uid||!pw){document.getElementById("loginErr").textContent="\u0e01\u0e23\u0e38\u0e13\u0e32\u0e01\u0e23\u0e2d\u0e01\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e41\u0e25\u0e30\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19";return}
+  // ลองหาจาก local ก่อน
+  var u=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
+  if(u){CUR_USER=u;localStorage.setItem("ts_login",JSON.stringify({id:u.id}));document.getElementById("loginScreen").style.display="none";applyPerms();initApp();return}
+  // ถ้าไม่เจอ และยังไม่ได้โหลด cloud → โหลดแล้วลองใหม่
+  if(!_cloudReady&&CLOUD_URL){
+    document.getElementById("loginErr").textContent="\u0e01\u0e33\u0e25\u0e31\u0e07\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a...";
+    _fetchCloudUsers().then(function(){_tryLogin()});
+    return;
+  }
+  document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07";
 }
 
 function doLogout(){
@@ -2521,32 +2598,25 @@ function toggleTheme(){
 (function(){var th=localStorage.getItem("ts_theme");if(th==="light"){document.documentElement.setAttribute("data-theme","light");document.getElementById("themeBtn").innerHTML="&#9728;&#65039;"}})();
 
 function initApp(){
-  uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels();
-  startAutoRefresh();
+  // แสดงปุ่ม user ก่อนเลย
   applyPerms();
+  try{uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
+  startAutoRefresh();
 }
 
-// Auto-login: ตรวจ localStorage ทันที ไม่ต้องรอ cloud
+// Auto-login: ตรวจ localStorage ทันที + preload cloud users
 (function(){
   if(checkSession()){
-    // Login สำเร็จจาก localStorage ทันที
     document.getElementById("loginScreen").style.display="none";
     initApp();
-    // Sync users จาก cloud ทีหลัง (background)
-    if(CLOUD_URL){
-      fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
-        if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
-      }).catch(function(){});
-    }
+    if(CLOUD_URL)_fetchCloudUsers();
   } else {
-    // ไม่มี session → โหลด users จาก cloud ก่อนแสดง login
     document.querySelector(".mn").style.display="none";
     document.querySelector(".fab").style.display="none";
-    if(CLOUD_URL){
-      fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
-        if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
-      }).catch(function(){});
-    }
+    document.getElementById("userBadge").style.display="none";
+    document.getElementById("logoutBtn").style.display="none";
+    // โหลด cloud users ทันทีก่อนที่ user จะกด login
+    if(CLOUD_URL)_fetchCloudUsers();
     document.getElementById("loginUser").focus();
   }
 })();
