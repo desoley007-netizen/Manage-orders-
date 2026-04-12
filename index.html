@@ -147,16 +147,18 @@ tr:hover td{background:var(--glow)}
 /* ===== MOBILE CLEAN & COMPACT REDESIGN ===== */
 
 /* --- HEADER: slimmer, cleaner --- */
-.hd{padding:6px 12px;gap:4px}
-.hd h1{font-size:15px;gap:6px;white-space:nowrap;overflow:hidden}
+.hd{padding:6px 10px;gap:2px}
+.hd h1{font-size:14px;gap:4px;white-space:nowrap;overflow:hidden}
 .hd h1 .hd-sub{display:none}
-.hd-right{gap:6px;flex-shrink:0}
-.db{font-size:9px;padding:3px 8px;border-radius:6px;background:transparent;border:none;color:var(--g);display:flex;align-items:center;gap:3px}
-.db::before{content:'';width:6px;height:6px;background:var(--g);border-radius:50%;display:inline-block;flex-shrink:0}
-.theme-btn{width:28px;height:28px;font-size:12px;border-radius:8px}
-.user-badge{padding:4px 8px;font-size:10px;gap:3px;border-radius:8px}
+.hd-right{gap:4px;flex-shrink:0;flex-wrap:nowrap}
+/* ซ่อนวันที่บนมือถือ */
+.db{display:none!important}
+/* Sync badge เล็กลง */
+#syncStatus{font-size:9px!important;padding:2px 6px!important;border-radius:4px!important}
+.theme-btn{width:26px;height:26px;font-size:11px;border-radius:6px}
+.user-badge{padding:3px 8px;font-size:10px;gap:3px;border-radius:6px}
 .user-badge .uname{max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#logoutBtn{padding:4px 8px;font-size:10px}
+#logoutBtn{padding:3px 6px;font-size:9px}
 
 /* --- MAIN AREA --- */
 .mn{padding:8px}
@@ -220,18 +222,28 @@ tr:hover td{background:var(--glow)}
 /* --- OTHER TABS --- */
 /* Toolbar general */
 .tb{flex-direction:column;gap:6px}
-.sb{min-width:0;font-size:15px;padding:12px}
-.sel{font-size:13px;padding:10px;width:100%;border-radius:8px}
-.ss{flex-direction:row;flex-wrap:wrap;gap:6px;font-size:11px;padding:8px 10px;border-radius:8px}
+.sb{min-width:0;font-size:15px;padding:10px 12px;border-radius:10px}
+.sel{font-size:13px;padding:10px;width:100%;border-radius:10px}
+.ss{flex-direction:row;flex-wrap:wrap;gap:4px 8px;font-size:11px;padding:8px 10px;border-radius:10px}
 .ss span{white-space:nowrap}
-.btn{font-size:13px;padding:10px 16px;border-radius:8px}
+.btn{font-size:13px;padding:10px 16px;border-radius:10px}
 
-/* View toggle */
-.view-toggle{width:100%;border-radius:8px}
-.vt-btn{flex:1;padding:8px 6px;font-size:11px;text-align:center;border-radius:6px}
+/* Inventory tab: search + toggle in 1 row */
+#t-inv>.tb{gap:6px}
+#t-inv>.tb>.view-toggle{order:1}
+#t-inv>.tb>.sb{order:0;font-size:14px;padding:10px 12px}
+#t-inv>.tb>.btn{order:2;font-size:12px;padding:8px 12px}
+#t-inv>.tb>.sel{order:3;font-size:12px;padding:8px 10px}
+
+/* View toggle compact */
+.view-toggle{width:100%;border-radius:10px}
+.vt-btn{flex:1;padding:7px 4px;font-size:11px;text-align:center;border-radius:8px}
+
+/* Stats summary inline */
+.ss b{font-size:12px}
 
 /* Tables compact */
-.tw{border-radius:8px}
+.tw{border-radius:10px}
 .ts{max-height:55vh}
 table{font-size:11px}
 th{padding:6px 6px;font-size:10px}
@@ -245,17 +257,23 @@ td{padding:6px 6px;font-size:11px}
 .oc{padding:10px 12px;border-radius:10px;margin-bottom:6px}
 .och{flex-direction:column;gap:4px}
 
-/* Order sub-tab toggle */
-#ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:11px;padding:7px 6px}
+/* Order tab: buttons in row */
+#ordSub-normal>.tb{gap:6px}
+#ordSub-normal>.tb>.btn{font-size:12px;padding:8px 12px}
+#ordSub-normal>.tb>.mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px}
+#ordSub-normal>.tb>.mt .mtb{flex-shrink:0;font-size:11px;padding:5px 10px}
 
-/* FAB: smaller, more subtle */
+/* Order sub-tab toggle */
+#ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:11px;padding:7px 4px;border-radius:8px}
+
+/* FAB: smaller */
 .fab{bottom:14px;right:14px}
 .fab-btn{width:44px;height:44px;font-size:16px;border-radius:12px}
 .fab-menu{width:calc(100vw - 28px);max-width:none;right:0;border-radius:14px;padding:14px}
 
-/* Filter bar */
-.fbar{gap:3px;margin-bottom:8px}
-.fb{padding:4px 8px;font-size:10px;border-radius:12px}
+/* Filter bar compact scrollable */
+.fbar{gap:3px;margin-bottom:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.fb{padding:4px 8px;font-size:10px;border-radius:12px;flex-shrink:0}
 
 /* NP cards */
 .st{padding:8px;min-width:0}
@@ -2368,19 +2386,15 @@ function cloudSaveUsers(){
 }
 
 var _cloudReady=false;
-function _tryLogin(){
-  var uid=document.getElementById("loginUser").value.trim().toLowerCase();
-  var pw=document.getElementById("loginPass").value;
-  var u=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
-  if(!u){document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07";return}
+function _loginOK(u){
   CUR_USER=u;
   localStorage.setItem("ts_login",JSON.stringify({id:u.id}));
   document.getElementById("loginScreen").style.display="none";
-  applyPerms();
+  document.getElementById("loginErr").textContent="";
   initApp();
 }
 function _fetchCloudUsers(){
-  return fetch(CLOUD_URL+"?key=ts_users").then(function(r){return r.json()}).then(function(d){
+  return fetch(CLOUD_URL+"?key=ts_users&t="+Date.now()).then(function(r){return r.json()}).then(function(d){
     if(d&&d.value){try{var cu=JSON.parse(d.value);if(Array.isArray(cu)&&cu.length>0){USERS=cu;localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){}}
     _cloudReady=true;
   }).catch(function(){_cloudReady=true});
@@ -2391,11 +2405,15 @@ function doLogin(){
   if(!uid||!pw){document.getElementById("loginErr").textContent="\u0e01\u0e23\u0e38\u0e13\u0e32\u0e01\u0e23\u0e2d\u0e01\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e41\u0e25\u0e30\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19";return}
   // ลองหาจาก local ก่อน
   var u=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
-  if(u){CUR_USER=u;localStorage.setItem("ts_login",JSON.stringify({id:u.id}));document.getElementById("loginScreen").style.display="none";applyPerms();initApp();return}
-  // ถ้าไม่เจอ และยังไม่ได้โหลด cloud → โหลดแล้วลองใหม่
-  if(!_cloudReady&&CLOUD_URL){
+  if(u){_loginOK(u);return}
+  // ถ้าไม่เจอ → ลองโหลดจาก cloud ใหม่เสมอ (ไม่สนว่าเคยโหลดแล้ว)
+  if(CLOUD_URL){
     document.getElementById("loginErr").textContent="\u0e01\u0e33\u0e25\u0e31\u0e07\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a...";
-    _fetchCloudUsers().then(function(){_tryLogin()});
+    _fetchCloudUsers().then(function(){
+      var u2=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
+      if(u2){_loginOK(u2)}
+      else{document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07"}
+    });
     return;
   }
   document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07";
@@ -2599,9 +2617,11 @@ function toggleTheme(){
 
 function initApp(){
   // แสดงปุ่ม user ก่อนเลย
-  applyPerms();
+  try{applyPerms()}catch(e){console.error("applyPerms error:",e)}
+  // แสดง sync status ทันที
+  try{syncUI("loading")}catch(e){}
   try{uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
-  startAutoRefresh();
+  try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
 }
 
 // Auto-login: ตรวจ localStorage ทันที + preload cloud users
