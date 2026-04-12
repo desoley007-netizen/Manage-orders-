@@ -375,7 +375,7 @@ td{padding:6px 6px;font-size:11px}
 <!-- ADMIN PANEL -->
 <div class="adm-ov" id="admOv" onclick="closeAdmin()"></div>
 <div class="adm-pn" id="admPn">
-<h2>&#128101; จัดการผู้ใช้ & สิทธิ์ <button class="cb" onclick="closeAdmin()">&times;</button></h2>
+<h2 style="display:flex;align-items:center;gap:8px">&#128101; จัดการผู้ใช้ &amp; สิทธิ์ <button onclick="refreshAdminPanel()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--t2)" title="ซิงค์ข้อมูลผู้ใช้จาก Cloud">&#128260; ซิงค์</button> <button class="cb" onclick="closeAdmin()" style="margin-left:auto">&times;</button></h2>
 <div id="admContent"></div>
 <div style="margin-top:16px"><button class="btn bp" onclick="showAddUser()" style="width:100%">+ เพิ่มผู้ใช้ใหม่</button></div>
 <div id="addUserForm" style="display:none;margin-top:16px;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:16px">
@@ -2529,6 +2529,11 @@ function closeAdmin(){
   document.getElementById("addUserForm").style.display="none";
 }
 function renderAdmin(){
+  // ดึงข้อมูลผู้ใช้จาก cloud ก่อน render (เพื่อซิงค์ข้ามเครื่อง)
+  if(CLOUD_URL){_fetchCloudUsers().then(function(){_renderAdminHTML()}).catch(function(){_renderAdminHTML()})}
+  else{_renderAdminHTML()}
+}
+function _renderAdminHTML(){
   var h="";
   USERS.forEach(function(u,i){
     h+="<div class='usr-card'>";
@@ -2556,6 +2561,13 @@ function renderAdmin(){
     h+="</div>";
   });
   document.getElementById("admContent").innerHTML=h;
+}
+
+function refreshAdminPanel(){
+  // ปุ่ม refresh สำหรับ sync ข้อมูลผู้ใช้จาก cloud
+  if(!CLOUD_URL)return;
+  document.getElementById("admContent").innerHTML="<div style='padding:20px;text-align:center;color:var(--t2)'>กำลังซิงค์ข้อมูลผู้ใช้...</div>";
+  _fetchCloudUsers().then(function(){_renderAdminHTML()}).catch(function(){_renderAdminHTML()});
 }
 
 function togglePerm(ui,key){
@@ -2648,6 +2660,8 @@ function initApp(){
   try{syncUI("loading")}catch(e){}
   try{uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
   try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
+  // Force push users to cloud ทุกครั้งที่เปิดหน้า (แก้ปัญหาข้อมูลเก่าที่ไม่เคยถูก save)
+  try{if(CLOUD_URL && USERS.length>0)cloudSaveUsers()}catch(e){}
 }
 
 // Auto-login: ตรวจ localStorage ทันที + preload cloud users
