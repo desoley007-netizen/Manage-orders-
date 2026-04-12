@@ -83,6 +83,7 @@ tr:hover td{background:var(--glow)}
 .osf{background:rgba(239,68,68,.12);color:var(--r)}
 .oc-att{border-left:3px solid #a855f7;animation:att-pulse 2s infinite}
 @keyframes att-pulse{0%,100%{border-left-color:#a855f7}50%{border-left-color:var(--o)}}
+@keyframes offPulse{0%,100%{opacity:1}50%{opacity:.5}}
 .so{cursor:pointer;padding:10px;border:1px solid var(--bd);border-radius:10px;margin-bottom:6px;transition:all .15s}
 .so:hover{border-color:var(--a)}
 .so.sel{background:var(--a);color:#fff;border-color:var(--a)}
@@ -251,9 +252,11 @@ td{padding:8px 8px;font-size:12px}
 #ordSub-normal>.tb>.mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px}
 #ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:12px;padding:10px 4px;border-radius:10px;min-height:40px}
 
-/* --- LINK TAB: toolbar --- */
-#lnk-tb{flex-direction:row!important;flex-wrap:wrap!important;gap:6px!important;align-items:center}
-.lnk-act{flex-shrink:0!important;width:40px!important;height:40px!important;padding:0!important;font-size:18px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+/* --- LINK TAB: toolbar — search full-width, buttons 2x2 grid --- */
+#lnk-tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:stretch!important}
+#lnk-tb .sb{width:100%!important;flex:none!important;order:0!important}
+.lnk-act{flex:1 1 calc(50% - 4px)!important;min-width:0!important;width:auto!important;height:auto!important;padding:10px 6px!important;font-size:12px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.lnk-act .m-hide{display:inline!important;font-size:11px!important}
 .lnk-card{flex-direction:column}
 .sr{flex-wrap:wrap;gap:8px}
 .st{padding:10px;min-width:0}
@@ -417,7 +420,7 @@ html,body{overflow-x:hidden!important}
 </div>
 </div>
 
-<div class="hd"><h1>&#128230; <span>THAISURE</span> <span class="hd-sub">ระบบจัดการสั่งซื้อ</span></h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()">&#128100; <span class="uname" id="dispName">แอดมิน</span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
+<div class="hd"><h1>&#128230; <span>THAISURE</span> <span class="hd-sub">ระบบจัดการสั่งซื้อ</span></h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()">&#128100; <span class="uname" id="dispName">แอดมิน</span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="netBadge" style="display:none;align-items:center;gap:4px;background:rgba(239,68,68,.15);color:var(--r);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;animation:offPulse 2s infinite" title="ไม่มีอินเทอร์เน็ต — ข้อมูลบันทึกในเครื่อง จะ sync อัตโนมัติเมื่อกลับมาออนไลน์">&#9888; Offline</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
 <div class="mn">
 <div class="kg" id="kpiCards">
 <div class="kp kr" onclick="cf='o';rt()"><div class="kl">&#128308; หมดสต็อก</div><div class="kv" id="k1">0</div><div class="ks">ต้องสั่งด่วน!</div></div>
@@ -621,7 +624,7 @@ function undoDisc(sku){var i=DISC.indexOf(sku);if(i>=0)DISC.splice(i,1);localSto
 var HOLD=JSON.parse(localStorage.getItem("ts_hold")||"[]");
 function isHold(sku){var b=gb(sku);return HOLD.indexOf(b)>=0||HOLD.indexOf(sku)>=0}
 function toggleHold(base){var i=HOLD.indexOf(base);if(i>=0){HOLD.splice(i,1)}else{HOLD.push(base)}localStorage.setItem("ts_hold",JSON.stringify(HOLD));svHold();rt()}
-function svHold(){if(!CLOUD_URL)return;var payload=_chunkSplit("ts_hold",JSON.stringify(HOLD));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
+function svHold(){if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_hold",JSON.stringify(HOLD));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
 var _discSel={};
 var _mgrMode=false;
 function toggleMgrMode(){_mgrMode=!_mgrMode;_discSel={};rt();renderDiscBar();var b=document.getElementById("mgrBtn");if(b)b.innerHTML=_mgrMode?"&#9989; ปิดโหมดจัดการ":"&#9881; โหมดจัดการ";var hcb=document.getElementById("discSelAllCb");if(hcb)hcb.style.display=_mgrMode?"inline-block":"none"}
@@ -641,7 +644,7 @@ function renderDiscBar(){
     +"<button onclick='discSelNone()' style='background:var(--c2);color:var(--t);border:1px solid var(--bd);border-radius:8px;padding:10px 16px;font-size:13px;cursor:pointer'>ยกเลิก</button>"
     +"</div>";
 }
-function svDisc(){if(!CLOUD_URL)return;var payload=_chunkSplit("ts_disc",JSON.stringify(DISC));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
+function svDisc(){if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_disc",JSON.stringify(DISC));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
 function sv(){localStorage.setItem("ts_o",JSON.stringify(O));localStorage.setItem("ts_l",JSON.stringify(L));localStorage.setItem("ts_rc",JSON.stringify(RC));localStorage.setItem("ts_si",JSON.stringify(SI));localStorage.setItem("ts_np",JSON.stringify(NP));cloudSave()}
 
 // ===== GOOGLE SHEETS CLOUD SYNC =====
@@ -851,6 +854,89 @@ function startAutoRefresh(skipFirstLoad) {
   if(!skipFirstLoad) cloudLoad(true);
 }
 function stopAutoRefresh() { if (_autoRefresh) { clearInterval(_autoRefresh); _autoRefresh = null; } }
+
+// ===== OFFLINE MODE — Queue + Auto-Retry + Indicator =====
+var _offlineQueue=[];
+var _isOnline=navigator.onLine;
+try{var _oq=localStorage.getItem("ts_offq");if(_oq)_offlineQueue=JSON.parse(_oq)}catch(e){_offlineQueue=[]}
+
+function _saveOfflineQueue(){try{localStorage.setItem("ts_offq",JSON.stringify(_offlineQueue))}catch(e){}}
+
+// Wrap fetch สำหรับ cloud — ถ้า offline ให้เข้า queue แทน
+var _origCloudSave=cloudSave;
+cloudSave=function(){
+  if(!navigator.onLine){
+    // เก็บ payload ลง queue
+    var payload=_buildCloudPayload();
+    _offlineQueue.push({ts:Date.now(),payload:payload});
+    // เก็บแค่ 5 ตัวล่าสุด (ตัวใหม่กว่าจะ overwrite ตัวเก่า)
+    if(_offlineQueue.length>5)_offlineQueue=_offlineQueue.slice(-5);
+    _saveOfflineQueue();
+    syncUI("offline");
+    _updateNetBadge();
+    return;
+  }
+  _origCloudSave();
+};
+
+// Flush offline queue — ส่งเฉพาะตัวล่าสุด (มีข้อมูลครบสุด)
+function _flushOfflineQueue(){
+  if(!CLOUD_URL||_offlineQueue.length===0||!navigator.onLine)return;
+  var latest=_offlineQueue[_offlineQueue.length-1];
+  _offlineQueue=[];
+  _saveOfflineQueue();
+  syncUI("saving");
+  _cloudBusy=true;
+  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(latest.payload)})
+  .then(function(r){return r.json()})
+  .then(function(d){
+    _cloudBusy=false;
+    if(d.status==="ok"){
+      var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
+      syncUI("ok","Synced "+t+" (offline queue)");
+    }else{syncUI("err","Sync failed")}
+  })
+  .catch(function(){
+    _cloudBusy=false;
+    // ใส่กลับ queue ถ้า fail
+    _offlineQueue.push(latest);
+    _saveOfflineQueue();
+    syncUI("err","Retry failed");
+  });
+}
+
+// Network status badge
+function _updateNetBadge(){
+  var el=document.getElementById("netBadge");
+  if(!el)return;
+  if(navigator.onLine){
+    el.style.display="none";
+  }else{
+    el.style.display="inline-flex";
+  }
+}
+
+// Listen online/offline events
+window.addEventListener("online",function(){
+  _isOnline=true;
+  _updateNetBadge();
+  syncUI("loading");
+  // Flush queue ก่อน แล้วค่อย load ใหม่
+  if(_offlineQueue.length>0){
+    _flushOfflineQueue();
+    setTimeout(function(){cloudLoad(true)},3000);
+  }else{
+    cloudLoad(true);
+  }
+  startAutoRefresh(true);
+});
+
+window.addEventListener("offline",function(){
+  _isOnline=false;
+  _updateNetBadge();
+  stopAutoRefresh();
+  syncUI("offline");
+});
 
 // Import BigSeller xlsx (supports multiple files)
 function importBigSeller(inp){
@@ -3221,6 +3307,7 @@ var CUR_USER=null;
 function svUsers(){localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
 function cloudSaveUsers(){
   if(!CLOUD_URL)return;
+  if(!navigator.onLine){cloudSave();return}
   var payload=_chunkSplit("ts_users",JSON.stringify(USERS));
   fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){});
 }
@@ -3494,6 +3581,7 @@ function initApp(){
   // แสดง sync status ทันที
   try{syncUI("loading")}catch(e){}
   try{recalcS();uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
+  try{_updateNetBadge()}catch(e){}
   try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
   // Fetch cloud users → merge → push กลับ (ไม่เขียนทับข้อมูลเครื่องอื่น)
   try{if(CLOUD_URL){_fetchCloudUsers().then(function(){cloudSaveUsers()}).catch(function(){})}}catch(e){}
@@ -3560,6 +3648,18 @@ function updateFm(){
     "<div class=\"fm-row\" onclick=\"sw('lnk');toggleFab()\"><span class=\"fm-lbl\">&#9989; จับคู่แล้ว</span><span class=\"fm-val fm-g\">"+lmc+"</span></div>"+
     "<div class=\"fm-row\" onclick=\"sw('lnk');toggleFab()\"><span class=\"fm-lbl\">&#10060; ยังไม่มีลิงก์</span><span class=\"fm-val fm-r\">"+lumc+"</span></div>"+
     "</div>";
+}
+</script>
+<script>
+// ===== SERVICE WORKER REGISTRATION =====
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      console.log('SW registered, scope:',reg.scope);
+      // Check for updates periodically
+      setInterval(function(){reg.update()},60*60*1000);
+    }).catch(function(err){console.log('SW registration failed:',err)});
+  });
 }
 </script>
 
