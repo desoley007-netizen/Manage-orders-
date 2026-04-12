@@ -535,12 +535,14 @@ td{padding:6px 6px;font-size:11px}
 <input class="sb" type="text" placeholder="&#128269; ค้นหา SKU..." id="ls" oninput="rl()" style="flex:1;min-width:0">
 <button class="btn bp bs lnk-act" onclick="oim()" title="Import จาก Sheets">&#128228;<span class="m-hide"> Import จาก Sheets</span></button>
 <button class="btn bs b2 lnk-act" onclick="oal()" title="เพิ่มสินค้าใหม่">+<span class="m-hide"> เพิ่มสินค้าใหม่</span></button>
+<button class="btn bs lnk-act" onclick="oimgExcel()" title="Import รูปจาก Excel" style="background:rgba(168,85,247,.15);color:#a855f7;border:1px solid #a855f7">&#128247;<span class="m-hide"> Import รูป</span></button>
 <button class="btn bs bg lnk-act" onclick="am()" title="Auto-Match">&#9889;<span class="m-hide"> Auto-Match</span></button>
 </div>
 <div class="ss">
 <span>&#128279; ลิงก์ทั้งหมด: <b id="lt1">0</b></span>
 <span>&#9989; จับคู่แล้ว: <b id="lt2">0</b> SKU</span>
 <span>&#10060; ยังไม่มีลิงก์: <b id="lt3">0</b> SKU</span>
+<span>&#128247; มีรูป: <b id="lt4" style="color:#a855f7">0</b> SKU</span>
 <span style="color:var(--t2);font-size:12px">&#128161; SKU ตัด 2 ตัวท้าย เช่น W69609 → W696</span>
 </div>
 <div class="tw"><div class="ts" style="max-height:60vh">
@@ -554,7 +556,7 @@ td{padding:6px 6px;font-size:11px}
 <div class="pn" id="pp"><h2 id="ptt">Panel <button class="cb" onclick="cp()">&times;</button></h2><div id="pb"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-var S={"t":1547,"o":748,"c":138,"l":131,"k":282,"s":236,"r":147748,"st":26675};
+var S={t:0,o:0,c:0,l:0,k:0,s:0,r:0,st:0,cost:0};
 var TH_C=parseInt(localStorage.getItem("ts_thc"))||7;
 var TH_L=parseInt(localStorage.getItem("ts_thl"))||14;
 function editTH(which){
@@ -568,16 +570,16 @@ function editTH(which){
   updateKPILabels();
 }
 function recalcS(){
-  var co=0,cc=0,cl=0,cs=0,tr=0,tst=0;
+  var co=0,cc=0,cl=0,cs=0,tr=0,tst=0,totalStock=0;
   var activeI=I.filter(function(it){return!isDisc(it.sku)});
   activeI.forEach(function(it){
     if(it.stock<=0)co++;
     else if(it.days<=TH_C)cc++;
     else if(it.days<=TH_L)cl++;
     else cs++;
-    tr+=it.rec;tst+=it.rec*it.pr;
+    tr+=it.rec;tst+=it.rec*it.pr;totalStock+=Math.max(0,it.stock);
   });
-  S={t:activeI.length,o:co,c:cc,l:cl,k:Math.round(cs/2),s:cs-Math.round(cs/2),r:tr,st:tst};
+  S={t:activeI.length,o:co,c:cc,l:cl,k:Math.round(cs/2),s:cs-Math.round(cs/2),r:tr,st:totalStock,cost:tst};
 }
 function updateKPILabels(){
   var e2=document.getElementById("kl2");if(e2)e2.innerHTML="&#128992; วิกฤต ≤"+TH_C+"วัน";
@@ -799,7 +801,7 @@ function cloudLoad(manual) {
       if (raw_hold) { try{HOLD=JSON.parse(raw_hold);localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
       if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
       if (changed) {
-        cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
+        recalcS(); cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
       }
       var t = new Date().toLocaleTimeString("th-TH", {hour:"2-digit",minute:"2-digit"});
       syncUI("ok", "Synced " + t);
@@ -857,10 +859,10 @@ function _processBigSellerRows(rows,fileCount){
     var rec=parseInt(r["\u0e08\u0e33\u0e19\u0e27\u0e19\u0e17\u0e35\u0e48\u0e41\u0e19\u0e30\u0e19\u0e33"])||0;
     var pr=parseFloat(r["\u0e23\u0e32\u0e04\u0e32\u0e2d\u0e49\u0e32\u0e07\u0e2d\u0e34\u0e07"])||0;
     var img=String(r["\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e23\u0e39\u0e1b\u0e20\u0e32\u0e1e"]||"");
-    if(skuMap[sku]){skuMap[sku].stock+=stock;skuMap[sku].s7+=s7;skuMap[sku].s30+=s30;skuMap[sku].rec+=rec;return}
+    if(skuMap[sku]){skuMap[sku].stock+=stock;skuMap[sku].s7+=s7;skuMap[sku].s30+=s30;if(rec>skuMap[sku].rec)skuMap[sku].rec=rec;if(avg>skuMap[sku].avg)skuMap[sku].avg=avg;if(days>skuMap[sku].days)skuMap[sku].days=days;if(pr>skuMap[sku].pr)skuMap[sku].pr=pr;return}
     skuMap[sku]={name:name,stock:stock,days:days,avg:avg,s7:s7,s30:s30,rec:rec,pr:pr,img:img};
   });
-  var co=0,cc=0,cl=0,cs=0,tr=0,tst=0;
+  var co=0,cc=0,cl=0,cs=0,tr=0,tst=0,totalStock=0;
   Object.keys(skuMap).forEach(function(sku){
     var d=skuMap[sku];
     newR.push([sku,d.name,d.stock,d.days,d.avg,d.s7,d.s30,d.rec,d.pr,d.img]);
@@ -868,12 +870,12 @@ function _processBigSellerRows(rows,fileCount){
     else if(d.days<=TH_C)cc++;
     else if(d.days<=TH_L)cl++;
     else cs++;
-    tr+=d.rec;tst+=d.rec*d.pr;
+    tr+=d.rec;tst+=d.rec*d.pr;totalStock+=Math.max(0,d.stock);
   });
   if(newR.length===0){alert("\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25 SKU \u0e43\u0e19\u0e44\u0e1f\u0e25\u0e4c");return}
   R=newR;
   I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||""}});
-  S={t:newR.length,o:co,c:cc,l:cl,k:Math.round(cs/2),s:cs-Math.round(cs/2),r:tr,st:tst};
+  S={t:newR.length,o:co,c:cc,l:cl,k:Math.round(cs/2),s:cs-Math.round(cs/2),r:tr,st:totalStock,cost:tst};
   // Persist imported data to localStorage
   _gimgCache={};
   try{localStorage.setItem("ts_r",JSON.stringify(R));localStorage.setItem("ts_r_date",new Date().toISOString())}catch(e){console.warn("localStorage full, R not saved")}
@@ -998,6 +1000,19 @@ var viewMode="group";
 var _grpPage=1;
 var _searchTimer=null;
 var _grpKeep=false;
+function goPage(n){_grpPage=n;_grpKeep=true;rt();window.scrollTo(0,document.getElementById("itb").closest("table").offsetTop-80)}
+function _pgBar(cur,total,pgSize){
+  var pages=Math.ceil(total/pgSize);if(pages<=1)return"";
+  var h="<div style='text-align:center;padding:14px 0;display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap'>";
+  if(cur>1)h+="<button onclick='goPage("+(cur-1)+")' style='padding:6px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px'>&laquo; ก่อนหน้า</button>";
+  var startP=Math.max(1,cur-3),endP=Math.min(pages,cur+3);
+  if(startP>1){h+="<button onclick='goPage(1)' style='padding:6px 10px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px'>1</button>";if(startP>2)h+="<span style='padding:0 4px;color:#999'>...</span>"}
+  for(var p=startP;p<=endP;p++){h+="<button onclick='goPage("+p+")' style='padding:6px 10px;border:1px solid "+(p===cur?"var(--a)":"#ddd")+";background:"+(p===cur?"var(--a)":"#fff")+";color:"+(p===cur?"#fff":"#333")+";border-radius:6px;cursor:pointer;font-weight:"+(p===cur?"700":"400")+";font-size:13px'>"+p+"</button>"}
+  if(endP<pages){if(endP<pages-1)h+="<span style='padding:0 4px;color:#999'>...</span>";h+="<button onclick='goPage("+pages+")' style='padding:6px 10px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px'>"+pages+"</button>"}
+  if(cur<pages)h+="<button onclick='goPage("+(cur+1)+")' style='padding:6px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px'>ถัดไป &raquo;</button>";
+  h+="<span style='margin-left:12px;color:#888;font-size:12px'>หน้า "+cur+"/"+pages+" ("+total+" รายการ)</span></div>";
+  return h;
+}
 function setView(m){viewMode=m;document.getElementById("vFlat").className="vt-btn"+(m==="flat"?" act":"");document.getElementById("vGrp").className="vt-btn"+(m==="group"?" act":"");rt()}
 
 function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=1;_grpKeep=false;
@@ -1041,6 +1056,7 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
   // Update filter bar
   var co=0,cc=0,cl=0,cs=0,cAct=0,cDone=0,cReord=0,cNone=0;
   I.forEach(function(it){
+    if(isDisc(it.sku))return;
     if(it.stock<=0)co++;
     else if(it.days<=TH_C)cc++;
     else if(it.days<=TH_L)cl++;
@@ -1102,11 +1118,15 @@ function renderGrouped(items){
   }
 
   var h="",tr=0,tc=0;
+  // Compute totals for ALL groups first (not just current page)
+  var _allTr=0,_allTc=0;
+  order.forEach(function(base){var g=groups[base];_allTr+=g.totalRec;_allTc+=g.items.reduce(function(s,it){return s+it.rec*it.pr},0)});
   var PAGE_SIZE=50;
   var _totalGroups=order.length;
-  var _showGroups=_grpPage*PAGE_SIZE;
-  order.forEach(function(base,gi){
-    if(gi>=_showGroups)return;
+  var _startIdx=(_grpPage-1)*PAGE_SIZE;
+  var _endIdx=Math.min(_grpPage*PAGE_SIZE,_totalGroups);
+  order.forEach(function(base,gIdx){
+    if(gIdx<_startIdx||gIdx>=_endIdx)return;
     var g=groups[base];
     var isOpen=openGroups[base];
     var st=[{d:"dr",l:"หมดสต็อก",c:"var(--r)"},{d:"do",l:"วิกฤต",c:"var(--o)"},{d:"dy",l:"ใกล้หมด",c:"var(--y)"},{d:"dg",l:"ปลอดภัย",c:"var(--g)"}][g.worstStatus];
@@ -1129,7 +1149,7 @@ function renderGrouped(items){
       "<td></td>"+
       "<td>"+(anyOrdered?"<span style=\"color:var(--g)\">&#10004;</span>":"")+"</td>"+
       "<td>"+
-        "<button class=\"btn bp bs\" onclick=\"event.stopPropagation();orderGroup('"+base+"')\">สั่งทั้งกลุ่ม</button>"+(_mgrMode?" <button class=\"btn bs\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-size:10px;border:1px solid #f59e0b\" onclick=\"event.stopPropagation();toggleHold('"+base+"')\">"+(isHold(base)?"&#9989; ยกเลิกเฝ้ารอ":"&#9203; เฝ้ารอ")+"</button> <button class=\"btn bs\" style=\"background:var(--c2);color:var(--t2);font-size:10px\" onclick=\"event.stopPropagation();toggleDiscMulti("+JSON.stringify(g.items.map(function(x){return x.sku}))+")\">&#128683; เลิกขาย</button>":"")+" "+
+        "<button class=\"btn bp bs\" onclick=\"event.stopPropagation();orderGroup('"+base+"')\">สั่งทั้งกลุ่ม</button>"+(_mgrMode?" <button class=\"btn bs\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-size:10px;border:1px solid #f59e0b\" onclick=\"event.stopPropagation();toggleHold('"+base+"')\">"+(isHold(base)?"&#9989; ยกเลิกเฝ้ารอ":"&#9203; เฝ้ารอ")+"</button> <button class=\"btn bs\" style=\"background:var(--c2);color:var(--t2);font-size:10px\" onclick=\"event.stopPropagation();toggleDiscMulti("+JSON.stringify(g.items.map(function(x){return x.sku})).replace(/"/g,"&quot;")+")\">&#128683; เลิกขาย</button>":"")+" "+
         (lkUrl?"<a href=\""+lkUrl+"\" target=\"_blank\" class=\"lk\" onclick=\"event.stopPropagation()\" style=\"margin-left:3px\">&#128279;1</a>":"")+
         (lk2?"<a href=\""+lk2+"\" target=\"_blank\" class=\"lk\" onclick=\"event.stopPropagation()\">&#128279;2</a>":"")+
       "</td></tr>";
@@ -1155,18 +1175,24 @@ function renderGrouped(items){
   });
 
   document.getElementById("itb").innerHTML=h;
-  document.getElementById("s1").textContent=tr.toLocaleString();
-  document.getElementById("s2").textContent="฿"+tc.toLocaleString(undefined,{minimumFractionDigits:0});
+  var pgDiv=document.getElementById("pgBar");if(!pgDiv){pgDiv=document.createElement("div");pgDiv.id="pgBar";document.getElementById("itb").closest("table").parentNode.appendChild(pgDiv)}
+  pgDiv.innerHTML=_pgBar(_grpPage,_totalGroups,PAGE_SIZE);
+  document.getElementById("s1").textContent=_allTr.toLocaleString();
+  document.getElementById("s2").textContent="฿"+_allTc.toLocaleString(undefined,{minimumFractionDigits:2});
   document.getElementById("s3").textContent=order.length+" กลุ่ม ("+items.length+" SKU)";
 }
 
 function renderFlat(items){
   var h="",tr=0,tc=0;
+  // Compute totals for ALL items first
+  var _allTr=0,_allTc=0;
+  items.forEach(function(it){_allTr+=it.rec;_allTc+=it.rec*it.pr});
   var PAGE_SIZE=100;
-  var _showFlat=_grpPage*PAGE_SIZE;
   var _totalFlat=items.length;
+  var _startF=(_grpPage-1)*PAGE_SIZE;
+  var _endF=Math.min(_grpPage*PAGE_SIZE,_totalFlat);
   items.forEach(function(it,fi){
-    if(fi>=_showFlat)return;
+    if(fi<_startF||fi>=_endF)return;
     var s=gi(it),od=io(it.sku),sm=ioSmart(it.sku);tr+=it.rec;tc+=it.rec*it.pr;
     var bw=Math.min(100,(it.days/30)*100);
     var bc=s.d==="dr"?"var(--r)":s.d==="do"?"var(--o)":s.d==="dy"?"var(--y)":"var(--g)";
@@ -1186,12 +1212,14 @@ function renderFlat(items){
       "</td></tr>";
   });
   document.getElementById("itb").innerHTML=h;
-  document.getElementById("s1").textContent=tr.toLocaleString();
-  document.getElementById("s2").textContent="฿"+tc.toLocaleString(undefined,{minimumFractionDigits:0});
+  var pgDiv=document.getElementById("pgBar");if(!pgDiv){pgDiv=document.createElement("div");pgDiv.id="pgBar";document.getElementById("itb").closest("table").parentNode.appendChild(pgDiv)}
+  pgDiv.innerHTML=_pgBar(_grpPage,_totalFlat,PAGE_SIZE);
+  document.getElementById("s1").textContent=_allTr.toLocaleString();
+  document.getElementById("s2").textContent="฿"+_allTc.toLocaleString(undefined,{minimumFractionDigits:2});
   document.getElementById("s3").textContent=items.length.toLocaleString()+" รายการ";
 }
 
-function toggleGrp(base){openGroups[base]=!openGroups[base];rt()}
+function toggleGrp(base){openGroups[base]=!openGroups[base];_grpKeep=true;rt()}
 
 function orderGroup(base){
   var items=I.filter(function(it){return gb(it.sku)===base&&it.rec>0});
@@ -1843,10 +1871,11 @@ function doNPImp(){
 function rl(){
   var q=(document.getElementById("ls").value||"").toLowerCase();
   var items=I.filter(function(it){return !q||it.sku.toLowerCase().indexOf(q)>=0||it.name.toLowerCase().indexOf(q)>=0||gb(it.sku).toLowerCase().indexOf(q)>=0}).slice(0,150);
-  var mc=0,umc=0;I.forEach(function(it){if(fl(it.sku))mc++;else umc++});
+  var mc=0,umc=0,imgc=0;I.forEach(function(it){if(fl(it.sku))mc++;else umc++;if(it.img)imgc++});
   document.getElementById("lt1").textContent=Object.keys(L).length;
   document.getElementById("lt2").textContent=mc;
   document.getElementById("lt3").textContent=umc;
+  document.getElementById("lt4").textContent=imgc;
   var h="";
   items.forEach(function(it){
     var b=gb(it.sku),lk=fl(it.sku);
@@ -2004,6 +2033,160 @@ function oal(){
 function snl(){var s=document.getElementById("nsk").value.trim();if(!s){alert("กรอก SKU ก่อน");return}L[s]={name:document.getElementById("nnm").value,link1:document.getElementById("nl1").value,link2:document.getElementById("nl2").value,link3:document.getElementById("nl3").value};sv();cp();rl()}
 
 function am(){var mc=0;I.forEach(function(it){if(fl(it.sku))mc++});alert("Auto-Match: จับคู่ได้ "+mc+" / "+I.length+" SKU\n\nTip: Import ลิงก์จาก Google Sheets ก่อน แล้วระบบจับคู่อัตโนมัติผ่าน Base SKU");rl()}
+
+function oimgExcel(){
+  document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
+  document.getElementById("ptt").innerHTML="&#128247; Import รูปจาก Excel <button class=\"cb\" onclick=\"cp()\">&times;</button>";
+  document.getElementById("pb").innerHTML=
+    "<div style=\"background:var(--bg);padding:14px;border-radius:10px;margin-bottom:14px\">"+
+      "<div style=\"font-size:14px;font-weight:700;margin-bottom:10px\">&#128247; Import รูปสินค้า — เลือกวิธี</div>"+
+      "<div style=\"display:flex;gap:8px;margin-bottom:12px\">"+
+        "<button id=\"imgTabPaste\" class=\"btn bp\" onclick=\"imgSwitchTab('paste')\" style=\"flex:1;padding:8px;font-size:13px\">&#128203; วางคอลัมน์</button>"+
+        "<button id=\"imgTabFile\" class=\"btn bs b2\" onclick=\"imgSwitchTab('file')\" style=\"flex:1;padding:8px;font-size:13px\">&#128193; อัปโหลดไฟล์ xlsx</button>"+
+      "</div>"+
+    "</div>"+
+    "<div id=\"imgPasteArea\">"+
+      "<div style=\"background:var(--bg);padding:10px;border-radius:8px;margin-bottom:10px\">"+
+        "<div class=\"sr\">"+
+          "<div class=\"st\"><div class=\"sn\">1</div><div class=\"stx\">Copy คอลัมน์ <strong>SKU</strong><br>วางช่องซ้าย</div></div>"+
+          "<div class=\"st\"><div class=\"sn\">2</div><div class=\"stx\">Copy คอลัมน์ <strong>ลิงก์รูป</strong><br>วางช่องขวา</div></div>"+
+          "<div class=\"st\"><div class=\"sn\">3</div><div class=\"stx\">กด<br><strong>ประมวลผล</strong></div></div>"+
+        "</div>"+
+        "<div style=\"font-size:11px;color:var(--t2);margin-top:6px\">&#9432; Copy ทั้งคอลัมน์ (รวมช่องว่าง) จำนวนบรรทัดไม่ต้องเท่ากันก็ได้ ระบบจับคู่ตามตำแหน่งแถว</div>"+
+      "</div>"+
+      "<div style=\"display:flex;gap:10px\">"+
+        "<div style=\"flex:1\"><label style=\"font-weight:700;font-size:13px;display:block;margin-bottom:6px\">&#128203; SKU ย่อย</label>"+
+          "<textarea id=\"imgSkuBox\" placeholder=\"วาง SKU ที่นี่ ทีละบรรทัด&#10;(บรรทัดว่างได้)\" style=\"width:100%;height:200px;border:2px dashed var(--bd);border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:vertical\"></textarea></div>"+
+        "<div style=\"flex:1\"><label style=\"font-weight:700;font-size:13px;display:block;margin-bottom:6px\">&#128247; ลิงก์รูปภาพ</label>"+
+          "<textarea id=\"imgUrlBox\" placeholder=\"วางลิงก์รูปที่นี่ ทีละบรรทัด&#10;(บรรทัดว่างได้)\" style=\"width:100%;height:200px;border:2px dashed var(--bd);border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:vertical\"></textarea></div>"+
+      "</div>"+
+      "<button class=\"btn bp\" onclick=\"pvImgImp()\" style=\"width:100%;padding:12px;font-size:15px;margin-top:12px\">&#128270; ประมวลผล</button>"+
+    "</div>"+
+    "<div id=\"imgFileArea\" style=\"display:none\">"+
+      "<div style=\"background:var(--bg);padding:16px;border-radius:10px;text-align:center\">"+
+        "<div style=\"font-size:13px;margin-bottom:12px\">อัปโหลดไฟล์ <b>mass_update_media_info</b> จาก Shopee<br>ระบบอ่านคอลัมน์ <b>B</b> (Parent SKU) + <b>R</b> (รูปตัวเลือก 1) อัตโนมัติ</div>"+
+        "<input type=\"file\" id=\"imgFileIn\" accept=\".xlsx,.xls\" onchange=\"pvImgFile(this)\" style=\"display:none\">"+
+        "<button class=\"btn bp\" onclick=\"document.getElementById('imgFileIn').click()\" style=\"padding:14px 32px;font-size:15px\">&#128193; เลือกไฟล์ .xlsx</button>"+
+        "<div id=\"imgFileName\" style=\"margin-top:8px;font-size:12px;color:var(--t2)\"></div>"+
+      "</div>"+
+    "</div>"+
+    "<div id=\"imgPv\" style=\"margin-top:14px\"></div>"+
+    "<div id=\"imgAc\" style=\"margin-top:12px;display:none\"><div style=\"display:flex;gap:8px\"><button class=\"btn bg\" onclick=\"doImgImp()\" style=\"flex:1;padding:12px;font-size:15px\">&#9989; ยืนยัน Import รูปทั้งหมด</button><button class=\"btn bs b2\" onclick=\"clrImgImp()\">&#128465; ล้าง</button></div></div>"+
+    "<div id=\"imgRs\" style=\"margin-top:12px\"></div>";
+}
+
+function imgSwitchTab(tab){
+  document.getElementById("imgPasteArea").style.display=tab==="paste"?"block":"none";
+  document.getElementById("imgFileArea").style.display=tab==="file"?"block":"none";
+  document.getElementById("imgTabPaste").className="btn "+(tab==="paste"?"bp":"bs b2");
+  document.getElementById("imgTabFile").className="btn "+(tab==="file"?"bp":"bs b2");
+  clrImgImp();
+}
+function clrImgImp(){
+  var sb=document.getElementById("imgSkuBox");if(sb)sb.value="";
+  var ub=document.getElementById("imgUrlBox");if(ub)ub.value="";
+  document.getElementById("imgPv").innerHTML="";
+  document.getElementById("imgAc").style.display="none";
+  document.getElementById("imgRs").innerHTML="";
+  _imgImpData=[];
+}
+
+var _imgImpData=[];
+function _processImgPairs(skuLines,urlLines){
+  _imgImpData=[];
+  var len=Math.max(skuLines.length,urlLines.length);
+  var noUrl=0,emptyRow=0;
+  for(var i=0;i<len;i++){
+    var sku=(skuLines[i]||"").trim();
+    var imgUrl=(urlLines[i]||"").trim();
+    if(!sku){emptyRow++;continue}
+    var skuLow=sku.toLowerCase();
+    if(skuLow==="sku"||skuLow==="parent sku"||skuLow==="et_title_parent_sku")continue;
+    if(!imgUrl||imgUrl.indexOf("http")!==0){noUrl++;continue}
+    var idx=I.findIndex(function(it){return it.sku===sku||it.sku.toLowerCase()===skuLow});
+    _imgImpData.push({sku:sku,img:imgUrl,found:idx>=0,idx:idx});
+  }
+  _showImgPv(noUrl);
+}
+
+function _showImgPv(noUrl){
+  var matched=_imgImpData.filter(function(d){return d.found}).length;
+  var notFound=_imgImpData.filter(function(d){return!d.found}).length;
+  var h="<div class=\"is\">"+
+    "<div class=\"ist ib\">คู่ SKU+รูป<b>"+_imgImpData.length+"</b></div>"+
+    "<div class=\"ist ig\">พบในระบบ<b>"+matched+"</b></div>"+
+    "<div class=\"ist iy\">ไม่พบ<b>"+notFound+"</b></div>"+
+    (noUrl>0?"<div class=\"ist\" style=\"border-color:var(--t2)\"><span style=\"color:var(--t2)\">SKU ไม่มี URL</span><b style=\"color:var(--t2)\">"+noUrl+"</b></div>":"")+
+  "</div>";
+  if(_imgImpData.length>0){
+    h+="<div style=\"margin-top:12px;font-size:12px;color:var(--t2)\">&#128064; ตัวอย่าง "+Math.min(8,_imgImpData.length)+" รายการแรก:</div>"+
+      "<table class=\"pt\"><thead><tr><th>SKU</th><th>รูป</th><th>สถานะ</th></tr></thead><tbody>";
+    _imgImpData.slice(0,8).forEach(function(p){
+      h+="<tr><td style=\"font-weight:600\">"+p.sku+"</td>"+
+        "<td><img src=\""+p.img+"\" style=\"width:40px;height:40px;object-fit:cover;border-radius:4px\" onerror=\"this.style.display='none'\"></td>"+
+        "<td>"+(p.found?"<span style=\"color:var(--g)\">&#9989; พบ</span>":"<span style=\"color:var(--r)\">&#10060; ไม่พบ</span>")+"</td></tr>";
+    });
+    h+="</tbody></table>";
+    if(_imgImpData.length>8)h+="<div style=\"text-align:center;font-size:12px;color:var(--t2);margin-top:6px\">...อีก "+(_imgImpData.length-8)+" รายการ</div>";
+    document.getElementById("imgAc").style.display="block";
+  }
+  document.getElementById("imgPv").innerHTML=h;
+}
+
+function pvImgImp(){
+  var skuRaw=document.getElementById("imgSkuBox").value||"";
+  var urlRaw=document.getElementById("imgUrlBox").value||"";
+  if(!skuRaw.trim()&&!urlRaw.trim()){alert("กรุณาวาง SKU ในช่องซ้าย และลิงก์รูปในช่องขวา");return}
+  var skuLines=skuRaw.split("\n");
+  var urlLines=urlRaw.split("\n");
+  _processImgPairs(skuLines,urlLines);
+}
+
+function pvImgFile(input){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  document.getElementById("imgFileName").textContent="กำลังอ่าน: "+file.name;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var wb=XLSX.read(data,{type:"array"});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var range=XLSX.utils.decode_range(ws["!ref"]);
+      var skuLines=[],urlLines=[];
+      for(var r=0;r<=range.e.r;r++){
+        var bCell=ws[XLSX.utils.encode_cell({r:r,c:1})];
+        var rCell=ws[XLSX.utils.encode_cell({r:r,c:17})];
+        skuLines.push(bCell?String(bCell.v):"");
+        urlLines.push(rCell?String(rCell.v):"");
+      }
+      document.getElementById("imgFileName").innerHTML="&#9989; <b>"+file.name+"</b> — "+range.e.r+" แถว";
+      _processImgPairs(skuLines,urlLines);
+    }catch(ex){
+      alert("อ่านไฟล์ไม่ได้: "+ex.message);
+      document.getElementById("imgFileName").textContent="";
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function doImgImp(){
+  var matched=0;
+  _imgImpData.forEach(function(d){
+    if(!d.found)return;
+    I[d.idx].img=d.img;
+    if(R[d.idx])R[d.idx][9]=d.img;
+    matched++;
+  });
+  if(matched>0){
+    _gimgCache={};
+    try{localStorage.setItem("ts_r",JSON.stringify(R))}catch(ex){}
+    sv();
+    rl();rt();
+  }
+  cp();
+  alert("Import รูปสำเร็จ!\nอัพเดทรูปให้ "+matched+" SKU แล้ว");
+}
 
 function cp(){document.getElementById("po").style.display="none";document.getElementById("pp").style.display="none"}
 
@@ -3057,7 +3240,7 @@ function initApp(){
   try{applyPerms()}catch(e){console.error("applyPerms error:",e)}
   // แสดง sync status ทันที
   try{syncUI("loading")}catch(e){}
-  try{uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
+  try{recalcS();uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
   try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
   // Fetch cloud users → merge → push กลับ (ไม่เขียนทับข้อมูลเครื่องอื่น)
   try{if(CLOUD_URL){_fetchCloudUsers().then(function(){cloudSaveUsers()}).catch(function(){})}}catch(e){}
