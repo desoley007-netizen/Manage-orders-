@@ -396,7 +396,9 @@ table:has(#ltb){display:block!important;width:100%!important}
 
 /* --- FAB: above bottom nav --- */
 .fab{bottom:76px!important;right:14px}
-.fab-btn{width:44px;height:44px;font-size:16px;border-radius:12px;opacity:.45}
+.fab-btn{width:44px;height:44px;font-size:16px;border-radius:12px;opacity:.5;transition:all .25s}
+.fab.mini .fab-btn{width:24px!important;height:24px!important;min-height:24px!important;font-size:10px!important;border-radius:50%!important;opacity:.3!important;padding:0!important;box-shadow:0 2px 8px rgba(0,0,0,.2)!important}
+.fab.mini .fab-btn:active{opacity:.7!important}
 .fab-menu{width:calc(100vw - 20px);max-width:none;right:-4px;border-radius:16px;padding:16px;max-height:60vh}
 
 /* --- ADMIN PANEL --- */
@@ -469,10 +471,9 @@ html,body{overflow-x:hidden!important}
 .rcv-sug:hover *{color:#fff!important}
 .rcv-sug img{width:46px;height:46px;border-radius:8px;object-fit:cover;flex-shrink:0}
 .rcv-sug-on{border-color:var(--a);background:var(--glow)}
-.fab{position:fixed;bottom:28px;right:28px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px;touch-action:none}
-.fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .2s;display:flex;align-items:center;justify-content:center;opacity:.55;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.fab{position:fixed;bottom:28px;right:28px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .25s;display:flex;align-items:center;justify-content:center;opacity:.55}
 .fab-btn:hover,.fab-btn:active,.fab.open .fab-btn{opacity:1!important;transform:scale(1.05);box-shadow:0 8px 32px rgba(99,102,241,.5)}
-.fab.dragging .fab-btn{opacity:1!important;transform:scale(1.1)!important;box-shadow:0 8px 32px rgba(99,102,241,.6)!important;transition:none!important}
 .fab-menu{background:var(--c1);border:1px solid var(--bd);border-radius:18px;padding:18px;width:340px;box-shadow:0 12px 48px rgba(0,0,0,.4);display:none;max-height:80vh;overflow-y:auto;backdrop-filter:blur(20px)}
 .fab-menu.open{display:block;animation:fabIn .25s ease}
 @keyframes fabIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -3749,58 +3750,31 @@ function initApp(){
 var fabOpen=false;
 function toggleFab(){fabOpen=!fabOpen;var f=document.querySelector(".fab");if(fabOpen)f.classList.add("open");else f.classList.remove("open");document.getElementById("fm").className=fabOpen?"fab-menu open":"fab-menu";document.getElementById("fabb").innerHTML=fabOpen?"&#10005;":"&#9776;";if(fabOpen)updateFm()}
 
-// --- FAB Drag (iOS + Android + Desktop) ---
+// --- FAB Mini Toggle (กดซ้อน/กดคืน) ---
 (function(){
   var fab=document.querySelector(".fab"),btn=document.getElementById("fabb");
   if(!fab||!btn)return;
-  var sx,sy,ox,oy,dragging=false,moved=false;
-  // touch-action:none บน button เพื่อให้ iOS ยอมให้ลาก
-  btn.style.touchAction="none";
-
-  function getXY(e){return e.touches&&e.touches[0]?e.touches[0]:e}
-
-  function onStart(e){
-    var t=getXY(e);
-    sx=t.clientX;sy=t.clientY;
-    var r=fab.getBoundingClientRect();
-    ox=t.clientX-r.left;oy=t.clientY-r.top;
-    dragging=false;moved=false;
-  }
-  function onMove(e){
-    if(sx===null||sx===undefined)return;
-    var t=getXY(e);
-    var dx=t.clientX-sx,dy=t.clientY-sy;
-    if(!dragging&&(Math.abs(dx)+Math.abs(dy))>6){
-      dragging=true;moved=true;fab.classList.add("dragging");
-    }
-    if(dragging){
-      if(e.cancelable)e.preventDefault();
-      var nx=t.clientX-ox,ny=t.clientY-oy;
-      var mw=window.innerWidth-fab.offsetWidth;
-      var mh=window.innerHeight-fab.offsetHeight;
-      nx=Math.max(0,Math.min(nx,mw));
-      ny=Math.max(0,Math.min(ny,mh));
-      fab.style.left=nx+"px";fab.style.top=ny+"px";
-      fab.style.right="auto";fab.style.bottom="auto";
-    }
-  }
-  function onEnd(){
-    fab.classList.remove("dragging");
-    if(moved){btn.dataset.dragged="1";setTimeout(function(){delete btn.dataset.dragged},100)}
-    sx=sy=null;dragging=false;
-  }
-  // บล็อก iOS context menu (คัดลอก/ค้นหา) บนปุ่ม
-  btn.addEventListener("contextmenu",function(e){e.preventDefault()});
-  // ใช้ passive:false ทั้ง start+move เพื่อ preventDefault ได้
-  btn.addEventListener("touchstart",onStart,{passive:false});
-  btn.addEventListener("touchmove",onMove,{passive:false});
-  btn.addEventListener("touchend",onEnd);
-  btn.addEventListener("mousedown",onStart);
-  document.addEventListener("mousemove",onMove);
-  document.addEventListener("mouseup",onEnd);
-  // ป้องกัน click เมื่อเพิ่งลากเสร็จ
+  var _lastTap=0;
   btn.addEventListener("click",function(e){
-    if(btn.dataset.dragged){e.stopImmediatePropagation();e.preventDefault()}
+    // ถ้าเป็น mini → กดแล้วคืนขนาดปกติ (ไม่เปิดเมนู)
+    if(fab.classList.contains("mini")){
+      e.stopImmediatePropagation();e.preventDefault();
+      fab.classList.remove("mini");
+      btn.innerHTML="&#9776;";
+      return;
+    }
+    // ถ้าเมนูเปิดอยู่ → ปล่อยให้ toggleFab ปิดเมนูปกติ
+    if(fabOpen)return;
+    // Double-tap เร็วๆ → ย่อเป็น mini
+    var now=Date.now();
+    if(now-_lastTap<400){
+      e.stopImmediatePropagation();e.preventDefault();
+      fab.classList.add("mini");
+      btn.innerHTML="&#9776;";
+      _lastTap=0;
+      return;
+    }
+    _lastTap=now;
   },true);
 })()
 function updateFm(){
