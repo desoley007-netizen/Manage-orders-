@@ -525,19 +525,37 @@ html,body{overflow-x:hidden!important}
 <div class="adm-pn" id="admPn">
 <h2 style="display:flex;align-items:center;gap:8px">&#128101; จัดการผู้ใช้ &amp; สิทธิ์ <button onclick="refreshAdminPanel()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--t2)" title="ซิงค์ข้อมูลผู้ใช้จาก Cloud">&#128260; ซิงค์</button> <button class="cb" onclick="closeAdmin()" style="margin-left:auto">&times;</button></h2>
 <div id="admContent"></div>
-<div style="margin-top:16px"><button class="btn bp" onclick="showAddUser()" style="width:100%">+ เพิ่มผู้ใช้ใหม่</button></div>
+<div style="margin-top:16px;display:flex;gap:8px"><button class="btn bp" onclick="showAddUser()" style="flex:1">+ เพิ่มผู้ใช้ใหม่</button><button class="btn bs b2" onclick="openActivityLog()" style="flex:1">&#128203; ประวัติกิจกรรม</button></div>
 <div id="addUserForm" style="display:none;margin-top:16px;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:16px">
 <div style="font-weight:700;margin-bottom:12px">&#10024; เพิ่มผู้ใช้ใหม่</div>
 <div class="fg"><label>ชื่อผู้ใช้ (สำหรับ Login)</label><input type="text" id="newUid" placeholder="เช่น emp1"></div>
 <div class="fg"><label>ชื่อแสดง</label><input type="text" id="newUname" placeholder="เช่น พนักงาน 1"></div>
 <div class="fg"><label>รหัสผ่าน</label><input type="text" id="newUpass" placeholder="ตั้งรหัสผ่าน"></div>
 <div style="font-size:12px;font-weight:600;color:var(--t2);margin:10px 0 6px">สิทธิ์การใช้งาน:</div>
+<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+<button type="button" onclick="applyPermTemplate('warehouse')" style="background:rgba(59,130,246,.1);border:1px solid var(--a);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--a);cursor:pointer;font-weight:600">&#128230; พนักงานคลัง</button>
+<button type="button" onclick="applyPermTemplate('checker')" style="background:rgba(139,92,246,.1);border:1px solid var(--p);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--p);cursor:pointer;font-weight:600">&#128270; พนักงานตรวจสอบ</button>
+<button type="button" onclick="applyPermTemplate('all')" style="background:rgba(16,185,129,.1);border:1px solid var(--g);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--g);cursor:pointer;font-weight:600">&#9989; ทุกสิทธิ์</button>
+<button type="button" onclick="applyPermTemplate('none')" style="background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t2);cursor:pointer">&#10060; ล้าง</button>
+</div>
 <div id="newPermChecks"></div>
 <div style="display:flex;gap:8px;margin-top:14px">
 <button class="btn bg" onclick="saveNewUser()">&#128190; บันทึก</button>
 <button class="btn bs b2" onclick="document.getElementById('addUserForm').style.display='none'">ยกเลิก</button>
 </div>
 </div>
+</div>
+
+<div class="adm-ov" id="alogOv" onclick="closeActivityLog()" style="display:none"></div>
+<div class="adm-pn" id="alogPn" style="display:none;max-width:700px">
+<h2 style="display:flex;align-items:center;gap:8px">&#128203; ประวัติกิจกรรม <button class="cb" onclick="closeActivityLog()" style="margin-left:auto">&times;</button></h2>
+<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+<select id="alogFilterUser" onchange="renderActivityLog()" style="padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--c1);color:var(--t);font-size:12px"><option value="">ทุกคน</option></select>
+<select id="alogFilterType" onchange="renderActivityLog()" style="padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--c1);color:var(--t);font-size:12px"><option value="">ทุกประเภท</option><option value="เข้าสู่ระบบ">เข้าสู่ระบบ</option><option value="ออกจากระบบ">ออกจากระบบ</option><option value="นับสินค้า">นับสินค้า</option><option value="เข้าสต๊อก">เข้าสต๊อก</option><option value="อนุมัติรับสินค้า">อนุมัติรับสินค้า</option></select>
+<input type="date" id="alogFilterDate" onchange="renderActivityLog()" style="padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--c1);color:var(--t);font-size:12px">
+</div>
+<div id="alogSummary" style="margin-bottom:12px"></div>
+<div id="alogList" style="max-height:400px;overflow-y:auto"></div>
 </div>
 
 <div class="hd"><h1>&#128230; <span>THAISURE</span> <span class="hd-sub">ระบบจัดการสั่งซื้อ</span></h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()">&#128100; <span class="uname" id="dispName">แอดมิน</span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="netBadge" style="display:none;align-items:center;gap:4px;background:rgba(239,68,68,.15);color:var(--r);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;animation:offPulse 2s infinite" title="ไม่มีอินเทอร์เน็ต — ข้อมูลบันทึกในเครื่อง จะ sync อัตโนมัติเมื่อกลับมาออนไลน์">&#9888; Offline</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
@@ -615,8 +633,11 @@ html,body{overflow-x:hidden!important}
 <button class="vt-btn act" id="rvCount" onclick="rcvMode='count';rrcv()">&#128221; <span class="m-hide">พนักงาน 1: </span>นับของ</button>
 <button class="vt-btn" id="rvCheck" onclick="rcvMode='check';rrcv()">&#128270; <span class="m-hide">พนักงาน 2: </span>ตรวจสอบ</button>
 </div>
+<button onclick="var w=document.getElementById('rcvOrdWrap');var s=w.style.display==='none';w.style.display=s?'flex':'none';this.textContent=s?'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25b2':'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25bc'" style="background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--t2);cursor:pointer;white-space:nowrap">&#128230; เลือกคำสั่งซื้อ &#9660;</button>
+<div id="rcvOrdWrap" style="display:none;flex:1;gap:6px">
 <select class="sel" id="rcvOrd" onchange="document.getElementById('rcvOrdNP').value='';rrcv()" style="flex:1"><option value="">-- เลือกคำสั่งซื้อ --</option></select>
 <select class="sel" id="rcvOrdNP" onchange="document.getElementById('rcvOrd').value='';rrcv()" style="flex:0 0 auto;min-width:180px;background:var(--y);color:#000;font-weight:600;display:none"><option value="">-- สินค้าใหม่ 1688 --</option></select>
+</div>
 </div>
 
 <!-- Employee 1: Blind Count -->
@@ -842,7 +863,8 @@ function _buildCloudPayload() {
     ts_hold: JSON.stringify(HOLD),
     ts_users: JSON.stringify(USERS),
     ts_r: JSON.stringify(R),
-    ts_vn: JSON.stringify(VN)
+    ts_vn: JSON.stringify(VN),
+    ts_alog: JSON.stringify(ALOG)
   };
   for (var k in bigKeys) {
     var chunks = _chunkSplit(k, bigKeys[k]);
@@ -937,6 +959,7 @@ function cloudLoad(manual) {
       var raw_hold = _chunkJoin("ts_hold", d.data);
       var raw_r = _chunkJoin("ts_r", d.data);
       var raw_vn = _chunkJoin("ts_vn", d.data);
+      var raw_alog = _chunkJoin("ts_alog", d.data);
 
       if (raw_o && raw_o !== JSON.stringify(O)) { O = JSON.parse(raw_o); localStorage.setItem("ts_o", raw_o); changed = true; }
       if (raw_l && raw_l !== JSON.stringify(L)) { L = JSON.parse(raw_l); localStorage.setItem("ts_l", raw_l); changed = true; }
@@ -961,6 +984,7 @@ function cloudLoad(manual) {
       // อัปเดต USERS จาก cloud ด้วย (merge ไม่เขียนทับ)
       if (raw_disc) { try{DISC=JSON.parse(raw_disc);localStorage.setItem("ts_disc",JSON.stringify(DISC))}catch(e){} }
       if (raw_vn) { try{VN=JSON.parse(raw_vn);localStorage.setItem("ts_vn",JSON.stringify(VN))}catch(e){} }
+      if (raw_alog) { try{var ca=JSON.parse(raw_alog);if(Array.isArray(ca)){ALOG=ca;localStorage.setItem("ts_alog",JSON.stringify(ALOG))}}catch(e){} }
       if (raw_hold) { try{HOLD=JSON.parse(raw_hold);localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
       // ดึง deleted user IDs จาก cloud มา merge กับ local
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
@@ -1928,6 +1952,7 @@ function npDoRegister(i){
   alert("ลงสินค้าเข้าระบบแล้ว! SKU: "+sku+"\nกดปุ่ม \"ส่งเข้า Export\" ได้เลย");
 }
 function npToExport(i){
+  if(!CUR_USER){alert("\u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e47\u0e2d\u0e01\u0e2d\u0e34\u0e19\u0e01\u0e48\u0e2d\u0e19\u0e2a\u0e48\u0e07\u0e2d\u0e2d\u0e01");return}
   var p=NP[i];if(!p)return;
   if(!p.addedSKU){alert("ยังไม่ได้ลงสินค้าเข้าระบบ กรุณาลงสินค้าก่อน");return}
   var rcKey="NP_"+p.id;var rc=RC[rcKey];
@@ -1942,7 +1967,8 @@ function npToExport(i){
   });
   p._exported=true;
   sv();renderSI();rnp();
-  alert("ส่งเข้า Export แล้ว! "+totalQty+" ชิ้น\nไปดาวน์โหลด .xlsx ได้ที่หน้า พนักงาน 2: ตรวจสอบ");
+  logActivity("\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e15\u0e47\u0e2d\u0e01","\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48 "+p.name+" "+totalQty+" \u0e0a\u0e34\u0e49\u0e19");
+  alert("\u0e2a\u0e48\u0e07\u0e40\u0e02\u0e49\u0e32 Export \u0e41\u0e25\u0e49\u0e27! "+totalQty+" \u0e0a\u0e34\u0e49\u0e19\n\u0e44\u0e1b\u0e14\u0e32\u0e27\u0e19\u0e4c\u0e42\u0e2b\u0e25\u0e14 .xlsx \u0e44\u0e14\u0e49\u0e17\u0e35\u0e48\u0e2b\u0e19\u0e49\u0e32\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a");
 }
 
 function unpf(i){
@@ -2722,15 +2748,16 @@ function rcvGetVariants(sku){
   return I.filter(function(x){return (gb(x.sku)===base||gb(x.sku)===sku||x.sku.indexOf(sku)===0)&&x.sku!==sku}).sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});
 }
 function rcvToggleVariants(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
+function rcvToggleStrip(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
 function rcvAddVariant(sku){
   var ex=_rcvItems.find(function(r){return r.sku===sku});
   if(ex){ex.qty+=1}else{_rcvItems.push({sku:sku,qty:1})}
   _rcvVarOpen=-1;renderRcvCount();
 }
 function rcvQuickAddVar(sku,parentIdx){
-  var ex=_rcvItems.find(function(r){return r.sku===sku});
-  if(ex)return;
-  _rcvItems.push({sku:sku,qty:1});renderRcvCount();
+  var idx=_rcvItems.findIndex(function(r){return r.sku===sku});
+  if(idx>-1){_rcvItems.splice(idx,1)}else{_rcvItems.push({sku:sku,qty:1})}
+  renderRcvCount();
 }
 function rcvAddAllVars(parentIdx){
   var r=_rcvItems[parentIdx];if(!r)return;
@@ -2807,7 +2834,9 @@ function renderRcvCount(){
       h+="<div class='rcv-card' style='background:var(--bg);border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:10px;margin-bottom:6px;transition:all .2s'>";
       h+="<div class='rcv-item' style='margin-bottom:0;border:none;border-radius:0'>";
       if(im)h+="<img src='"+im+"' onerror=\"this.style.display='none'\">";
+      var rvn=VN[r.sku]||"";
       h+="<div style='flex:1;min-width:0'><div style='font-weight:700;font-size:15px'>"+r.sku+"</div>";
+      if(rvn)h+="<div style='font-size:11px;color:var(--a);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+rvn+"</div>";
       if(itn)h+="<div style='font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+itn.name+"</div>";
       h+="</div>";
       h+="<input type='number' value='"+r.qty+"' min='0' style='width:70px;background:var(--c1);border:1px solid "+(r.qty?"var(--bd)":"#eab308")+";border-radius:6px;padding:8px;color:var(--t);font-size:15px;text-align:center' onchange='_rcvItems["+i+"].qty=parseInt(this.value)||0;renderRcvCount()'>";
@@ -2816,9 +2845,11 @@ function renderRcvCount(){
       h+="<div class='rcv-btns' style='display:flex;gap:6px;padding:6px 12px 8px;border-top:1px solid var(--bd);width:100%;order:99;flex-shrink:0'>";
       h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t);cursor:pointer;font-weight:600'>&#9998; แก้ไข SKU</button>";
       if(hasVars){var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
-      h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--a);cursor:pointer;font-weight:600'>&#10133; เพิ่มทั้งหมด ("+notAdded.length+")</button>";}
+      var addedCount=vars.length-notAdded.length;
+      h+="<button onclick='rcvToggleStrip("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:6px;padding:4px 10px;font-size:11px;color:"+(isOpen?"#fff":"var(--a)")+";cursor:pointer;font-weight:600'>&#127912; ตัวเลือก ("+addedCount+"/"+vars.length+") "+(isOpen?"&#9650;":"&#9660;")+"</button>";
+      if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--a);cursor:pointer;font-weight:600'>&#10133; ทั้งหมด</button>";}
       h+="</div>";
-      if(hasVars){
+      if(hasVars&&isOpen){
         h+="<div class='rcv-strip' style='display:flex;gap:8px;padding:8px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;width:100%;order:100;flex-shrink:0'>";
         vars.forEach(function(v,vi){
           var already=_rcvItems.some(function(x){return x.sku===v.sku});
@@ -3020,7 +3051,7 @@ function rcvAddNP(npi){
   if(totalQty<=0){alert("กรุณาใส่จำนวนอย่างน้อย 1 ชิ้น");return}
   // Save to RC under NP order ID — same structure as normal orders
   var rcKey="NP_"+p.id;
-  RC[rcKey]={items:items,date:new Date().toISOString().slice(0,10),by:"พนักงาน 1",npIndex:NP.indexOf(p),isNP:true,npName:p.name,npImg:p.img||""};
+  RC[rcKey]={items:items,date:new Date().toISOString().slice(0,10),by:CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a",npIndex:NP.indexOf(p),isNP:true,npName:p.name,npImg:p.img||""};
   sv();rrcv();
   var el=document.getElementById("rcvSug");
   var dh=details.map(function(d){return "<div style='font-size:13px;padding:3px 0'>&#9989; "+d+"</div>"}).join("");
@@ -3092,11 +3123,13 @@ function rcvAddChecked(){
 }
 
 function rcvSave(){
+  if(!CUR_USER){alert("\u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e47\u0e2d\u0e01\u0e2d\u0e34\u0e19\u0e01\u0e48\u0e2d\u0e19\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a");return}
   var idx=parseInt(document.getElementById("rcvOrd").value);
   var o=O[idx];if(!o){alert("เลือกคำสั่งซื้อก่อน");return}
   if(_rcvItems.length===0){alert("ยังไม่มีรายการนับ");return}
-  RC[o.id]={items:_rcvItems.map(function(r){return{sku:r.sku,qty:r.qty}}),date:new Date().toISOString().slice(0,10),by:"พนักงาน 1"};
+  RC[o.id]={items:_rcvItems.map(function(r){return{sku:r.sku,qty:r.qty}}),date:new Date().toISOString().slice(0,10),by:CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a"};
   sv();
+  logActivity("\u0e19\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32","\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01 "+_rcvItems.length+" SKU, "+_rcvItems.reduce(function(s,x){return s+x.qty},0)+" \u0e0a\u0e34\u0e49\u0e19 ("+o.id+")");
   alert("บันทึกการนับสำเร็จ "+_rcvItems.length+" SKU | "+_rcvItems.reduce(function(s,x){return s+x.qty},0)+" ชิ้น");
   _rcvItems=[];
   rrcv();
@@ -3244,14 +3277,14 @@ function rcvEditCount(ordId,sku,newQty,ordIdx){
   if(!RC[ordId])return;
   var item=RC[ordId].items.find(function(x){return x.sku===sku});
   if(item){item.qty=newQty}else{RC[ordId].items.push({sku:sku,qty:newQty})}
-  RC[ordId].by="พนักงาน 2 (แก้ไข)";RC[ordId].date=new Date().toISOString().slice(0,10);
+  RC[ordId].by=(CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a")+" (\u0e41\u0e01\u0e49\u0e44\u0e02)";RC[ordId].date=new Date().toISOString().slice(0,10);
   sv();renderRcvCheckNormal(ordIdx);
 }
 function rcvEditCountNP(npi,itemIdx,newQty){
   var p=NP[npi];if(!p)return;var rcKey="NP_"+p.id;
   if(!RC[rcKey])return;
   RC[rcKey].items[itemIdx].qty=newQty;
-  RC[rcKey].by="พนักงาน 2 (แก้ไข)";RC[rcKey].date=new Date().toISOString().slice(0,10);
+  RC[rcKey].by=(CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a")+" (\u0e41\u0e01\u0e49\u0e44\u0e02)";RC[rcKey].date=new Date().toISOString().slice(0,10);
   sv();renderRcvCheckNP(npi);
 }
 // NP verification view
@@ -3356,7 +3389,7 @@ function rcvRecountNP(npi){
   var rcKey="NP_"+p.id;
   delete RC[rcKey];sv();
   rcvMode="count";rrcv();
-  alert("ล้างการนับสินค้าใหม่แล้ว — ให้พนักงาน 1 นับใหม่");
+  alert("\u0e25\u0e49\u0e32\u0e07\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e02\u0e2d\u0e07\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48");
 }
 
 function rcvGoTrack(oid,statusLabel){
@@ -3376,6 +3409,7 @@ function rcvGoTrack(oid,statusLabel){
   },300);
 }
 function rcvApprove(idx){
+  if(!CUR_USER){alert("\u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e47\u0e2d\u0e01\u0e2d\u0e34\u0e19\u0e01\u0e48\u0e2d\u0e19\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34");return}
   var o=O[idx];if(!o)return;
   _chkOpen=null;
   o.status="received";
@@ -3389,6 +3423,8 @@ function rcvApprove(idx){
     if(ex){ex.qty+=x.qty}else{SI.push({sku:x.sku,qty:x.qty,date:new Date().toISOString().slice(0,10),from:o.name||o.id})}
   });
   sv();cp();uk();ro();rt();rrcv();renderSI();
+  var totalApproved=src.reduce(function(s,x){return s+(x.qty||0)},0);
+  logActivity("\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e23\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32","\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34 "+o.id+" "+src.length+" SKU, "+totalApproved+" \u0e0a\u0e34\u0e49\u0e19");
   rcvGoTrack(o.id);
 }
 
@@ -3413,7 +3449,7 @@ function rcvRecount(idx){
   delete RC[o.id];sv();
   _rcvItems=[];
   rcvMode="count";rrcv();
-  alert("ล้างการนับแล้ว — ให้พนักงาน 1 นับใหม่");
+  alert("\u0e25\u0e49\u0e32\u0e07\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e02\u0e2d\u0e07\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48");
 }
 
 // ===== STOCK-IN EXPORT =====
@@ -3461,6 +3497,81 @@ function siClear(){
   if(SI.length===0)return;
   if(!confirm("เคลียร์ข้อมูล Export ทั้งหมด "+SI.length+" รายการ?"))return;
   SI=[];sv();renderSI();
+}
+
+// ===== ACTIVITY LOG =====
+var ALOG=JSON.parse(localStorage.getItem("ts_alog")||"[]");
+function logActivity(type,detail){
+  var entry={ts:new Date().toISOString(),user:CUR_USER?CUR_USER.name:"ไม่ทราบ",uid:CUR_USER?CUR_USER.id:"?",type:type,detail:detail};
+  ALOG.unshift(entry);
+  if(ALOG.length>500)ALOG=ALOG.slice(0,500);
+  localStorage.setItem("ts_alog",JSON.stringify(ALOG));
+  svAlog();
+}
+function svAlog(){
+  if(!CLOUD_URL)return;
+  var payload=_chunkSplit("ts_alog",JSON.stringify(ALOG));
+  fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){});
+}
+
+function openActivityLog(){
+  document.getElementById("alogOv").style.display="block";
+  document.getElementById("alogPn").style.display="block";
+  // Populate user filter
+  var sel=document.getElementById("alogFilterUser");
+  var users={};ALOG.forEach(function(e){users[e.user]=1});
+  sel.innerHTML="<option value=''>\u0e17\u0e38\u0e01\u0e04\u0e19</option>";
+  Object.keys(users).forEach(function(u){sel.innerHTML+="<option>"+u+"</option>"});
+  renderActivityLog();
+}
+function closeActivityLog(){
+  document.getElementById("alogOv").style.display="none";
+  document.getElementById("alogPn").style.display="none";
+}
+function renderActivityLog(){
+  var fu=document.getElementById("alogFilterUser").value;
+  var ft=document.getElementById("alogFilterType").value;
+  var fd=document.getElementById("alogFilterDate").value;
+  var filtered=ALOG.filter(function(e){
+    if(fu&&e.user!==fu)return false;
+    if(ft&&e.type!==ft)return false;
+    if(fd&&e.ts.slice(0,10)!==fd)return false;
+    return true;
+  });
+  // Summary
+  var summary={};
+  filtered.forEach(function(e){
+    var k=e.user;
+    if(!summary[k])summary[k]={count:0,types:{}};
+    summary[k].count++;
+    summary[k].types[e.type]=(summary[k].types[e.type]||0)+1;
+  });
+  var sh="<div style='display:flex;gap:8px;flex-wrap:wrap'>";
+  Object.keys(summary).forEach(function(u){
+    var s=summary[u];
+    var typeStr=Object.keys(s.types).map(function(t){return t+" "+s.types[t]}).join(", ");
+    sh+="<div style='background:var(--c1);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;font-size:12px;flex:1;min-width:200px'>";
+    sh+="<div style='font-weight:700;color:var(--a)'>"+u+"</div>";
+    sh+="<div style='color:var(--t2)'>"+s.count+" \u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21 \u2014 "+typeStr+"</div></div>";
+  });
+  sh+="</div>";
+  document.getElementById("alogSummary").innerHTML=sh;
+  // List
+  var h="";
+  if(filtered.length===0)h="<div style='text-align:center;padding:20px;color:var(--t2)'>\u0e44\u0e21\u0e48\u0e21\u0e35\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21</div>";
+  filtered.slice(0,100).forEach(function(e){
+    var d=new Date(e.ts);
+    var ds=d.toLocaleDateString("th-TH",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
+    var colors={"เข้าสู่ระบบ":"var(--g)","ออกจากระบบ":"var(--t2)","นับสินค้า":"var(--a)","เข้าสต๊อก":"var(--p)","อนุมัติรับสินค้า":"#eab308"};
+    var c=colors[e.type]||"var(--t2)";
+    h+="<div style='display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px'>";
+    h+="<div style='flex:0 0 90px;color:var(--t2)'>"+ds+"</div>";
+    h+="<div style='flex:0 0 80px;font-weight:600'>"+e.user+"</div>";
+    h+="<div style='flex:0 0 auto'><span style='background:"+c+";color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600'>"+e.type+"</span></div>";
+    h+="<div style='flex:1;color:var(--t2)'>"+e.detail+"</div>";
+    h+="</div>";
+  });
+  document.getElementById("alogList").innerHTML=h;
 }
 
 // ===== LOGIN & PERMISSION SYSTEM =====
@@ -3515,6 +3626,7 @@ function _loginOK(u){
   localStorage.setItem("ts_login",JSON.stringify({id:u.id}));
   document.getElementById("loginScreen").style.display="none";
   document.getElementById("loginErr").textContent="";
+  logActivity("\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a","\u0e25\u0e47\u0e2d\u0e01\u0e2d\u0e34\u0e19\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08");
   initApp();
 }
 function _fetchCloudUsers(){
@@ -3557,6 +3669,7 @@ function doLogin(){
 }
 
 function doLogout(){
+  logActivity("\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e30\u0e1a\u0e1a","\u0e25\u0e47\u0e2d\u0e01\u0e40\u0e2d\u0e32\u0e17\u0e4c");
   CUR_USER=null;
   localStorage.removeItem("ts_login");
   document.getElementById("loginScreen").style.display="flex";
@@ -3601,8 +3714,8 @@ function applyPerms(){
   document.querySelector(".fab").style.display="";
   document.getElementById("loginScreen").style.display="none";
   // User badge
-  document.getElementById("dispName").textContent=CUR_USER.name;
-  document.getElementById("userBadge").style.display=CUR_USER.role==="admin"?"flex":"none";
+  document.getElementById("dispName").textContent=CUR_USER.name+" ("+(CUR_USER.role==="admin"?"\u0e41\u0e2d\u0e14\u0e21\u0e34\u0e19":"\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49")+")";
+  document.getElementById("userBadge").style.display="flex";
   document.getElementById("logoutBtn").style.display="flex";
   // KPI cards
   _permVis(document.getElementById("kpiCards"),hasPerm("kpi"));
@@ -3647,28 +3760,63 @@ function renderAdmin(){
   if(CLOUD_URL&&!_admFetched){_admFetched=true;_fetchCloudUsers().then(function(){_renderAdminHTML()}).catch(function(){_renderAdminHTML()})}
   else{_renderAdminHTML()}
 }
+function _getLastLogin(uid){
+  for(var j=0;j<ALOG.length;j++){if(ALOG[j].uid===uid&&ALOG[j].type==="\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a")return ALOG[j].ts}
+  return null;
+}
+function _getTodayActivity(uid){
+  var today=new Date().toISOString().slice(0,10);
+  var counts={};
+  ALOG.forEach(function(e){if(e.uid===uid&&e.ts.slice(0,10)===today&&e.type!=="\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a"&&e.type!=="\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e30\u0e1a\u0e1a"){counts[e.type]=(counts[e.type]||0)+1}});
+  return counts;
+}
 function _renderAdminHTML(){
   var h="";
-  USERS.forEach(function(u,i){
-    h+="<div class='usr-card'>";
-    h+="<div class='usr-hd'><div><span class='usr-name'>"+u.name+"</span> <span style='color:var(--t2);font-size:12px'>("+u.id+")</span></div>";
+  // ข้อ 1: เรียง admin ก่อน
+  var sorted=USERS.map(function(u,i){return{u:u,i:i}});
+  sorted.sort(function(a,b){if(a.u.role==="admin"&&b.u.role!=="admin")return -1;if(a.u.role!=="admin"&&b.u.role==="admin")return 1;return 0});
+  // ข้อ 4: แจ้งเตือนแอดมินซ้ำ
+  var admCount=USERS.filter(function(u){return u.role==="admin"}).length;
+  if(admCount>1)h+="<div style='background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#eab308'>\u26A0\uFE0F \u0e21\u0e35\u0e41\u0e2d\u0e14\u0e21\u0e34\u0e19 "+admCount+" \u0e04\u0e19 \u2014 \u0e04\u0e27\u0e23\u0e21\u0e35\u0e41\u0e04\u0e48 1 \u0e04\u0e19\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e04\u0e27\u0e32\u0e21\u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22</div>";
+  sorted.forEach(function(obj){
+    var u=obj.u;var i=obj.i;
+    var isSelf=CUR_USER&&CUR_USER.id===u.id;
+    // ข้อ 3: ล็อกอินล่าสุด
+    var ll=_getLastLogin(u.id);
+    var llStr="";
+    if(ll){var d=new Date(ll);llStr=d.toLocaleDateString("th-TH",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"})}
+    // ข้อ 6: สรุปกิจกรรมวันนี้
+    var ta=_getTodayActivity(u.id);
+    var taKeys=Object.keys(ta);
+    h+="<div class='usr-card'"+(isSelf?" style='border:2px solid var(--a)'":"")+">";
+    h+="<div class='usr-hd'><div><span class='usr-name'>"+u.name+"</span> <span style='color:var(--t2);font-size:12px'>("+u.id+")"+(isSelf?" <span style='color:var(--a);font-weight:600'>\u2190 \u0e04\u0e38\u0e13</span>":"")+"</span></div>";
     h+="<span class='usr-role "+(u.role==="admin"?"admin":"user")+"'>"+(u.role==="admin"?"\u0e41\u0e2d\u0e14\u0e21\u0e34\u0e19":"\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49")+"</span></div>";
+    // ข้อ 3: last login
+    if(llStr)h+="<div style='font-size:10px;color:var(--t2);margin-bottom:4px'>\u{1F552} \u0e40\u0e02\u0e49\u0e32\u0e43\u0e0a\u0e49\u0e25\u0e48\u0e32\u0e2a\u0e38\u0e14: "+llStr+"</div>";
+    else h+="<div style='font-size:10px;color:var(--t2);margin-bottom:4px'>\u{1F552} \u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e40\u0e04\u0e22\u0e40\u0e02\u0e49\u0e32\u0e43\u0e0a\u0e49</div>";
+    // ข้อ 6: today activity
+    if(taKeys.length>0){h+="<div style='font-size:10px;color:var(--g);margin-bottom:6px'>\u{1F4CA} \u0e27\u0e31\u0e19\u0e19\u0e35\u0e49: "+taKeys.map(function(t){return t+" "+ta[t]+" \u0e04\u0e23\u0e31\u0e49\u0e07"}).join(", ")+"</div>";}
     if(u.role!=="admin"){
-      h+="<div style='font-size:11px;color:var(--t2);margin-bottom:6px'>\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19: "+u.pass+"</div>";
+      // ข้อ 2: ซ่อนรหัสผ่าน
+      h+="<div style='font-size:11px;color:var(--t2);margin-bottom:6px'>\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19: <span id='pw_"+i+"' style='letter-spacing:2px'>\u2022\u2022\u2022\u2022\u2022\u2022</span> <button onclick=\"var s=document.getElementById('pw_"+i+"');if(s.dataset.show==='1'){s.textContent='\\u2022\\u2022\\u2022\\u2022\\u2022\\u2022';s.style.letterSpacing='2px';s.dataset.show='0';this.textContent='\\ud83d\\udc41'}else{s.textContent='"+u.pass+"';s.style.letterSpacing='0';s.dataset.show='1';this.textContent='\\u2716'}\" style='background:none;border:none;cursor:pointer;font-size:12px'>\ud83d\udc41</button></div>";
       h+="<div class='perm-grid'>";
       PERMS_LIST.forEach(function(p){
         var on=u.perms&&u.perms.indexOf(p.key)>=0;
         h+="<span class='perm-tag "+(on?"on":"off")+"' onclick='togglePerm("+i+",\""+p.key+"\")' style='cursor:pointer' title='\u0e01\u0e14\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19'>"+p.label+"</span>";
       });
       h+="</div>";
-      h+="<div style='margin-top:10px;display:flex;gap:6px'>";
-      h+="<button class='btn bs brd' onclick='delUser("+i+")'>\u0e25\u0e1a\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49</button>";
+      h+="<div style='margin-top:10px;display:flex;gap:6px;flex-wrap:wrap'>";
+      // ข้อ 4: ป้องกันลบตัวเอง
+      if(!isSelf)h+="<button class='btn bs brd' onclick='delUser("+i+")'>\u0e25\u0e1a\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49</button>";
       h+="<button class='btn bs b2' onclick='resetPass("+i+")'>\u0e23\u0e35\u0e40\u0e0b\u0e47\u0e15\u0e23\u0e2b\u0e31\u0e2a</button>";
+      h+="<button class='btn bs b2' onclick='editUserId("+i+")'>\u270F\uFE0F \u0e41\u0e01\u0e49\u0e22\u0e39\u0e2a\u0e40\u0e0b\u0e2d\u0e23\u0e4c\u0e40\u0e19\u0e21</button>";
+      h+="<button class='btn bs b2' onclick='editUserName("+i+")'>\u270F\uFE0F \u0e41\u0e01\u0e49\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e2a\u0e14\u0e07</button>";
       h+="</div>";
     } else {
       h+="<div style='font-size:11px;color:var(--t2);margin-bottom:10px'>\u0e40\u0e02\u0e49\u0e32\u0e16\u0e36\u0e07\u0e44\u0e14\u0e49\u0e17\u0e38\u0e01\u0e1f\u0e31\u0e07\u0e01\u0e4c\u0e0a\u0e31\u0e19</div>";
-      h+="<div style='display:flex;gap:6px'>";
+      h+="<div style='display:flex;gap:6px;flex-wrap:wrap'>";
       h+="<button class='btn bs b2' onclick='editAdminName()'>\u270F\uFE0F \u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d</button>";
+      h+="<button class='btn bs b2' onclick='editUserId("+i+")'>\u270F\uFE0F \u0e41\u0e01\u0e49\u0e22\u0e39\u0e2a\u0e40\u0e0b\u0e2d\u0e23\u0e4c\u0e40\u0e19\u0e21</button>";
       h+="<button class='btn bs b2' onclick='editAdminPass()'>\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19</button>";
       h+="</div>";
     }
@@ -3734,6 +3882,39 @@ function resetPass(ui){
   svUsers();renderAdmin();
 }
 
+function editUserId(ui){
+  var u=USERS[ui];if(!u)return;
+  var nid=prompt("\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e22\u0e39\u0e2a\u0e40\u0e0b\u0e2d\u0e23\u0e4c\u0e40\u0e19\u0e21 (Login ID) \u0e40\u0e1b\u0e47\u0e19:",u.id);
+  if(!nid||!nid.trim())return;
+  nid=nid.trim().toLowerCase();
+  if(nid===u.id)return;
+  if(USERS.find(function(x){return x.id.toLowerCase()===nid&&x!==u})){alert("\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e19\u0e35\u0e49\u0e21\u0e35\u0e41\u0e25\u0e49\u0e27");return}
+  var oldId=u.id;u.id=nid;
+  svUsers();renderAdmin();
+  logActivity("\u0e41\u0e01\u0e49\u0e44\u0e02\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49","\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19 username "+oldId+" \u2192 "+nid);
+  // Update login session if editing self
+  if(CUR_USER&&CUR_USER===u)localStorage.setItem("ts_login",JSON.stringify({id:nid}));
+}
+function editUserName(ui){
+  var u=USERS[ui];if(!u)return;
+  var nn=prompt("\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e0a\u0e37\u0e48\u0e2d\u0e41\u0e2a\u0e14\u0e07\u0e40\u0e1b\u0e47\u0e19:",u.name);
+  if(!nn||!nn.trim())return;
+  u.name=nn.trim();
+  svUsers();renderAdmin();
+  if(CUR_USER&&CUR_USER===u)document.getElementById("dispName").textContent=u.name+" ("+(u.role==="admin"?"\u0e41\u0e2d\u0e14\u0e21\u0e34\u0e19":"\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49")+")";
+}
+var PERM_TEMPLATES={
+  warehouse:["rcv_count","si","np","inv"],
+  checker:["rcv_check","kpi","ord","inv"],
+  all:PERMS_LIST.map(function(p){return p.key}),
+  none:[]
+};
+function applyPermTemplate(tpl){
+  var keys=PERM_TEMPLATES[tpl]||[];
+  document.querySelectorAll("#newPermChecks input[type='checkbox']").forEach(function(cb){
+    cb.checked=keys.indexOf(cb.value)>=0;
+  });
+}
 function showAddUser(){
   document.getElementById("addUserForm").style.display="block";
   document.getElementById("newUid").value="";
