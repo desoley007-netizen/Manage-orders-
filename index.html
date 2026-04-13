@@ -733,7 +733,7 @@ function _chunkSplit(key, str) {
   if (str.length <= CHUNK_SIZE) {
     result[key] = str;
     // ลบ chunk เก่าที่อาจเหลืออยู่ (ส่ง empty string เพื่อล้าง)
-    for (var i = 2; i <= 30; i++) { result[key + "_" + i] = ""; }
+    for (var i = 2; i <= 50; i++) { result[key + "_" + i] = ""; }
     return result;
   }
   var chunks = [];
@@ -745,7 +745,7 @@ function _chunkSplit(key, str) {
     result[key + "_" + (i + 1)] = chunks[i];
   }
   // ลบ chunk เก่าที่ไม่ใช้แล้ว
-  for (var j = chunks.length + 1; j <= 30; j++) { result[key + "_" + j] = ""; }
+  for (var j = chunks.length + 1; j <= 50; j++) { result[key + "_" + j] = ""; }
   return result;
 }
 
@@ -753,7 +753,7 @@ function _chunkSplit(key, str) {
 function _chunkJoin(key, data) {
   if (!data[key]) return null;
   var str = data[key];
-  for (var i = 2; i <= 30; i++) {
+  for (var i = 2; i <= 50; i++) {
     var ck = key + "_" + i;
     if (data[ck] && data[ck].length > 0) { str += data[ck]; }
     else { break; }
