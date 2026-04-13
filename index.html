@@ -470,7 +470,7 @@ html,body{overflow-x:hidden!important}
 .rcv-sug img{width:46px;height:46px;border-radius:8px;object-fit:cover;flex-shrink:0}
 .rcv-sug-on{border-color:var(--a);background:var(--glow)}
 .fab{position:fixed;bottom:28px;right:28px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px;touch-action:none}
-.fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .2s;display:flex;align-items:center;justify-content:center;opacity:.55}
+.fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .2s;display:flex;align-items:center;justify-content:center;opacity:.55;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .fab-btn:hover,.fab-btn:active,.fab.open .fab-btn{opacity:1!important;transform:scale(1.05);box-shadow:0 8px 32px rgba(99,102,241,.5)}
 .fab.dragging .fab-btn{opacity:1!important;transform:scale(1.1)!important;box-shadow:0 8px 32px rgba(99,102,241,.6)!important;transition:none!important}
 .fab-menu{background:var(--c1);border:1px solid var(--bd);border-radius:18px;padding:18px;width:340px;box-shadow:0 12px 48px rgba(0,0,0,.4);display:none;max-height:80vh;overflow-y:auto;backdrop-filter:blur(20px)}
@@ -3789,6 +3789,8 @@ function toggleFab(){fabOpen=!fabOpen;var f=document.querySelector(".fab");if(fa
     if(moved){btn.dataset.dragged="1";setTimeout(function(){delete btn.dataset.dragged},100)}
     sx=sy=null;dragging=false;
   }
+  // บล็อก iOS context menu (คัดลอก/ค้นหา) บนปุ่ม
+  btn.addEventListener("contextmenu",function(e){e.preventDefault()});
   // ใช้ passive:false ทั้ง start+move เพื่อ preventDefault ได้
   btn.addEventListener("touchstart",onStart,{passive:false});
   btn.addEventListener("touchmove",onMove,{passive:false});
