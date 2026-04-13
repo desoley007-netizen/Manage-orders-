@@ -387,7 +387,7 @@ table:has(#ltb){display:block!important;width:100%!important}
 .rcv-strip::-webkit-scrollbar{display:none}
 .rcv-vars{padding:0 10px 10px!important;display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:6px!important}
 .rcv-vars img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;margin-bottom:4px}
-.rcv-item{flex-wrap:nowrap;gap:8px;padding:10px 12px;border-radius:10px;margin-bottom:6px}
+.rcv-item{display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:10px 12px!important;border-radius:10px!important;margin-bottom:6px!important}
 .rcv-item img{width:36px;height:36px;border-radius:8px}
 .rcv-item input[type="number"]{width:56px;font-size:16px;padding:6px;min-height:40px;border-radius:8px}
 .rcv-sug{flex-wrap:nowrap;padding:12px 14px;border-radius:10px;margin-bottom:4px;gap:10px;min-height:56px}
@@ -2832,7 +2832,7 @@ function renderRcvCount(){
       var hasVars=vars.length>0;
       var isOpen=(_rcvVarOpen===i);
       h+="<div class='rcv-card' style='background:var(--bg);border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:10px;margin-bottom:6px;transition:all .2s'>";
-      h+="<div class='rcv-item' style='margin-bottom:0;border:none;border-radius:0'>";
+      h+="<div class='rcv-item' style='display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:0;border:none;border-radius:0;padding:10px 12px'>";
       if(im)h+="<img src='"+im+"' onerror=\"this.style.display='none'\">";
       var rvn=VN[r.sku]||"";
       h+="<div style='flex:1;min-width:0'><div style='font-weight:700;font-size:15px'>"+r.sku+"</div>";
@@ -2842,7 +2842,7 @@ function renderRcvCount(){
       h+="<input type='number' value='"+r.qty+"' min='0' style='width:70px;background:var(--c1);border:1px solid "+(r.qty?"var(--bd)":"#eab308")+";border-radius:6px;padding:8px;color:var(--t);font-size:15px;text-align:center' onchange='_rcvItems["+i+"].qty=parseInt(this.value)||0;renderRcvCount()'>";
       h+="<span style='font-size:12px;color:var(--t2)'>ชิ้น</span>";
       h+="<button onclick='_rcvItems.splice("+i+",1);renderRcvCount()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px'>&times;</button>";
-      h+="<div class='rcv-btns' style='display:flex;gap:6px;padding:6px 12px 8px;border-top:1px solid var(--bd);width:100%;order:99;flex-shrink:0'>";
+      h+="<div class='rcv-btns' style='display:flex!important;gap:6px;padding:6px 10px 8px;border-top:1px solid var(--bd);width:100%;order:99;flex-shrink:0;flex-wrap:wrap'>";
       h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t);cursor:pointer;font-weight:600'>&#9998; แก้ไข SKU</button>";
       if(hasVars){var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
       var addedCount=vars.length-notAdded.length;
@@ -2850,7 +2850,7 @@ function renderRcvCount(){
       if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--a);cursor:pointer;font-weight:600'>&#10133; ทั้งหมด</button>";}
       h+="</div>";
       if(hasVars&&isOpen){
-        h+="<div class='rcv-strip' style='display:flex;gap:8px;padding:8px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;width:100%;order:100;flex-shrink:0'>";
+        h+="<div class='rcv-strip' style='display:flex!important;gap:8px;padding:8px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;width:100%;order:100;flex-shrink:0;flex-wrap:nowrap'>";
         vars.forEach(function(v,vi){
           var already=_rcvItems.some(function(x){return x.sku===v.sku});
           var vim=v.img||gimg(v.sku)||"";
