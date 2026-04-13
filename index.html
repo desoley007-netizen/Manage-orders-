@@ -396,7 +396,7 @@ table:has(#ltb){display:block!important;width:100%!important}
 
 /* --- FAB: above bottom nav --- */
 .fab{bottom:76px!important;right:14px}
-.fab-btn{width:50px;height:50px;font-size:18px;border-radius:14px}
+.fab-btn{width:44px;height:44px;font-size:16px;border-radius:12px;opacity:.45}
 .fab-menu{width:calc(100vw - 20px);max-width:none;right:-4px;border-radius:16px;padding:16px;max-height:60vh}
 
 /* --- ADMIN PANEL --- */
@@ -469,9 +469,10 @@ html,body{overflow-x:hidden!important}
 .rcv-sug:hover *{color:#fff!important}
 .rcv-sug img{width:46px;height:46px;border-radius:8px;object-fit:cover;flex-shrink:0}
 .rcv-sug-on{border-color:var(--a);background:var(--glow)}
-.fab{position:fixed;bottom:28px;right:28px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-.fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .2s;display:flex;align-items:center;justify-content:center}
-.fab-btn:hover{transform:scale(1.05);box-shadow:0 8px 32px rgba(99,102,241,.5)}
+.fab{position:fixed;bottom:28px;right:28px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px;touch-action:none}
+.fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .2s;display:flex;align-items:center;justify-content:center;opacity:.55}
+.fab-btn:hover,.fab-btn:active,.fab.open .fab-btn{opacity:1!important;transform:scale(1.05);box-shadow:0 8px 32px rgba(99,102,241,.5)}
+.fab.dragging .fab-btn{opacity:1!important;transform:scale(1.1)!important;box-shadow:0 8px 32px rgba(99,102,241,.6)!important;transition:none!important}
 .fab-menu{background:var(--c1);border:1px solid var(--bd);border-radius:18px;padding:18px;width:340px;box-shadow:0 12px 48px rgba(0,0,0,.4);display:none;max-height:80vh;overflow-y:auto;backdrop-filter:blur(20px)}
 .fab-menu.open{display:block;animation:fabIn .25s ease}
 @keyframes fabIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -3746,7 +3747,46 @@ function initApp(){
 
 // ===== FLOATING MENU =====
 var fabOpen=false;
-function toggleFab(){fabOpen=!fabOpen;document.getElementById("fm").className=fabOpen?"fab-menu open":"fab-menu";document.getElementById("fabb").innerHTML=fabOpen?"&#10005;":"&#9776;";if(fabOpen)updateFm()}
+function toggleFab(){fabOpen=!fabOpen;var f=document.querySelector(".fab");if(fabOpen)f.classList.add("open");else f.classList.remove("open");document.getElementById("fm").className=fabOpen?"fab-menu open":"fab-menu";document.getElementById("fabb").innerHTML=fabOpen?"&#10005;":"&#9776;";if(fabOpen)updateFm()}
+
+// --- FAB Drag ---
+(function(){
+  var fab=document.querySelector(".fab"),btn=document.getElementById("fabb");
+  var sx,sy,ox,oy,dragging=false,moved=false;
+  function onStart(e){
+    var t=e.touches?e.touches[0]:e;
+    sx=t.clientX;sy=t.clientY;
+    var r=fab.getBoundingClientRect();
+    ox=t.clientX-r.left;oy=t.clientY-r.top;
+    dragging=false;moved=false;
+  }
+  function onMove(e){
+    if(!sx&&sx!==0)return;
+    var t=e.touches?e.touches[0]:e;
+    var dx=t.clientX-sx,dy=t.clientY-sy;
+    if(!dragging&&Math.abs(dx)+Math.abs(dy)>8){dragging=true;moved=true;fab.classList.add("dragging")}
+    if(dragging){
+      e.preventDefault();
+      var nx=t.clientX-ox,ny=t.clientY-oy;
+      var mw=window.innerWidth-fab.offsetWidth,mh=window.innerHeight-fab.offsetHeight;
+      nx=Math.max(0,Math.min(nx,mw));ny=Math.max(0,Math.min(ny,mh));
+      fab.style.left=nx+"px";fab.style.top=ny+"px";fab.style.right="auto";fab.style.bottom="auto";
+    }
+  }
+  function onEnd(){
+    sx=sy=null;fab.classList.remove("dragging");
+    if(moved){btn.dataset.dragged="1";setTimeout(function(){btn.dataset.dragged=""},50)}
+    dragging=false;
+  }
+  btn.addEventListener("touchstart",onStart,{passive:true});
+  btn.addEventListener("mousedown",onStart);
+  document.addEventListener("touchmove",onMove,{passive:false});
+  document.addEventListener("mousemove",onMove);
+  document.addEventListener("touchend",onEnd);
+  document.addEventListener("mouseup",onEnd);
+  // ป้องกันกด click เมื่อเพิ่งลาก
+  btn.addEventListener("click",function(e){if(btn.dataset.dragged==="1"){e.stopImmediatePropagation();e.preventDefault()}},true);
+})()
 function updateFm(){
   // Inventory stats
   var cAct=0,cDone=0,cReord=0,cNone=0;
