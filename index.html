@@ -2831,31 +2831,32 @@ function renderRcvCount(){
       var vars=rcvGetVariants(r.sku);
       var hasVars=vars.length>0;
       var isOpen=(_rcvVarOpen===i);
-      h+="<div class='rcv-card' style='background:var(--bg);border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:10px;margin-bottom:6px;transition:all .2s'>";
-      h+="<div class='rcv-item' style='display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:0;border:none;border-radius:0;padding:10px 12px'>";
-      if(im)h+="<img src='"+im+"' onerror=\"this.style.display='none'\">";
+      h+="<div style='background:var(--bg);border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:10px;margin-bottom:6px;overflow:visible'>";
+      h+="<div style='display:flex;align-items:center;gap:8px;padding:10px 12px'>";
+      if(im)h+="<img src='"+im+"' style='width:36px;height:36px;border-radius:8px;object-fit:cover' onerror=\"this.style.display='none'\">";
       var rvn=VN[r.sku]||"";
       h+="<div style='flex:1;min-width:0'><div style='font-weight:700;font-size:15px'>"+r.sku+"</div>";
       if(rvn)h+="<div style='font-size:11px;color:var(--a);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+rvn+"</div>";
       if(itn)h+="<div style='font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+itn.name+"</div>";
       h+="</div>";
       h+="<input type='number' value='"+r.qty+"' min='0' style='width:70px;background:var(--c1);border:1px solid "+(r.qty?"var(--bd)":"#eab308")+";border-radius:6px;padding:8px;color:var(--t);font-size:15px;text-align:center' onchange='_rcvItems["+i+"].qty=parseInt(this.value)||0;renderRcvCount()'>";
-      h+="<span style='font-size:12px;color:var(--t2)'>ชิ้น</span>";
+      h+="<span style='font-size:12px;color:var(--t2)'>\u0e0a\u0e34\u0e49\u0e19</span>";
       h+="<button onclick='_rcvItems.splice("+i+",1);renderRcvCount()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px'>&times;</button>";
-      h+="<div class='rcv-btns' style='display:flex!important;gap:6px;padding:6px 10px 8px;border-top:1px solid var(--bd);width:100%;order:99;flex-shrink:0;flex-wrap:wrap'>";
-      h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t);cursor:pointer;font-weight:600'>&#9998; แก้ไข SKU</button>";
+      h+="</div>";
+      h+="<div style='display:flex;gap:6px;padding:6px 10px 8px;border-top:1px solid var(--bd);flex-wrap:wrap'>";
+      h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--t);cursor:pointer;font-weight:600'>&#9998; \u0e41\u0e01\u0e49\u0e44\u0e02 SKU</button>";
       if(hasVars){var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
       var addedCount=vars.length-notAdded.length;
-      h+="<button onclick='rcvToggleStrip("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:6px;padding:4px 10px;font-size:11px;color:"+(isOpen?"#fff":"var(--a)")+";cursor:pointer;font-weight:600'>&#127912; ตัวเลือก ("+addedCount+"/"+vars.length+") "+(isOpen?"&#9650;":"&#9660;")+"</button>";
-      if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--a);cursor:pointer;font-weight:600'>&#10133; ทั้งหมด</button>";}
+      h+="<button onclick='rcvToggleStrip("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:6px;padding:6px 12px;font-size:12px;color:"+(isOpen?"#fff":"var(--a)")+";cursor:pointer;font-weight:600'>&#127912; \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01 ("+addedCount+"/"+vars.length+") "+(isOpen?"&#9650;":"&#9660;")+"</button>";
+      if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--a);cursor:pointer;font-weight:600'>&#10133; \u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";}
       h+="</div>";
       if(hasVars&&isOpen){
-        h+="<div class='rcv-strip' style='display:flex!important;gap:8px;padding:8px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;width:100%;order:100;flex-shrink:0;flex-wrap:nowrap'>";
+        h+="<div style='display:flex;gap:8px;padding:8px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity'>";
         vars.forEach(function(v,vi){
           var already=_rcvItems.some(function(x){return x.sku===v.sku});
           var vim=v.img||gimg(v.sku)||"";
           var vnm=VN[v.sku]||"";
-          h+="<div onclick=\"rcvQuickAddVar('"+v.sku+"',"+i+")\" style='flex:0 0 90px;width:90px;cursor:pointer;background:"+(already?"var(--glow)":"var(--c1)")+";border:2px solid "+(already?"var(--g)":"var(--bd)")+";border-radius:10px;padding:6px;text-align:center;transition:all .15s;scroll-snap-align:start;position:relative'>";
+          h+="<div onclick=\"rcvQuickAddVar('"+v.sku+"',"+i+")\" style='flex:0 0 90px;width:90px;cursor:pointer;background:"+(already?"var(--glow)":"var(--c1)")+";border:2px solid "+(already?"var(--g)":"var(--bd)")+";border-radius:10px;padding:6px;text-align:center;scroll-snap-align:start;position:relative'>";
           if(already)h+="<div style='position:absolute;top:4px;right:4px;width:18px;height:18px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff'>&#10004;</div>";
           if(vim)h+="<img src='"+vim+"' style='width:78px;height:78px;object-fit:cover;border-radius:6px;margin-bottom:4px' onerror=\"this.style.display='none'\">";
           else h+="<div style='width:78px;height:78px;background:var(--c2);border-radius:6px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:20px'>&#128247;</div>";
@@ -2865,7 +2866,7 @@ function renderRcvCount(){
         });
         h+="</div>";
       }
-      h+="</div></div>";
+      h+="</div>";
     });
     act.style.display="block";
   }else{
