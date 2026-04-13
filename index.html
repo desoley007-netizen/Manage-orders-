@@ -249,6 +249,45 @@ table:has(#itb){display:block!important;width:100%!important}
 #itb .bar{display:none!important}
 
 /* ============================================
+   RECOMMENDATION GROUP ROW (.grp) — MOBILE CARD
+   Line 1: status dot + image + SKU + badge + สั่งทั้งกลุ่ม + links
+   Line 2: product name
+   Line 3: stat badges (สต็อก / สั่ง)
+   ============================================ */
+#itb tr.grp{display:flex!important;flex-wrap:wrap!important;align-items:center!important;padding:12px 10px!important;border-bottom:2px solid var(--a)!important;gap:4px 8px!important;cursor:pointer}
+#itb tr.grp td{display:inline-flex!important;align-items:center!important;border-bottom:none!important;padding:2px 0!important}
+/* Line 1: status + image/SKU + buttons */
+#itb tr.grp td:nth-child(1){order:1;font-size:10px!important;flex-shrink:0}
+#itb tr.grp td:nth-child(2){order:2;font-size:13px!important;font-weight:700;flex-shrink:1;min-width:0}
+#itb tr.grp td:nth-child(12){order:3;margin-left:auto!important;flex-shrink:0;display:inline-flex!important;gap:4px!important;align-items:center!important;flex-wrap:nowrap!important}
+/* Line 2: product name */
+#itb tr.grp td:nth-child(3){order:10;width:100%!important;white-space:normal!important;word-break:break-word!important;font-size:12px!important;color:var(--t2)!important;line-height:1.4!important}
+/* Line 3: stat badges */
+#itb tr.grp td:nth-child(4){order:11;font-size:10px!important;background:rgba(239,68,68,.08)!important;padding:2px 8px!important;border-radius:6px!important}
+#itb tr.grp td:nth-child(4)::before{content:'สต็อก ';font-weight:400;opacity:.7}
+#itb tr.grp td:nth-child(9){order:12;font-size:10px!important;background:rgba(99,102,241,.1)!important;padding:2px 8px!important;border-radius:6px!important;color:var(--a)!important;font-weight:600}
+#itb tr.grp td:nth-child(9)::before{content:'สั่ง ';font-weight:400;opacity:.7}
+/* Hide remaining columns on mobile */
+#itb tr.grp td:nth-child(5),#itb tr.grp td:nth-child(6),#itb tr.grp td:nth-child(7),#itb tr.grp td:nth-child(8),#itb tr.grp td:nth-child(10),#itb tr.grp td:nth-child(11){display:none!important}
+/* ปุ่มสั่งทั้งกลุ่ม + ลิงก์ ให้เล็กลง */
+#itb tr.grp td:nth-child(12) .btn{font-size:11px!important;padding:6px 10px!important;min-height:28px!important;border-radius:8px!important}
+#itb tr.grp td:nth-child(12) .lk{font-size:14px!important}
+
+/* CHILD ROW — same card layout */
+#itb tr.child-row{display:flex!important;flex-wrap:wrap!important;align-items:center!important;padding:8px 10px 8px 16px!important;border-bottom:1px solid var(--bd)!important;gap:3px 6px!important;background:var(--glass)!important}
+#itb tr.child-row td{display:inline-flex!important;align-items:center!important;border-bottom:none!important;padding:2px 0!important}
+#itb tr.child-row td:nth-child(1){order:1;font-size:10px!important}
+#itb tr.child-row td:nth-child(2){order:2;font-size:12px!important;font-weight:600;padding-left:0!important}
+#itb tr.child-row td:nth-child(12){order:3;margin-left:auto!important;flex-shrink:0}
+#itb tr.child-row td:nth-child(3){order:10;width:100%!important;white-space:normal!important;word-break:break-word!important;font-size:11px!important;color:var(--t2)!important;line-height:1.4!important}
+#itb tr.child-row td:nth-child(4){order:11;font-size:10px!important;background:rgba(239,68,68,.08)!important;padding:2px 8px!important;border-radius:6px!important}
+#itb tr.child-row td:nth-child(4)::before{content:'สต็อก ';font-weight:400;opacity:.7}
+#itb tr.child-row td:nth-child(9){order:12;font-size:10px!important;background:rgba(99,102,241,.1)!important;padding:2px 8px!important;border-radius:6px!important;color:var(--a)!important;font-weight:600}
+#itb tr.child-row td:nth-child(9)::before{content:'สั่ง ';font-weight:400;opacity:.7}
+#itb tr.child-row td:nth-child(5),#itb tr.child-row td:nth-child(6),#itb tr.child-row td:nth-child(7),#itb tr.child-row td:nth-child(8),#itb tr.child-row td:nth-child(10),#itb tr.child-row td:nth-child(11){display:none!important}
+#itb tr.child-row .bar{display:none!important}
+
+/* ============================================
    LINK TABLE — 2-LINE CARD ROWS
    Line 1: image + SKU + base badge → edit btn
    Line 2: full product name
@@ -781,6 +820,7 @@ function _buildCloudPayload() {
   }
   payload.ts_thc = String(TH_C);
   payload.ts_thl = String(TH_L);
+  payload.ts_del_users = JSON.stringify(_delIds);
   return payload;
 }
 
@@ -890,6 +930,8 @@ function cloudLoad(manual) {
       // อัปเดต USERS จาก cloud ด้วย (merge ไม่เขียนทับ)
       if (raw_disc) { try{DISC=JSON.parse(raw_disc);localStorage.setItem("ts_disc",JSON.stringify(DISC))}catch(e){} }
       if (raw_hold) { try{HOLD=JSON.parse(raw_hold);localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
+      // ดึง deleted user IDs จาก cloud มา merge กับ local
+      if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
       if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
       if (changed) {
         recalcS(); cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
@@ -3369,22 +3411,33 @@ var DEF_USERS=[{id:"admin",name:"\u0e40\u0e08\u0e49\u0e32\u0e02\u0e2d\u0e07",pas
 var USERS=JSON.parse(localStorage.getItem("ts_users")||"null")||DEF_USERS;
 var CUR_USER=null;
 
+// deleted user IDs — sync ข้ามเครื่อง
+var _delIds=JSON.parse(localStorage.getItem("ts_del_users")||"[]");
+function _svDelIds(){localStorage.setItem("ts_del_users",JSON.stringify(_delIds))}
+
 function svUsers(){localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
 function cloudSaveUsers(){
   if(!CLOUD_URL)return;
   if(!navigator.onLine){cloudSave();return}
   var payload=_chunkSplit("ts_users",JSON.stringify(USERS));
+  payload.ts_del_users=JSON.stringify(_delIds);
   fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){});
 }
 
 var _cloudReady=false;
-// Merge users: cloud + local → รวมทั้งสองฝั่ง ไม่เขียนทับ
+// Merge users: cloud + local → รวมทั้งสองฝั่ง, ข้ามที่ถูกลบ
 function _mergeUsers(local,cloud){
   var merged=[];var ids={};
-  // cloud users เป็นหลัก (เพราะอาจถูกแก้ไขจากเครื่องอื่น)
-  cloud.forEach(function(u){merged.push(u);ids[u.id.toLowerCase()]=true});
-  // เพิ่ม local-only users ที่ไม่มีใน cloud
-  local.forEach(function(u){if(!ids[u.id.toLowerCase()]){merged.push(u);ids[u.id.toLowerCase()]=true}});
+  // รวม deleted IDs จากทั้ง local และ cloud
+  var del={};_delIds.forEach(function(d){del[d.toLowerCase()]=true});
+  cloud.forEach(function(u){
+    if(del[u.id.toLowerCase()])return;
+    merged.push(u);ids[u.id.toLowerCase()]=true
+  });
+  local.forEach(function(u){
+    if(del[u.id.toLowerCase()])return;
+    if(!ids[u.id.toLowerCase()]){merged.push(u);ids[u.id.toLowerCase()]=true}
+  });
   return merged;
 }
 function _loginOK(u){
@@ -3397,8 +3450,11 @@ function _loginOK(u){
 function _fetchCloudUsers(){
   return fetch(CLOUD_URL+"?t="+Date.now()).then(function(r){return r.json()}).then(function(d){
     var cu=null;
-    // รองรับทั้ง chunked format และ flat format
     if(d&&d.status==="ok"&&d.data){
+      // ดึง deleted IDs จาก cloud มา merge กับ local
+      if(d.data.ts_del_users){
+        try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}
+      }
       var raw=_chunkJoin("ts_users",d.data);
       if(raw){try{cu=JSON.parse(raw)}catch(e){}}
     }
@@ -3515,9 +3571,10 @@ function closeAdmin(){
   document.getElementById("admPn").style.display="none";
   document.getElementById("addUserForm").style.display="none";
 }
+var _admFetched=false;
 function renderAdmin(){
-  // ดึงข้อมูลผู้ใช้จาก cloud ก่อน render (เพื่อซิงค์ข้ามเครื่อง)
-  if(CLOUD_URL){_fetchCloudUsers().then(function(){_renderAdminHTML()}).catch(function(){_renderAdminHTML()})}
+  // fetch cloud แค่ครั้งแรกที่เปิดหน้า admin (ไม่ fetch ซ้ำทุกครั้งที่ลบ/แก้ไข)
+  if(CLOUD_URL&&!_admFetched){_admFetched=true;_fetchCloudUsers().then(function(){_renderAdminHTML()}).catch(function(){_renderAdminHTML()})}
   else{_renderAdminHTML()}
 }
 function _renderAdminHTML(){
@@ -3571,9 +3628,13 @@ function delUser(ui){
   var u=USERS[ui];
   if(!u||u.role==="admin")return;
   if(!confirm("\u0e25\u0e1a\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49 '"+u.name+"' ?"))return;
+  // บันทึก ID ที่ลบ → ป้องกัน merge กลับมา
+  if(_delIds.indexOf(u.id)===-1){_delIds.push(u.id);_svDelIds()}
   USERS.splice(ui,1);
-  renderAdmin();
-  setTimeout(function(){svUsers()},0);
+  // render ทันทีไม่ต้องรอ cloud
+  _renderAdminHTML();
+  // push ขึ้น cloud (ทั้ง users + deleted IDs)
+  svUsers();
 }
 
 function editAdminName(){
