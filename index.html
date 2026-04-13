@@ -3749,43 +3749,57 @@ function initApp(){
 var fabOpen=false;
 function toggleFab(){fabOpen=!fabOpen;var f=document.querySelector(".fab");if(fabOpen)f.classList.add("open");else f.classList.remove("open");document.getElementById("fm").className=fabOpen?"fab-menu open":"fab-menu";document.getElementById("fabb").innerHTML=fabOpen?"&#10005;":"&#9776;";if(fabOpen)updateFm()}
 
-// --- FAB Drag ---
+// --- FAB Drag (iOS + Android + Desktop) ---
 (function(){
   var fab=document.querySelector(".fab"),btn=document.getElementById("fabb");
+  if(!fab||!btn)return;
   var sx,sy,ox,oy,dragging=false,moved=false;
+  // touch-action:none บน button เพื่อให้ iOS ยอมให้ลาก
+  btn.style.touchAction="none";
+
+  function getXY(e){return e.touches&&e.touches[0]?e.touches[0]:e}
+
   function onStart(e){
-    var t=e.touches?e.touches[0]:e;
+    var t=getXY(e);
     sx=t.clientX;sy=t.clientY;
     var r=fab.getBoundingClientRect();
     ox=t.clientX-r.left;oy=t.clientY-r.top;
     dragging=false;moved=false;
   }
   function onMove(e){
-    if(!sx&&sx!==0)return;
-    var t=e.touches?e.touches[0]:e;
+    if(sx===null||sx===undefined)return;
+    var t=getXY(e);
     var dx=t.clientX-sx,dy=t.clientY-sy;
-    if(!dragging&&Math.abs(dx)+Math.abs(dy)>8){dragging=true;moved=true;fab.classList.add("dragging")}
+    if(!dragging&&(Math.abs(dx)+Math.abs(dy))>6){
+      dragging=true;moved=true;fab.classList.add("dragging");
+    }
     if(dragging){
-      e.preventDefault();
+      if(e.cancelable)e.preventDefault();
       var nx=t.clientX-ox,ny=t.clientY-oy;
-      var mw=window.innerWidth-fab.offsetWidth,mh=window.innerHeight-fab.offsetHeight;
-      nx=Math.max(0,Math.min(nx,mw));ny=Math.max(0,Math.min(ny,mh));
-      fab.style.left=nx+"px";fab.style.top=ny+"px";fab.style.right="auto";fab.style.bottom="auto";
+      var mw=window.innerWidth-fab.offsetWidth;
+      var mh=window.innerHeight-fab.offsetHeight;
+      nx=Math.max(0,Math.min(nx,mw));
+      ny=Math.max(0,Math.min(ny,mh));
+      fab.style.left=nx+"px";fab.style.top=ny+"px";
+      fab.style.right="auto";fab.style.bottom="auto";
     }
   }
   function onEnd(){
-    sx=sy=null;fab.classList.remove("dragging");
-    if(moved){btn.dataset.dragged="1";setTimeout(function(){btn.dataset.dragged=""},50)}
-    dragging=false;
+    fab.classList.remove("dragging");
+    if(moved){btn.dataset.dragged="1";setTimeout(function(){delete btn.dataset.dragged},100)}
+    sx=sy=null;dragging=false;
   }
-  btn.addEventListener("touchstart",onStart,{passive:true});
+  // ใช้ passive:false ทั้ง start+move เพื่อ preventDefault ได้
+  btn.addEventListener("touchstart",onStart,{passive:false});
+  btn.addEventListener("touchmove",onMove,{passive:false});
+  btn.addEventListener("touchend",onEnd);
   btn.addEventListener("mousedown",onStart);
-  document.addEventListener("touchmove",onMove,{passive:false});
   document.addEventListener("mousemove",onMove);
-  document.addEventListener("touchend",onEnd);
   document.addEventListener("mouseup",onEnd);
-  // ป้องกันกด click เมื่อเพิ่งลาก
-  btn.addEventListener("click",function(e){if(btn.dataset.dragged==="1"){e.stopImmediatePropagation();e.preventDefault()}},true);
+  // ป้องกัน click เมื่อเพิ่งลากเสร็จ
+  btn.addEventListener("click",function(e){
+    if(btn.dataset.dragged){e.stopImmediatePropagation();e.preventDefault()}
+  },true);
 })()
 function updateFm(){
   // Inventory stats
