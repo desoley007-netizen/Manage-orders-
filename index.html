@@ -380,7 +380,8 @@ table:has(#ltb){display:block!important;width:100%!important}
 
 /* Scanned items */
 .rcv-card{overflow:visible!important}
-.rcv-btns{display:flex!important;gap:6px;padding:6px 10px 8px;border-top:1px solid var(--bd);flex-wrap:wrap}
+.rcv-card .rcv-item{flex-wrap:wrap!important}
+.rcv-btns{display:flex!important;gap:6px;padding:6px 10px 8px;border-top:1px solid var(--bd);flex-wrap:wrap;width:100%!important;order:99!important}
 .rcv-btns button{font-size:12px!important;padding:6px 12px!important;min-height:32px;border-radius:8px!important}
 .rcv-vars{padding:0 10px 10px!important;display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:6px!important}
 .rcv-vars img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;margin-bottom:4px}
@@ -466,7 +467,8 @@ html,body{overflow-x:hidden!important}
 .fb[data-f="nord"].act{background:#ef4444}
 .fb .fc{font-size:11px;opacity:.8;margin-left:4px}
 .rcv-card{overflow:visible}
-.rcv-card .rcv-btns{display:flex;gap:6px;padding:4px 12px 8px;border-top:1px solid var(--bd)}
+.rcv-card .rcv-item{flex-wrap:wrap}
+.rcv-card .rcv-btns{display:flex;gap:6px;padding:4px 12px 8px;border-top:1px solid var(--bd);width:100%;order:99}
 .rcv-card .rcv-vars{padding:0 12px 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px}
 .rcv-item{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--bd);transition:all .15s}
 .rcv-item:hover{border-color:rgba(99,102,241,.3)}
@@ -2793,11 +2795,11 @@ function renderRcvCount(){
       h+="</div>";
       h+="<input type='number' value='"+r.qty+"' min='0' style='width:70px;background:var(--c1);border:1px solid "+(r.qty?"var(--bd)":"#eab308")+";border-radius:6px;padding:8px;color:var(--t);font-size:15px;text-align:center' onchange='_rcvItems["+i+"].qty=parseInt(this.value)||0;renderRcvCount()'>";
       h+="<span style='font-size:12px;color:var(--t2)'>ชิ้น</span>";
-      h+="<button onclick='_rcvItems.splice("+i+",1);renderRcvCount()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px'>&times;</button></div>";
-      h+="<div class='rcv-btns'>";
+      h+="<button onclick='_rcvItems.splice("+i+",1);renderRcvCount()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px'>&times;</button>";
+      h+="<div class='rcv-btns' style='display:flex;gap:6px;padding:6px 12px 8px;border-top:1px solid var(--bd);width:100%;order:99;flex-shrink:0'>";
       h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t);cursor:pointer;font-weight:600'>&#9998; แก้ไข SKU</button>";
       if(hasVars)h+="<button onclick='rcvToggleVariants("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";border-radius:6px;padding:4px 10px;font-size:11px;color:"+(isOpen?"#fff":"var(--a)")+";cursor:pointer;font-weight:600'>&#127912; เพิ่มตัวเลือก ("+vars.length+" สี/แบบ) "+(isOpen?"&#9650;":"&#9660;")+"</button>";
-      h+="</div>";
+      h+="</div></div>";
       if(isOpen&&hasVars){
         var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
         var allAdded=notAdded.length===0;
