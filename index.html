@@ -471,6 +471,11 @@ html,body{overflow-x:hidden!important}
 .rcv-sug:hover *{color:#fff!important}
 .rcv-sug img{width:46px;height:46px;border-radius:8px;object-fit:cover;flex-shrink:0}
 .rcv-sug-on{border-color:var(--a);background:var(--glow)}
+/* Import Dropdown */
+.imp-dd-menu{display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:6px;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,.3);margin-top:4px}
+.imp-dd-menu.open{display:flex;flex-direction:column;gap:2px}
+.imp-dd-menu button{background:none;border:none;color:var(--t);padding:10px 14px;border-radius:8px;cursor:pointer;text-align:left;font-size:13px;transition:.15s;white-space:nowrap}
+.imp-dd-menu button:hover{background:rgba(99,102,241,.1);color:var(--a)}
 .fab{position:fixed;bottom:28px;right:28px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .fab-btn{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .25s;display:flex;align-items:center;justify-content:center;opacity:.55}
 .fab-btn:hover,.fab-btn:active,.fab.open .fab-btn{opacity:1!important;transform:scale(1.05);box-shadow:0 8px 32px rgba(99,102,241,.5)}
@@ -649,9 +654,16 @@ html,body{overflow-x:hidden!important}
 <div id="t-lnk" style="display:none">
 <div class="tb" id="lnk-tb">
 <input class="sb" type="text" placeholder="&#128269; ค้นหา SKU..." id="ls" oninput="rl()" style="flex:1;min-width:0">
-<button class="btn bp bs lnk-act" onclick="oim()" title="Import จาก Sheets">&#128228;<span class="m-hide"> Import จาก Sheets</span></button>
 <button class="btn bs b2 lnk-act" onclick="oal()" title="เพิ่มสินค้าใหม่">+<span class="m-hide"> เพิ่มสินค้าใหม่</span></button>
-<button class="btn bs lnk-act" onclick="oimgExcel()" title="Import รูป / Import SKU จาก Shopee" style="background:rgba(168,85,247,.15);color:#a855f7;border:1px solid #a855f7">&#128247;<span class="m-hide"> Import รูป</span></button>
+<div style="position:relative;display:inline-block" class="lnk-act" id="impDd">
+<button class="btn bp bs" onclick="document.getElementById('impDdM').classList.toggle('open')">&#128228; Import <span style="font-size:10px">&#9660;</span></button>
+<div id="impDdM" class="imp-dd-menu">
+<button onclick="oim();document.getElementById('impDdM').classList.remove('open')">&#128279; Import ลิงก์ (Sheets)</button>
+<button onclick="oimgExcel();document.getElementById('impDdM').classList.remove('open')">&#128247; Import รูป</button>
+<button onclick="document.getElementById('vnFileInp').click();document.getElementById('impDdM').classList.remove('open')">&#127991; Import ชื่อตัวเลือก</button>
+</div>
+</div>
+<input type="file" id="vnFileInp" accept=".xlsx,.xls" style="display:none" onchange="importVariantNames(this)">
 <button class="btn bs bg lnk-act" onclick="am()" title="Auto-Match">&#9889;<span class="m-hide"> Auto-Match</span></button>
 </div>
 <div class="ss">
@@ -710,6 +722,7 @@ try{var _savedR=localStorage.getItem("ts_r");if(_savedR){var _parsedR=JSON.parse
 var I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});
 var O=JSON.parse(localStorage.getItem("ts_o")||"[]");
 var L=JSON.parse(localStorage.getItem("ts_l")||"{}");
+var VN=JSON.parse(localStorage.getItem("ts_vn")||"{}");
 var cf="a",cm=new Date().toISOString().slice(0,7),_s=[];
 var colSort="",colDir=1;
 function thSort(key){if(colSort===key){colDir*=-1}else{colSort=key;colDir=1}rt()}
@@ -814,7 +827,8 @@ function _buildCloudPayload() {
     ts_disc: JSON.stringify(DISC),
     ts_hold: JSON.stringify(HOLD),
     ts_users: JSON.stringify(USERS),
-    ts_r: JSON.stringify(R)
+    ts_r: JSON.stringify(R),
+    ts_vn: JSON.stringify(VN)
   };
   for (var k in bigKeys) {
     var chunks = _chunkSplit(k, bigKeys[k]);
@@ -908,6 +922,7 @@ function cloudLoad(manual) {
       var raw_disc = _chunkJoin("ts_disc", d.data);
       var raw_hold = _chunkJoin("ts_hold", d.data);
       var raw_r = _chunkJoin("ts_r", d.data);
+      var raw_vn = _chunkJoin("ts_vn", d.data);
 
       if (raw_o && raw_o !== JSON.stringify(O)) { O = JSON.parse(raw_o); localStorage.setItem("ts_o", raw_o); changed = true; }
       if (raw_l && raw_l !== JSON.stringify(L)) { L = JSON.parse(raw_l); localStorage.setItem("ts_l", raw_l); changed = true; }
@@ -931,6 +946,7 @@ function cloudLoad(manual) {
       }
       // อัปเดต USERS จาก cloud ด้วย (merge ไม่เขียนทับ)
       if (raw_disc) { try{DISC=JSON.parse(raw_disc);localStorage.setItem("ts_disc",JSON.stringify(DISC))}catch(e){} }
+      if (raw_vn) { try{VN=JSON.parse(raw_vn);localStorage.setItem("ts_vn",JSON.stringify(VN))}catch(e){} }
       if (raw_hold) { try{HOLD=JSON.parse(raw_hold);localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
       // ดึง deleted user IDs จาก cloud มา merge กับ local
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
@@ -1104,6 +1120,39 @@ function _processBigSellerRows(rows,fileCount){
   rt();rl();ro();rrcv();recalcS();uk();
   if(typeof updateFm==="function")updateFm();
   alert("\u2705 \u0e2d\u0e31\u0e1e\u0e40\u0e14\u0e17\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08! "+fileCount+" \u0e44\u0e1f\u0e25\u0e4c \u0e23\u0e27\u0e21 "+newR.length+" SKU\n\u0e2b\u0e21\u0e14\u0e2a\u0e15\u0e47\u0e2d\u0e01: "+co+" | \u0e27\u0e34\u0e01\u0e24\u0e15: "+cc+" | \u0e43\u0e01\u0e25\u0e49\u0e2b\u0e21\u0e14: "+cl+" | \u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22: "+cs);
+}
+
+// === Import ชื่อตัวเลือกสินค้า (จาก mass_update_sales_info.xlsx) ===
+function importVariantNames(inp){
+  var f=inp.files[0];if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:"array"});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+      var cnt=0,startRow=0;
+      // หา header row
+      for(var i=0;i<Math.min(rows.length,10);i++){
+        var cell=String(rows[i][5]||"").toLowerCase();
+        if(cell.indexOf("sku")>-1||cell.indexOf("\u0e40\u0e25\u0e02")>-1){startRow=i+1;break}
+      }
+      if(startRow===0)startRow=1;// ข้ามแถว header
+      for(var i=startRow;i<rows.length;i++){
+        var r=rows[i];
+        var sku=String(r[5]||"").trim();
+        var vname=String(r[3]||"").trim();
+        if(sku&&vname){VN[sku]=vname;cnt++}
+      }
+      localStorage.setItem("ts_vn",JSON.stringify(VN));
+      cloudSave();
+      rl();// refresh ตารางลิงก์
+      if(_s.length>0)rsk();// refresh ฟอร์มสั่งซื้อ
+      alert("\u2705 Import \u0e0a\u0e37\u0e48\u0e2d\u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08! "+cnt+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23");
+    }catch(ex){alert("\u274c \u0e2d\u0e48\u0e32\u0e19\u0e44\u0e1f\u0e25\u0e4c\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08: "+ex.message)}
+  };
+  reader.readAsArrayBuffer(f);
+  inp.value="";
 }
 
 // SKU base: strip last 2 digits
@@ -1569,7 +1618,7 @@ function rskDelSel(){var cbs=document.querySelectorAll(".skl-cb:checked");if(cbs
 function rskSelAll(v){document.querySelectorAll(".skl-cb").forEach(function(cb){cb.checked=v})}
 function rsk(){var h="";
   if(_s.length>1){h+="<div style=\"background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:10px\"><div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:8px\"><span style=\"font-size:13px;font-weight:700;color:var(--t)\">"+_s.length+" รายการ</span><div style=\"display:flex;gap:4px\"><button class=\"btn bs b2\" onclick=\"sortS('qty-d')\" title=\"จำนวน มาก→น้อย\" style=\"font-size:12px;padding:4px 10px\">&#9660;</button><button class=\"btn bs b2\" onclick=\"sortS('qty-a')\" title=\"จำนวน น้อย→มาก\" style=\"font-size:12px;padding:4px 10px\">&#9650;</button></div></div><div style=\"display:flex;gap:8px;align-items:center;flex-wrap:wrap\"><label style=\"font-size:12px;color:var(--t2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap\"><input type=\"checkbox\" onchange=\"rskSelAll(this.checked)\" style=\"width:17px;height:17px;accent-color:var(--p)\"> เลือกทั้งหมด</label><div style=\"height:16px;width:1px;background:var(--bd)\"></div><div style=\"display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:4px 8px\"><span style=\"font-size:11px;color:var(--t2);white-space:nowrap\">ใส่ที่เลือก:</span><input type=\"number\" id=\"saq\" min=\"1\" value=\"10\" style=\"width:45px;background:transparent;border:none;color:var(--t);text-align:center;font-size:13px;font-weight:600;padding:0\"><button class=\"btn bp bs\" onclick=\"setAll()\" style=\"font-size:11px;padding:3px 10px;border-radius:6px\">ตกลง</button></div><div style=\"height:16px;width:1px;background:var(--bd)\"></div><button class=\"btn brd bs\" onclick=\"rskDelSel()\" style=\"font-size:11px;padding:4px 12px;border-radius:6px\">&#128465; ลบที่เลือก</button></div></div>"}
-  _s.forEach(function(s,i){var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});var stk=fi?fi.stock:"-";var d=fi?fi.days:"-";var s30=fi?fi.s30:"-";var rec=fi?fi.rec:"-";var st=fi?gi(fi):{d:"",l:""};h+="<div style=\"background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px\"><div style=\"display:flex;align-items:center;gap:8px\">"+(_s.length>1?"<input type=\"checkbox\" class=\"skl-cb\" data-i=\""+i+"\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0\">":"")+(im?"<img src=\""+im+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<strong style=\"flex:1\">"+s.sku+"</strong><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div><div style=\"display:flex;gap:6px;margin-top:4px;padding-left:"+((_s.length>1)?"26px":"0")+";flex-wrap:wrap\"><span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">สต็อก <b>"+stk+"</b></span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">เหลือ <b>"+d+"</b> วัน</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">ขาย30วัน <b>"+s30+"</b></span><span style=\"font-size:10px;color:var(--a);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px;font-weight:600\">แนะนำสั่ง <b>"+rec+"</b></span></div></div>"});document.getElementById("skl").innerHTML=h}
+  _s.forEach(function(s,i){var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});var stk=fi?fi.stock:"-";var d=fi?fi.days:"-";var s30=fi?fi.s30:"-";var rec=fi?fi.rec:"-";var st=fi?gi(fi):{d:"",l:""};var vn=VN[s.sku]||"";h+="<div style=\"background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px\"><div style=\"display:flex;align-items:center;gap:8px\">"+(_s.length>1?"<input type=\"checkbox\" class=\"skl-cb\" data-i=\""+i+"\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0\">":"")+(im?"<img src=\""+im+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<div style=\"flex:1\"><strong>"+s.sku+"</strong>"+(vn?"<div style=\"font-size:10px;color:var(--t2);margin-top:1px\">"+vn+"</div>":"")+"</div><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div><div style=\"display:flex;gap:6px;margin-top:4px;padding-left:"+((_s.length>1)?"26px":"0")+";flex-wrap:wrap\"><span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">สต็อก <b>"+stk+"</b></span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">เหลือ <b>"+d+"</b> วัน</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">ขาย30วัน <b>"+s30+"</b></span><span style=\"font-size:10px;color:var(--a);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px;font-weight:600\">แนะนำสั่ง <b>"+rec+"</b></span></div></div>"});document.getElementById("skl").innerHTML=h}
 
 function sno(){
   if(_s.length===0){alert("เพิ่ม SKU ก่อน");return}
@@ -2108,7 +2157,8 @@ function rl(){
     var b=gb(it.sku),lk=fl(it.sku);
     var l1=lk?(typeof lk==="string"?lk:(lk.link1||"")):"";
     var l2=lk?(typeof lk==="string"?"":(lk.link2||"")):"";
-    h+="<tr><td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+"</td><td style=\"color:var(--a2)\">"+b+"</td><td style=\"max-width:160px;overflow:hidden;text-overflow:ellipsis\">"+it.name+"</td>"+
+    var vn=VN[it.sku]||"";
+    h+="<tr><td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+(vn?"<div style=\"font-size:10px;color:var(--t2);font-weight:400;margin-top:2px;padding-left:2px\">"+vn+"</div>":"")+"</td><td style=\"color:var(--a2)\">"+b+"</td><td style=\"max-width:160px;overflow:hidden;text-overflow:ellipsis\">"+it.name+"</td>"+
       "<td>"+(l1?"<a href=\""+l1+"\" target=\"_blank\" class=\"lk\" style=\"word-break:break-all\">&#128279; "+l1.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
       "<td>"+(l2?"<a href=\""+l2+"\" target=\"_blank\" class=\"lk\" style=\"word-break:break-all\">&#128279; "+l2.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
       "<td><button class=\"btn bs b2\" onclick=\"elf('"+it.sku+"')\">"+(l1?"แก้ไข":"+ เพิ่ม")+"</button></td></tr>";
@@ -3777,6 +3827,10 @@ function toggleFab(){fabOpen=!fabOpen;var f=document.querySelector(".fab");if(fa
     _lastTap=now;
   },true);
 })()
+
+// ปิด import dropdown เมื่อกดข้างนอก
+document.addEventListener("click",function(e){var dd=document.getElementById("impDdM");if(dd&&dd.classList.contains("open")&&!e.target.closest("#impDd")){dd.classList.remove("open")}});
+
 function updateFm(){
   // Inventory stats
   var cAct=0,cDone=0,cReord=0,cNone=0;
