@@ -213,13 +213,57 @@ body{padding-bottom:64px}
 
 /* --- TABLES: compact with horizontal scroll --- */
 .tw{border-radius:12px;overflow:hidden}
-.ts{max-height:60vh;-webkit-overflow-scrolling:touch}
+.ts{max-height:60vh;-webkit-overflow-scrolling:touch;overflow-x:hidden!important}
 table{font-size:12px}
 th{padding:8px 8px;font-size:10px;position:sticky;top:0;z-index:5}
 td{padding:8px 8px;font-size:12px}
-.grp-name,td.nm{min-width:100px;max-width:150px}
-.sku-img{width:32px;height:32px;border-radius:6px;margin-right:6px}
-.sku-img:hover{transform:scale(2.5)}
+.grp-name,td.nm{min-width:0;max-width:none}
+.sku-img{width:34px;height:34px;border-radius:6px;margin-right:6px}
+.sku-img:hover{transform:scale(2)}
+.sku-cp{position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;transition:all .15s;border:1px solid transparent}
+.sku-cp:hover{background:rgba(99,102,241,.1);border-color:var(--a);color:var(--a)}
+.sku-cp:hover strong{color:var(--a)}
+.sku-cp.copied{background:var(--g)!important;border-color:var(--g)!important;color:#fff!important;padding:2px 10px;font-weight:700}
+.sku-cp.copied *{color:#fff!important}
+
+/* ============================================
+   INVENTORY TABLE — 2-LINE CARD ROWS
+   Line 1: status dot + image + SKU + badge → action btn
+   Line 2: full product name
+   Line 3: key stat badges (สต็อก / แนะนำสั่ง)
+   ============================================ */
+#itb{display:block!important}
+table:has(#itb) thead{display:none!important}
+table:has(#itb){display:block!important;width:100%!important}
+#itb tr{display:flex!important;flex-wrap:wrap!important;align-items:center!important;padding:10px 10px!important;border-bottom:1px solid var(--bd)!important;gap:3px 6px!important}
+#itb td{display:inline-flex!important;align-items:center!important;border-bottom:none!important;padding:2px 0!important;max-width:none!important;overflow:visible!important;white-space:nowrap!important;gap:4px}
+#itb td:nth-child(1){order:1;font-size:10px!important}
+#itb td:nth-child(2){order:2;font-size:13px!important;font-weight:700}
+#itb td:nth-child(12){order:3;margin-left:auto!important;flex-shrink:0}
+#itb td:nth-child(3){order:10;width:100%!important;white-space:normal!important;word-break:break-word!important;font-size:12px!important;color:var(--t2)!important;line-height:1.4!important;padding-top:4px!important}
+#itb td:nth-child(4){order:11;font-size:10px!important;background:rgba(239,68,68,.08)!important;padding:2px 8px!important;border-radius:6px!important}
+#itb td:nth-child(4)::before{content:'สต็อก ';font-weight:400;opacity:.7}
+#itb td:nth-child(9){order:12;font-size:10px!important;background:rgba(99,102,241,.1)!important;padding:2px 8px!important;border-radius:6px!important;color:var(--a)!important;font-weight:600}
+#itb td:nth-child(9)::before{content:'สั่ง ';font-weight:400;opacity:.7}
+#itb td:nth-child(5),#itb td:nth-child(6),#itb td:nth-child(7),#itb td:nth-child(8),#itb td:nth-child(10),#itb td:nth-child(11){display:none!important}
+#itb .bar{display:none!important}
+
+/* ============================================
+   LINK TABLE — 2-LINE CARD ROWS
+   Line 1: image + SKU + base badge → edit btn
+   Line 2: full product name
+   ============================================ */
+#ltb{display:block!important}
+table:has(#ltb) thead{display:none!important}
+table:has(#ltb){display:block!important;width:100%!important}
+#ltb tr{display:flex!important;flex-wrap:wrap!important;align-items:center!important;padding:10px 10px!important;border-bottom:1px solid var(--bd)!important;gap:3px 6px!important}
+#ltb td{display:inline-flex!important;align-items:center!important;border-bottom:none!important;padding:2px 0!important;max-width:none!important;overflow:visible!important;white-space:nowrap!important;gap:4px}
+#ltb td:nth-child(1){order:1;font-size:13px!important;font-weight:700}
+#ltb td:nth-child(2){order:2;font-size:10px!important;background:rgba(99,102,241,.1)!important;padding:2px 8px!important;border-radius:6px!important;color:var(--a)!important}
+#ltb td:nth-child(6){order:3;margin-left:auto!important;flex-shrink:0}
+#ltb td:nth-child(3){order:10;width:100%!important;white-space:normal!important;word-break:break-word!important;font-size:12px!important;color:var(--t2)!important;line-height:1.4!important;max-width:none!important;padding-top:4px!important}
+#ltb td:nth-child(4){order:11;font-size:10px!important;max-width:calc(100vw - 40px)!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#ltb td:nth-child(5){display:none!important}
 
 /* --- PANELS: full screen slide-up --- */
 .ov{z-index:500}
@@ -242,15 +286,29 @@ td{padding:8px 8px;font-size:12px}
 .view-toggle{width:100%;border-radius:12px}
 .vt-btn{flex:1;padding:10px 4px;font-size:12px;text-align:center;border-radius:10px;min-height:40px}
 
-/* --- ORDER TAB: toolbar --- */
-#ord-tb{flex-direction:row!important;flex-wrap:wrap!important;gap:6px!important;align-items:center}
-#ord-tb .sel{flex:1;min-width:0;font-size:12px!important;padding:8px 10px!important;border-radius:10px!important}
-#ord-tb .mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;width:100%}
-#ord-tb .mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px;min-height:36px}
-.ord-act{flex-shrink:0!important;width:40px!important;height:40px!important;padding:0!important;font-size:18px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+/* --- ORDER SUB-TAB TOGGLE: ออเดอร์ปกติ / สินค้าใหม่ 1688 --- */
+#t-ord>div:first-child{display:flex!important;gap:6px!important;margin-bottom:10px!important;background:var(--c1)!important;padding:4px!important;border-radius:12px!important;border:1px solid var(--bd)!important}
+#ordSubNorm,#ordSubNew{flex:1!important;text-align:center!important;font-size:11px!important;padding:10px 6px!important;border-radius:10px!important;min-height:44px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;white-space:nowrap!important;line-height:1.2!important}
+
+/* --- ORDER TAB: toolbar — search full-width, buttons row --- */
+#ord-tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:stretch!important}
+#ord-tb .sb{width:100%!important;flex:none!important}
+#ord-tb .sel{width:100%!important;flex:none!important;font-size:14px!important;padding:10px 12px!important;border-radius:12px!important}
+#ord-tb .mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;width:100%;padding-bottom:4px}
+#ord-tb .mt::-webkit-scrollbar{display:none}
+#ord-tb .mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px;min-height:40px}
+.ord-act{flex:1 1 calc(50% - 4px)!important;width:auto!important;height:auto!important;padding:10px 8px!important;font-size:13px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;min-height:44px!important}
+.ord-act .m-hide{display:inline!important;font-size:11px!important}
+
+/* --- ORDER SUB: normal orders content --- */
 #ordSub-normal>.tb>.mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px}
 #ordSub-normal>.tb>.mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px}
-#ordSubNorm,#ordSubNew{flex:1;text-align:center;font-size:12px;padding:10px 4px;border-radius:10px;min-height:40px}
+
+/* --- ORDER SUB: new1688 toolbar --- */
+#ordSub-new1688>.tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+#ordSub-new1688>.tb .sb{width:100%!important;flex:none!important}
+#ordSub-new1688>.tb .sel{width:100%!important;flex:none!important;font-size:14px!important;padding:10px 12px!important}
+#ordSub-new1688>.tb .btn{flex:1 1 calc(50% - 4px)!important;font-size:12px!important;padding:10px 8px!important;min-height:44px!important;text-align:center!important}
 
 /* --- LINK TAB: toolbar — search full-width, buttons 2x2 grid --- */
 #lnk-tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:stretch!important}
@@ -293,6 +351,8 @@ td{padding:8px 8px;font-size:12px}
 /* Save button */
 #rcvActions{position:sticky;bottom:64px;z-index:50;background:var(--bg);padding:10px 0;margin-top:8px}
 #rcvActions .btn{font-size:16px;padding:14px;border-radius:12px;min-height:50px}
+.rcvStickyBtn{position:fixed!important;bottom:60px!important;left:0!important;right:0!important;z-index:180!important;padding:8px 12px!important;box-shadow:0 -4px 24px rgba(0,0,0,.25)!important}
+.rcvStickyBtn .btn{border-radius:14px!important;font-size:16px!important;padding:16px!important;min-height:52px!important}
 #rcvCheckList .oc{padding:10px 12px}
 
 /* --- FAB: above bottom nav --- */
@@ -1256,7 +1316,7 @@ function renderGrouped(items){
 
     h+="<tr class=\"grp\" onclick=\"toggleGrp('"+base+"')\">"+
       "<td><span class=\"dot "+st.d+"\"></span>"+st.l+"</td>"+
-      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> <strong>"+base+"</strong><span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?"<span class=\"grp-badge\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700\">\u23F3 เฝ้ารอ</span>":"")+"</td>"+
+      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?"<span class=\"grp-badge\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700\">\u23F3 เฝ้ารอ</span>":"")+"</td>"+
       "<td class=\"nm\">"+name+"</td>"+
       "<td>"+g.totalStock+"</td>"+
       "<td>"+(g.minDays===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":"~"+g.minDays)+"</td>"+
@@ -1279,7 +1339,7 @@ function renderGrouped(items){
         var bc=s.d==="dr"?"var(--r)":s.d==="do"?"var(--o)":s.d==="dy"?"var(--y)":"var(--g)";
         h+="<tr class=\"child-row\">"+
           "<td>"+(_mgrMode?"<input type=\"checkbox\" class=\"disc-cb\" data-sku=\""+it.sku+"\" onclick=\"event.stopPropagation();discSelToggle(this.dataset.sku)\" style=\"width:18px;height:18px;accent-color:var(--r);cursor:pointer;vertical-align:middle\" "+(_discSel[it.sku]?"checked":"")+">":" ")+" <span class=\"dot "+s.d+"\"></span>"+s.l+"</td>"+
-          "<td style=\"font-weight:600;padding-left:32px !important\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+it.sku+"</td>"+
+          "<td style=\"font-weight:600;padding-left:32px !important\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+"</td>"+
           "<td class=\"nm\">"+it.name+"</td>"+
           "<td>"+it.stock+"<div class=\"bar\"><div class=\"fill\" style=\"width:"+bw+"%;background:"+bc+"\"></div></div></td>"+
           "<td>"+(it.days===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":it.days)+"</td>"+
@@ -1316,7 +1376,7 @@ function renderFlat(items){
     var bc=s.d==="dr"?"var(--r)":s.d==="do"?"var(--o)":s.d==="dy"?"var(--y)":"var(--g)";
     var lk=fl(it.sku),lkUrl=lk?(typeof lk==="string"?lk:(lk.link1||"")):"";
     h+="<tr><td>"+(_mgrMode?"<input type=\"checkbox\" class=\"disc-cb\" data-sku=\""+it.sku+"\" onclick=\"event.stopPropagation();discSelToggle(this.dataset.sku)\" style=\"width:18px;height:18px;accent-color:var(--r);cursor:pointer;vertical-align:middle\" "+(_discSel[it.sku]?"checked":"")+">":" ")+" <span class=\"dot "+s.d+"\"></span>"+s.l+"</td>"+
-      "<td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+it.sku+"</td>"+
+      "<td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+"</td>"+
       "<td class=\"nm\" title=\""+it.name+"\">"+it.name+"</td>"+
       "<td>"+it.stock+"<div class=\"bar\"><div class=\"fill\" style=\"width:"+bw+"%;background:"+bc+"\"></div></div></td>"+
       "<td>"+(it.days===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":it.days)+"</td>"+
@@ -1340,10 +1400,11 @@ function renderFlat(items){
 function toggleGrp(base){openGroups[base]=!openGroups[base];_grpKeep=true;rt()}
 
 function orderGroup(base){
-  var items=I.filter(function(it){return gb(it.sku)===base&&it.rec>0});
-  if(items.length===0){alert("ไม่มี SKU ที่ต้องสั่งในกลุ่ม "+base);return}
+  var items=I.filter(function(it){return gb(it.sku)===base});
+  if(items.length===0){alert("ไม่มี SKU ในกลุ่ม "+base);return}
   no();
-  _s=items.map(function(it){return{sku:it.sku,qty:it.rec}});
+  _s=items.map(function(it){return{sku:it.sku,qty:it.rec>0?it.rec:1}});
+  _s.sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});
   rsk();
 }
 
@@ -1437,14 +1498,16 @@ function no(){
     "<div class=\"fg\"><label>ชื่อรายการ</label><input type=\"text\" id=\"onm\" placeholder=\"เช่น ซองกันน้ำ, สายรัด ฯลฯ\"></div>"+
     "<div class=\"fg\"><label>หมายเลขคำสั่งซื้อ <span style=\"color:var(--r)\">*บังคับ</span></label><input type=\"text\" id=\"oidIn\" placeholder=\"เช่น 51057314660... หรือ PO-001\" style=\"border:2px solid var(--p)\"></div>"+
     "<div class=\"fg\"><label>วันที่สั่ง</label><input type=\"date\" id=\"od\" value=\""+new Date().toISOString().slice(0,10)+"\"></div>"+
-    "<div class=\"fg\"><label>SKU (พิมพ์แล้วกด Enter)</label><input type=\"text\" id=\"ski\" placeholder=\"เช่น W24505\" onkeydown=\"if(event.key==='Enter')addS()\"><div id=\"skl\" style=\"margin-top:8px\"></div></div>"+
+    "<div class=\"fg\"><div id=\"skl\" style=\"margin-top:4px\"></div><button type=\"button\" class=\"btn bs b2\" onclick=\"document.getElementById('skiWrap').style.display=document.getElementById('skiWrap').style.display==='none'?'':'none'\" style=\"margin-top:6px;font-size:12px\">+ เพิ่ม SKU อื่น</button><div id=\"skiWrap\" style=\"display:none;margin-top:6px\"><input type=\"text\" id=\"ski\" placeholder=\"พิมพ์ SKU แล้วกด Enter\" onkeydown=\"if(event.key==='Enter')addS()\" style=\"width:100%\"></div></div>"+
     "<div class=\"fg\"><label>เลขพัสดุ (ถ้ามี)</label><input type=\"text\" id=\"otr\" placeholder=\"กรอกทีหลังได้\"></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"onn\" rows=\"2\"></textarea></div>"+
     "<button class=\"btn bp\" onclick=\"sno()\" style=\"width:100%\">&#128190; บันทึก</button>";
 }
 
 function os(sku,qty,pr){no();_s=[{sku:sku,qty:qty}];rsk()}
-function addS(){var v=document.getElementById("ski").value.trim();if(!v)return;var f=I.find(function(i){return i.sku.toLowerCase()===v.toLowerCase()});_s.push({sku:f?f.sku:v,qty:f?(f.rec||1):1});document.getElementById("ski").value="";rsk()}
+function addS(){var v=document.getElementById("ski").value.trim();if(!v)return;var f=I.find(function(i){return i.sku.toLowerCase()===v.toLowerCase()});_s.push({sku:f?f.sku:v,qty:f?(f.rec||1):1});_s.sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});document.getElementById("ski").value="";rsk()}
+function cpSku(ev,sku){ev.stopPropagation();navigator.clipboard.writeText(sku).then(function(){var el=ev.currentTarget;var orig=el.innerHTML;el.classList.add("copied");el.innerHTML="&#10003; Copied!";setTimeout(function(){el.classList.remove("copied");el.innerHTML=orig},1200)}).catch(function(){})}
+function skuW(sku,bold){return"<span class=\"sku-cp\" onclick=\"cpSku(event,'"+sku+"')\">"+(bold?"<strong>"+sku+"</strong>":sku)+"</span>"}
 var _gimgCache={};
 function gimg(sku){if(_gimgCache[sku]!==undefined)return _gimgCache[sku];var _r=_gimg(sku);_gimgCache[sku]=_r;return _r}
 function _gimg(sku){var f=I.find(function(x){return x.sku===sku});if(f&&f.img)return f.img;f=I.find(function(x){return gb(x.sku)===sku&&x.img});if(f)return f.img;var b=gb(sku);f=I.find(function(x){return gb(x.sku)===b&&x.img});if(f)return f.img;f=I.find(function(x){return x.sku.indexOf(sku)===0&&x.img});return f?f.img:""}
@@ -1457,10 +1520,12 @@ function sortS(mode){
     return 0;
   });rsk()
 }
-function setAll(){var v=parseInt(document.getElementById("saq").value);if(!v||v<1){alert("กรอกจำนวนก่อน");return}_s.forEach(function(s){s.qty=v});rsk()}
+function setAll(){var v=parseInt(document.getElementById("saq").value);if(!v||v<1){alert("กรอกจำนวนก่อน");return}var cbs=document.querySelectorAll(".skl-cb:checked");if(cbs.length>0){cbs.forEach(function(cb){var idx=parseInt(cb.getAttribute("data-i"));if(_s[idx])_s[idx].qty=v})}else{_s.forEach(function(s){s.qty=v})}rsk()}
+function rskDelSel(){var cbs=document.querySelectorAll(".skl-cb:checked");if(cbs.length===0){alert("ยังไม่ได้เลือกรายการ");return}var idxs=[];cbs.forEach(function(cb){idxs.push(parseInt(cb.getAttribute("data-i")))});idxs.sort(function(a,b){return b-a});idxs.forEach(function(i){_s.splice(i,1)});rsk()}
+function rskSelAll(v){document.querySelectorAll(".skl-cb").forEach(function(cb){cb.checked=v})}
 function rsk(){var h="";
-  if(_s.length>1){h+="<div style=\"display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap\"><div style=\"flex:1;display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:3px 6px\"><span style=\"font-size:11px;color:var(--t2);white-space:nowrap\">ใส่ทุกตัว:</span><input type=\"number\" id=\"saq\" min=\"1\" value=\"10\" style=\"width:50px;background:transparent;border:none;color:var(--t);text-align:center;font-size:13px;padding:2px\"><button class=\"btn bp bs\" onclick=\"setAll()\" style=\"font-size:11px;padding:3px 10px\">ตกลง</button></div><span style=\"font-size:11px;color:var(--t2)\">"+_s.length+" รายการ</span><button class=\"btn bs b2\" onclick=\"sortS('qty-d')\" title=\"จำนวน มาก→น้อย\" style=\"font-size:13px;padding:3px 10px\">&#9660;</button><button class=\"btn bs b2\" onclick=\"sortS('qty-a')\" title=\"จำนวน น้อย→มาก\" style=\"font-size:13px;padding:3px 10px\">&#9650;</button></div>"}
-  _s.forEach(function(s,i){var im=gimg(s.sku);h+="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:6px;background:var(--bg);padding:6px 10px;border-radius:6px\">"+(im?"<img src=\""+im+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<strong style=\"flex:1\">"+s.sku+"</strong><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div>"});document.getElementById("skl").innerHTML=h}
+  if(_s.length>1){h+="<div style=\"background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:10px\"><div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:8px\"><span style=\"font-size:13px;font-weight:700;color:var(--t)\">"+_s.length+" รายการ</span><div style=\"display:flex;gap:4px\"><button class=\"btn bs b2\" onclick=\"sortS('qty-d')\" title=\"จำนวน มาก→น้อย\" style=\"font-size:12px;padding:4px 10px\">&#9660;</button><button class=\"btn bs b2\" onclick=\"sortS('qty-a')\" title=\"จำนวน น้อย→มาก\" style=\"font-size:12px;padding:4px 10px\">&#9650;</button></div></div><div style=\"display:flex;gap:8px;align-items:center;flex-wrap:wrap\"><label style=\"font-size:12px;color:var(--t2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap\"><input type=\"checkbox\" onchange=\"rskSelAll(this.checked)\" style=\"width:17px;height:17px;accent-color:var(--p)\"> เลือกทั้งหมด</label><div style=\"height:16px;width:1px;background:var(--bd)\"></div><div style=\"display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:4px 8px\"><span style=\"font-size:11px;color:var(--t2);white-space:nowrap\">ใส่ที่เลือก:</span><input type=\"number\" id=\"saq\" min=\"1\" value=\"10\" style=\"width:45px;background:transparent;border:none;color:var(--t);text-align:center;font-size:13px;font-weight:600;padding:0\"><button class=\"btn bp bs\" onclick=\"setAll()\" style=\"font-size:11px;padding:3px 10px;border-radius:6px\">ตกลง</button></div><div style=\"height:16px;width:1px;background:var(--bd)\"></div><button class=\"btn brd bs\" onclick=\"rskDelSel()\" style=\"font-size:11px;padding:4px 12px;border-radius:6px\">&#128465; ลบที่เลือก</button></div></div>"}
+  _s.forEach(function(s,i){var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});var stk=fi?fi.stock:"-";var d=fi?fi.days:"-";var s30=fi?fi.s30:"-";var rec=fi?fi.rec:"-";var st=fi?gi(fi):{d:"",l:""};h+="<div style=\"background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px\"><div style=\"display:flex;align-items:center;gap:8px\">"+(_s.length>1?"<input type=\"checkbox\" class=\"skl-cb\" data-i=\""+i+"\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0\">":"")+(im?"<img src=\""+im+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<strong style=\"flex:1\">"+s.sku+"</strong><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div><div style=\"display:flex;gap:6px;margin-top:4px;padding-left:"+((_s.length>1)?"26px":"0")+";flex-wrap:wrap\"><span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">สต็อก <b>"+stk+"</b></span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">เหลือ <b>"+d+"</b> วัน</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">ขาย30วัน <b>"+s30+"</b></span><span style=\"font-size:10px;color:var(--a);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px;font-weight:600\">แนะนำสั่ง <b>"+rec+"</b></span></div></div>"});document.getElementById("skl").innerHTML=h}
 
 function sno(){
   if(_s.length===0){alert("เพิ่ม SKU ก่อน");return}
@@ -1481,7 +1546,7 @@ function eo(idx){
     "<div class=\"fg\"><label>หมายเลขคำสั่งซื้อ <span style=\"color:var(--r)\">*บังคับ</span> <span style=\"font-size:11px;color:var(--p);cursor:pointer\" onclick=\"navigator.clipboard.writeText(document.getElementById('eidIn').value);this.textContent='Copied!';var el=this;setTimeout(function(){el.textContent='คัดลอก'},1500)\">คัดลอก</span></label><input type=\"text\" id=\"eidIn\" value=\""+o.id+"\" style=\"border:2px solid var(--p);font-weight:700\"></div>"+
     "<div class=\"fg\"><label>วันที่สั่ง</label><input type=\"date\" id=\"edt\" value=\""+(o.date||"")+"\"></div>"+
     "<div class=\"fg\"><label>เลขพัสดุ</label><input type=\"text\" id=\"etr\" value=\""+(o.tracking||"")+"\"></div>"+
-    "<div class=\"fg\"><label>SKU</label><div id=\"skl\"></div><input type=\"text\" id=\"ski\" placeholder=\"เพิ่ม SKU\" onkeydown=\"if(event.key==='Enter')addS()\"></div>"+
+    "<div class=\"fg\"><label>SKU</label><div id=\"skl\"></div><button type=\"button\" class=\"btn bs b2\" onclick=\"document.getElementById('skiWrap').style.display=document.getElementById('skiWrap').style.display==='none'?'':'none'\" style=\"margin-top:6px;font-size:12px\">+ เพิ่ม SKU อื่น</button><div id=\"skiWrap\" style=\"display:none;margin-top:6px\"><input type=\"text\" id=\"ski\" placeholder=\"พิมพ์ SKU แล้วกด Enter\" onkeydown=\"if(event.key==='Enter')addS()\" style=\"width:100%\"></div></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"enn\" rows=\"2\">"+(o.note||"")+"</textarea></div>"+
     "<div style=\"display:flex;gap:8px\"><button class=\"btn bp\" onclick=\"se("+idx+")\" style=\"flex:1\">&#128190; บันทึก</button><button class=\"btn brd bs\" onclick=\"deo("+idx+")\">&#128465; ลบ</button></div>";
   rsk();
@@ -1999,7 +2064,7 @@ function rl(){
     var b=gb(it.sku),lk=fl(it.sku);
     var l1=lk?(typeof lk==="string"?lk:(lk.link1||"")):"";
     var l2=lk?(typeof lk==="string"?"":(lk.link2||"")):"";
-    h+="<tr><td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+it.sku+"</td><td style=\"color:var(--a2)\">"+b+"</td><td style=\"max-width:160px;overflow:hidden;text-overflow:ellipsis\">"+it.name+"</td>"+
+    h+="<tr><td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+"</td><td style=\"color:var(--a2)\">"+b+"</td><td style=\"max-width:160px;overflow:hidden;text-overflow:ellipsis\">"+it.name+"</td>"+
       "<td>"+(l1?"<a href=\""+l1+"\" target=\"_blank\" class=\"lk\" style=\"word-break:break-all\">&#128279; "+l1.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
       "<td>"+(l2?"<a href=\""+l2+"\" target=\"_blank\" class=\"lk\" style=\"word-break:break-all\">&#128279; "+l2.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
       "<td><button class=\"btn bs b2\" onclick=\"elf('"+it.sku+"')\">"+(l1?"แก้ไข":"+ เพิ่ม")+"</button></td></tr>";
@@ -2751,7 +2816,7 @@ function rcvRenderImgGrid(){
   });
   h+="</div>";
   if(selN>0){
-    h+="<div style='position:sticky;bottom:0;z-index:50;padding:8px 0;background:var(--c1)'><button class='btn bp' onclick='rcvImgAddSelected()' style='width:100%;padding:16px;font-size:15px;box-shadow:0 -4px 20px rgba(0,0,0,.2)'>&#10003; เพิ่มรายการที่เลือก ("+selN+" SKU)</button></div>";
+    h+="<div class='rcvStickyBtn' style='position:sticky;bottom:0;z-index:50;padding:8px 0;background:var(--c1)'><button class='btn bp' onclick='rcvImgAddSelected()' style='width:100%;padding:16px;font-size:15px;box-shadow:0 -4px 20px rgba(0,0,0,.2)'>&#10003; เพิ่มรายการที่เลือก ("+selN+" SKU)</button></div>";
   }
   h+="</div>";
   el.innerHTML=h;
@@ -2893,7 +2958,7 @@ function rcvRenderSug(){
     h+="<button class='btn bs b2' onclick='rcvShowAllSug()' style='width:100%;padding:12px;font-size:14px;margin-top:4px'>&#128071; แสดงทั้งหมด ("+rs.length+" รายการ)</button>";
   }
   if(checkedN>0){
-    h+="<div style='position:sticky;bottom:0;z-index:50;padding:8px 0;background:var(--bg)'><button class='btn bp' onclick='rcvAddChecked()' style='width:100%;padding:16px;font-size:15px;box-shadow:0 -4px 20px rgba(0,0,0,.2)'>&#10003; เพิ่มรายการที่เลือก ("+checkedN+" SKU)</button></div>";
+    h+="<div class='rcvStickyBtn' style='position:sticky;bottom:0;z-index:50;padding:8px 0;background:var(--bg)'><button class='btn bp' onclick='rcvAddChecked()' style='width:100%;padding:16px;font-size:15px;box-shadow:0 -4px 20px rgba(0,0,0,.2)'>&#10003; เพิ่มรายการที่เลือก ("+checkedN+" SKU)</button></div>";
   }
   el.innerHTML=h;
 }
@@ -3507,7 +3572,8 @@ function delUser(ui){
   if(!u||u.role==="admin")return;
   if(!confirm("\u0e25\u0e1a\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49 '"+u.name+"' ?"))return;
   USERS.splice(ui,1);
-  svUsers();renderAdmin();
+  renderAdmin();
+  setTimeout(function(){svUsers()},0);
 }
 
 function editAdminName(){
@@ -3585,6 +3651,19 @@ function initApp(){
   try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
   // Fetch cloud users → merge → push กลับ (ไม่เขียนทับข้อมูลเครื่องอื่น)
   try{if(CLOUD_URL){_fetchCloudUsers().then(function(){cloudSaveUsers()}).catch(function(){})}}catch(e){}
+  // Auto-push R ถ้า cloud ยังไม่มี (first-time sync)
+  try{
+    if(CLOUD_URL&&R.length>0&&navigator.onLine){
+      setTimeout(function(){
+        fetch(CLOUD_URL+"?key=ts_r&t="+Date.now()).then(function(r){return r.json()}).then(function(d){
+          if(d.status==="ok"&&d.data&&(!d.data.ts_r||d.data.ts_r.length<10)){
+            console.log("Cloud missing R data, pushing "+R.length+" SKUs...");
+            cloudSave();
+          }
+        }).catch(function(){});
+      },5000);
+    }
+  }catch(e){}
 }
 
 // Auto-login: ตรวจ localStorage ทันที + preload cloud users
