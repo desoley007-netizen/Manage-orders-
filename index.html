@@ -2791,24 +2791,24 @@ function rcvGetVariants(sku){
 function rcvToggleVariants(i){_rcvToggleWithAnchor(i)}
 function rcvToggleStrip(i){_rcvToggleWithAnchor(i)}
 function _rcvToggleWithAnchor(i){
-  // Capture the clicked card's position BEFORE re-render so we can keep it in view
-  var list=document.getElementById("rcvList");
-  var anchorTop=null;
-  if(list&&list.children){
-    // Find the card whose index matches i (skip the stats header row)
-    var cards=list.querySelectorAll(".rc-card");
-    if(cards&&cards[i]){anchorTop=cards[i].getBoundingClientRect().top}
-  }
   _rcvVarOpen=(_rcvVarOpen===i)?-1:i;
   renderRcvCount();
-  // Restore the card to the same viewport position so the top menu doesn't vanish
-  if(anchorTop!==null){
-    var cards2=document.getElementById("rcvList").querySelectorAll(".rc-card");
-    if(cards2&&cards2[i]){
-      var newTop=cards2[i].getBoundingClientRect().top;
-      window.scrollBy(0,newTop-anchorTop);
-    }
-  }
+  // After re-render, scroll so the clicked card's TOP is near the top of viewport
+  // so the button row [แก้ไข SKU] [ตัวเลือก] [+ทั้งหมด] is always visible
+  setTimeout(function(){
+    var list=document.getElementById("rcvList");
+    if(!list)return;
+    var cards=list.querySelectorAll(".rc-card");
+    if(!cards||!cards[i])return;
+    var card=cards[i];
+    var rect=card.getBoundingClientRect();
+    // Account for the sticky header height (approx 60px) so the card sits just below it
+    var headerH=0;
+    var hd=document.querySelector(".hd");
+    if(hd)headerH=hd.getBoundingClientRect().height||0;
+    var targetY=window.scrollY+rect.top-headerH-8;
+    window.scrollTo({top:targetY,behavior:"smooth"});
+  },30);
 }
 function rcvAddVariant(sku){
   var ex=_rcvItems.find(function(r){return r.sku===sku});
