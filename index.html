@@ -2788,8 +2788,28 @@ function rcvGetVariants(sku){
   if(base.length<2)base=sku;
   return I.filter(function(x){return (gb(x.sku)===base||gb(x.sku)===sku||x.sku.indexOf(sku)===0)&&x.sku!==sku}).sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});
 }
-function rcvToggleVariants(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
-function rcvToggleStrip(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
+function rcvToggleVariants(i){_rcvToggleWithAnchor(i)}
+function rcvToggleStrip(i){_rcvToggleWithAnchor(i)}
+function _rcvToggleWithAnchor(i){
+  // Capture the clicked card's position BEFORE re-render so we can keep it in view
+  var list=document.getElementById("rcvList");
+  var anchorTop=null;
+  if(list&&list.children){
+    // Find the card whose index matches i (skip the stats header row)
+    var cards=list.querySelectorAll(".rc-card");
+    if(cards&&cards[i]){anchorTop=cards[i].getBoundingClientRect().top}
+  }
+  _rcvVarOpen=(_rcvVarOpen===i)?-1:i;
+  renderRcvCount();
+  // Restore the card to the same viewport position so the top menu doesn't vanish
+  if(anchorTop!==null){
+    var cards2=document.getElementById("rcvList").querySelectorAll(".rc-card");
+    if(cards2&&cards2[i]){
+      var newTop=cards2[i].getBoundingClientRect().top;
+      window.scrollBy(0,newTop-anchorTop);
+    }
+  }
+}
 function rcvAddVariant(sku){
   var ex=_rcvItems.find(function(r){return r.sku===sku});
   if(ex){ex.qty+=1}else{_rcvItems.push({sku:sku,qty:1})}
