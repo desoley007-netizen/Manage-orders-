@@ -2788,28 +2788,8 @@ function rcvGetVariants(sku){
   if(base.length<2)base=sku;
   return I.filter(function(x){return (gb(x.sku)===base||gb(x.sku)===sku||x.sku.indexOf(sku)===0)&&x.sku!==sku}).sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});
 }
-function rcvToggleVariants(i){_rcvToggleWithAnchor(i)}
-function rcvToggleStrip(i){_rcvToggleWithAnchor(i)}
-function _rcvToggleWithAnchor(i){
-  _rcvVarOpen=(_rcvVarOpen===i)?-1:i;
-  renderRcvCount();
-  // After re-render, scroll so the clicked card's TOP is near the top of viewport
-  // so the button row [แก้ไข SKU] [ตัวเลือก] [+ทั้งหมด] is always visible
-  setTimeout(function(){
-    var list=document.getElementById("rcvList");
-    if(!list)return;
-    var cards=list.querySelectorAll(".rc-card");
-    if(!cards||!cards[i])return;
-    var card=cards[i];
-    var rect=card.getBoundingClientRect();
-    // Account for the sticky header height (approx 60px) so the card sits just below it
-    var headerH=0;
-    var hd=document.querySelector(".hd");
-    if(hd)headerH=hd.getBoundingClientRect().height||0;
-    var targetY=window.scrollY+rect.top-headerH-8;
-    window.scrollTo({top:targetY,behavior:"smooth"});
-  },30);
-}
+function rcvToggleVariants(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
+function rcvToggleStrip(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
 function rcvAddVariant(sku){
   var ex=_rcvItems.find(function(r){return r.sku===sku});
   if(ex){ex.qty+=1}else{_rcvItems.push({sku:sku,qty:1})}
@@ -2911,12 +2891,12 @@ function renderRcvCount(){
       h+="<span style='font-size:12px;color:var(--t2)'>\u0e0a\u0e34\u0e49\u0e19</span>";
       h+="<button onclick='_rcvItems.splice("+i+",1);renderRcvCount()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px;padding:4px 8px'>&times;</button>";
       h+="</div>";
-      h+="<div class='rc-btns'>";
-      h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);color:var(--t)'>&#9998; \u0e41\u0e01\u0e49\u0e44\u0e02 SKU</button>";
+      h+="<div class='rc-btns' style='display:flex!important;flex-wrap:wrap;gap:6px;padding:8px 10px;border-top:1px solid var(--bd);min-height:44px;align-items:center;visibility:visible!important;opacity:1!important'>";
+      h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);color:var(--t);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#9998; \u0e41\u0e01\u0e49\u0e44\u0e02 SKU</button>";
       if(hasVars){var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
       var addedCount=vars.length-notAdded.length;
-      h+="<button onclick='rcvToggleStrip("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";color:"+(isOpen?"#fff":"var(--a)")+"'>&#127912; \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01 ("+addedCount+"/"+vars.length+") "+(isOpen?"&#9650;":"&#9660;")+"</button>";
-      if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);color:var(--a)'>&#10133; \u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";}
+      h+="<button onclick='rcvToggleStrip("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";color:"+(isOpen?"#fff":"var(--a)")+";padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#127912; \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01 ("+addedCount+"/"+vars.length+") "+(isOpen?"&#9650;":"&#9660;")+"</button>";
+      if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);color:var(--a);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#10133; \u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";}
       h+="</div>";
       if(hasVars&&isOpen){
         var notAddedVars=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
