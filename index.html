@@ -401,7 +401,8 @@ table:has(#ltb){display:block!important;width:100%!important}
 #rcvList .rc-gcb{position:absolute!important;top:6px!important;left:6px!important;width:22px!important;height:22px!important;accent-color:var(--p)!important;cursor:pointer!important;z-index:2!important;margin:0!important;background:#fff!important;border-radius:4px!important}
 #rcvList .rc-gchk{position:absolute!important;top:6px!important;left:6px!important;width:22px!important;height:22px!important;background:var(--g)!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:12px!important;color:#fff!important;z-index:2!important;font-weight:700!important}
 #rcvList .rc-gimg{width:100%!important;aspect-ratio:1!important;object-fit:cover!important;border-radius:6px!important;margin-bottom:6px!important;display:block!important}
-#rcvList .rc-gph{width:100%!important;aspect-ratio:1!important;background:var(--c2)!important;border-radius:6px!important;margin-bottom:6px!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:28px!important}
+#rcvList .rc-gph{width:100%!important;aspect-ratio:1!important;background:var(--c2)!important;border-radius:6px!important;margin-bottom:6px!important;align-items:center!important;justify-content:center!important;font-size:28px!important}
+#rcvList .rc-gph[style*="display:none"]{display:none!important}
 #rcvList .rc-gsku{font-size:13px!important;font-weight:700!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-bottom:2px!important}
 #rcvList .rc-gvn{font-size:11px!important;color:var(--a)!important;font-weight:600!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 #rcvList .rc-gnm{font-size:10px!important;color:var(--t2)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-top:2px!important}
@@ -509,7 +510,7 @@ html,body{overflow-x:hidden!important}
 #rcvList .rc-gcb{position:absolute;top:8px;left:8px;width:20px;height:20px;accent-color:var(--p);cursor:pointer;z-index:2;margin:0;background:#fff;border-radius:4px}
 #rcvList .rc-gchk{position:absolute;top:8px;left:8px;width:22px;height:22px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;z-index:2;font-weight:700}
 #rcvList .rc-gimg{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;margin-bottom:6px;display:block}
-#rcvList .rc-gph{width:100%;aspect-ratio:1;background:var(--c2);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;font-size:28px}
+#rcvList .rc-gph{width:100%;aspect-ratio:1;background:var(--c2);border-radius:8px;margin-bottom:6px;align-items:center;justify-content:center;font-size:28px}
 #rcvList .rc-gsku{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 #rcvList .rc-gvn{font-size:11px;color:var(--a);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #rcvList .rc-gnm{font-size:10px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
@@ -2918,7 +2919,7 @@ function renderRcvCount(){
             h+="<div class='rc-gchk'>&#10003;</div>";
           }
           if(vim)h+="<img class='rc-gimg' src='"+vim+"' onerror=\"this.parentNode.querySelector('.rc-gph').style.display='flex';this.style.display='none'\">";
-          h+="<div class='rc-gph'"+(vim?" style='display:none'":"")+">&#128247;</div>";
+          h+="<div class='rc-gph' style='display:"+(vim?"none":"flex")+"'>&#128247;</div>";
           h+="<div class='rc-gsku'>"+v.sku+"</div>";
           if(vnm)h+="<div class='rc-gvn'>"+vnm+"</div>";
           if(vname)h+="<div class='rc-gnm'>"+vname+"</div>";
@@ -2957,11 +2958,6 @@ function rcvAdd(){
     _rcvVarOpen=addedIdx;
   }
   renderRcvCount();
-  // Scroll the newly-added item into view
-  setTimeout(function(){
-    var list=document.getElementById("rcvList");
-    if(list&&list.children[addedIdx]){list.children[addedIdx].scrollIntoView({behavior:"smooth",block:"center"})}
-  },50);
   document.getElementById("rcvSku").focus();
 }
 
@@ -3202,13 +3198,6 @@ function rcvAddChecked(){
   // Auto-open variant picker for the last added parent SKU (Idea C)
   if(lastAddedWithVarsIdx>-1)_rcvVarOpen=lastAddedWithVarsIdx;
   renderRcvCount();
-  // Scroll the newly-added item into view
-  if(lastAddedWithVarsIdx>-1){
-    setTimeout(function(){
-      var list=document.getElementById("rcvList");
-      if(list&&list.children[lastAddedWithVarsIdx]){list.children[lastAddedWithVarsIdx].scrollIntoView({behavior:"smooth",block:"center"})}
-    },50);
-  }
 }
 
 function rcvSave(){
