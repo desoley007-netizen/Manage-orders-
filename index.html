@@ -391,6 +391,7 @@ table:has(#ltb){display:block!important;width:100%!important}
 #rcvList .rc-btns{display:block!important;padding:6px 10px 8px!important;border-top:1px solid var(--bd)!important;text-align:left!important;line-height:1.8!important}
 #rcvList .rc-btns button{display:inline-block!important;vertical-align:middle!important;margin:2px 4px 2px 0!important;font-size:12px!important;padding:6px 12px!important;border-radius:8px!important;cursor:pointer!important;font-weight:600!important}
 #rcvList .rc-picker{display:block!important;padding:10px 10px 12px!important;border-top:1px solid var(--bd)!important;background:var(--c1)!important;box-sizing:border-box!important}
+#rcvList .rc-card:not(.rc-open) .rc-picker{display:none!important}
 #rcvList .rc-pickhd{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;margin-bottom:10px!important;flex-wrap:wrap!important}
 #rcvList .rc-pickall{display:flex!important;align-items:center!important;gap:6px!important;font-size:13px!important;color:var(--p)!important;cursor:pointer!important;font-weight:600!important}
 #rcvList .rc-pickall input[type="checkbox"]{width:18px!important;height:18px!important;accent-color:var(--p)!important;cursor:pointer!important}
@@ -498,6 +499,7 @@ html,body{overflow-x:hidden!important}
 #rcvList .rc-btns{display:block;padding:6px 10px 8px;border-top:1px solid var(--bd);line-height:1.8}
 #rcvList .rc-btns button{display:inline-block;vertical-align:middle;margin:2px 4px 2px 0;font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:600}
 #rcvList .rc-picker{display:block;padding:12px;border-top:1px solid var(--bd);background:var(--c1);box-sizing:border-box}
+#rcvList .rc-card:not(.rc-open) .rc-picker{display:none}
 #rcvList .rc-pickhd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 #rcvList .rc-pickall{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--p);cursor:pointer;font-weight:600}
 #rcvList .rc-pickall input[type="checkbox"]{width:18px;height:18px;accent-color:var(--p);cursor:pointer}
@@ -2788,8 +2790,26 @@ function rcvGetVariants(sku){
   if(base.length<2)base=sku;
   return I.filter(function(x){return (gb(x.sku)===base||gb(x.sku)===sku||x.sku.indexOf(sku)===0)&&x.sku!==sku}).sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});
 }
-function rcvToggleVariants(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
-function rcvToggleStrip(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;renderRcvCount()}
+function _rcvApplyOpenState(){
+  // CSS-based toggle: only flip .rc-open class + update toggle button inline styles.
+  // Never re-render the list (avoids iOS Safari DOM-drop bug where rc-btns disappears).
+  var list=document.getElementById('rcvList');if(!list)return;
+  var cards=list.querySelectorAll('.rc-card');
+  for(var k=0;k<cards.length;k++){
+    var card=cards[k];
+    var opened=(k===_rcvVarOpen);
+    if(opened)card.classList.add('rc-open');else card.classList.remove('rc-open');
+    var btn=card.querySelector("button[onclick*='rcvToggleStrip'],button[onclick*='rcvToggleVariants']");
+    if(btn){
+      btn.style.setProperty('background',opened?'var(--a)':'var(--c2)','important');
+      btn.style.setProperty('border-color',opened?'var(--a)':'var(--bd)','important');
+      btn.style.setProperty('color',opened?'#fff':'var(--a)','important');
+      btn.innerHTML=btn.innerHTML.replace(/[\u25B2\u25BC]/g,opened?'\u25B2':'\u25BC');
+    }
+  }
+}
+function rcvToggleVariants(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;_rcvApplyOpenState()}
+function rcvToggleStrip(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;_rcvApplyOpenState()}
 function rcvAddVariant(sku){
   var ex=_rcvItems.find(function(r){return r.sku===sku});
   if(ex){ex.qty+=1}else{_rcvItems.push({sku:sku,qty:1})}
@@ -2898,7 +2918,7 @@ function renderRcvCount(){
       h+="<button onclick='rcvToggleStrip("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";color:"+(isOpen?"#fff":"var(--a)")+";padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#127912; \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01 ("+addedCount+"/"+vars.length+") "+(isOpen?"&#9650;":"&#9660;")+"</button>";
       if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);color:var(--a);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#10133; \u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";}
       h+="</div>";
-      if(hasVars&&isOpen){
+      if(hasVars){
         var notAddedVars=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
         h+="<div class='rc-picker'>";
         h+="<div class='rc-pickhd'>";
