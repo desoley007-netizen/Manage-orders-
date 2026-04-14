@@ -702,9 +702,10 @@ html,body{overflow-x:hidden!important}
 <div style="font-size:12px;color:var(--t2)">สแกนบาร์โค้ดหรือพิมพ์ SKU แล้วใส่จำนวนที่นับได้ (ไม่แสดงจำนวนที่สั่ง)</div>
 </div>
 <div class="tb" style="margin-top:12px">
-<select id="rcvMode" class="sel" style="width:auto;min-width:120px;font-size:14px;padding:12px 8px" onchange="document.getElementById('rcvSku').value='';document.getElementById('rcvSug').innerHTML='';_rcvSearchResults=[];var p={'sku':'&#128269; สแกนหรือพิมพ์ SKU...','name':'&#128269; พิมพ์ชื่อสินค้า...','cat':'&#128269; พิมพ์ Base SKU เช่น F479...','trk':'&#128747; สแกนเลขพัสดุ CNS...'};document.getElementById('rcvSku').placeholder=p[this.value];document.getElementById('rcvSku').focus()"><option value="sku">SKU</option><option value="name">ชื่อสินค้า</option><option value="cat">หมวดหมู่</option><option value="trk">&#128747; เลขพัสดุ</option></select>
+<select id="rcvMode" class="sel" style="width:auto;min-width:120px;font-size:14px;padding:12px 8px" onchange="document.getElementById('rcvSku').value='';document.getElementById('rcvSug').innerHTML='';_rcvSearchResults=[];var p={'sku':'&#128269; สแกนหรือพิมพ์ SKU...','name':'&#128269; พิมพ์ชื่อสินค้า...','cat':'&#128269; พิมพ์ Base SKU เช่น F479...','trk':'&#128747; สแกนเลขพัสดุ CNS...'};document.getElementById('rcvSku').placeholder=p[this.value];var tb=document.getElementById('rcvTrkScanBtn');if(tb)tb.style.display=this.value==='trk'?'':'none';document.getElementById('rcvSku').focus()"><option value="sku">SKU</option><option value="name">ชื่อสินค้า</option><option value="cat">หมวดหมู่</option><option value="trk">&#128747; เลขพัสดุ</option></select>
 <input class="sb" type="text" placeholder="&#128269; สแกนหรือพิมพ์ SKU..." id="rcvSku" autofocus style="font-size:16px;padding:14px;flex:1" onkeydown="if(event.key==='Enter')rcvAdd()" oninput="rcvSearch()">
 <button class="btn bs b2" onclick="rcvImgSearch()" style="padding:12px;font-size:18px;white-space:nowrap" title="ค้นหาด้วยรูปภาพ">&#128247;</button>
+<button class="btn bs" id="rcvTrkScanBtn" onclick="rcvOpenScanner()" style="display:none;padding:12px;font-size:18px;white-space:nowrap;background:#06b6d4;color:#fff;border:none" title="สแกนบาร์โค้ด/QR เลขพัสดุด้วยกล้อง">&#128247;&#128747;</button>
 <button class="btn bs" onclick="rcvNewProducts()" style="padding:12px;font-size:13px;white-space:nowrap;background:var(--y);color:#000" title="สินค้าใหม่ 1688">&#127381; ใหม่</button>
 <input type="number" min="1" value="1" id="rcvQty" style="width:70px;background:var(--c1);border:1px solid var(--bd);border-radius:8px;padding:12px;color:var(--t);font-size:16px;text-align:center">
 <button class="btn bp" onclick="rcvAdd()" style="padding:12px 24px;font-size:15px">+ เพิ่ม</button>
@@ -773,6 +774,7 @@ html,body{overflow-x:hidden!important}
 <div class="ov" id="po" onclick="cp()"></div>
 <div class="pn" id="pp"><h2 id="ptt">Panel <button class="cb" onclick="cp()">&times;</button></h2><div id="pb"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 var S={t:0,o:0,c:0,l:0,k:0,s:0,r:0,st:0,cost:0};
 var TH_C=parseInt(localStorage.getItem("ts_thc"))||7;
@@ -3666,6 +3668,112 @@ function rcvSearch(){
   if(_rcvSearchResults.length===0){el.innerHTML="<div style='padding:10px;font-size:13px;color:var(--t2)'>&#128269; ไม่พบ "+mLabel+" \""+q+"\" ในคำสั่งซื้อใดๆ — กด Enter เพื่อเพิ่มเอง</div>";return}
   rcvRenderSug();
 }
+// === Barcode/QR Scanner for tracking numbers (continuous mode) ===
+var _rcvScanner=null;
+var _rcvScanLastCode="";
+var _rcvScanLastTime=0;
+function _rcvBeep(){
+  try{
+    var ac=new(window.AudioContext||window.webkitAudioContext)();
+    var osc=ac.createOscillator();var g=ac.createGain();
+    osc.connect(g);g.connect(ac.destination);
+    osc.type="sine";osc.frequency.value=1400;
+    g.gain.setValueAtTime(.15,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.01,ac.currentTime+.1);
+    osc.start();osc.stop(ac.currentTime+.1);
+  }catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate(80)}catch(e){}
+}
+function rcvOpenScanner(){
+  if(typeof Html5Qrcode==="undefined"){alert("\u274c \u0e42\u0e2b\u0e25\u0e14\u0e44\u0e25\u0e1a\u0e23\u0e32\u0e23\u0e35\u0e2a\u0e41\u0e01\u0e19\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08 - \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a internet");return}
+  // Build modal overlay
+  var old=document.getElementById("_rcvScanModal");if(old)old.remove();
+  var wrap=document.createElement("div");wrap.id="_rcvScanModal";
+  wrap.style.cssText="position:fixed;inset:0;background:#000;z-index:999999;display:flex;flex-direction:column";
+  wrap.innerHTML=
+    "<div style=\"padding:12px 16px;background:rgba(0,0,0,.85);display:flex;align-items:center;gap:10px;color:#fff\">"+
+      "<div style=\"flex:1\"><div style=\"font-size:15px;font-weight:700\">\ud83d\udcf7 \u0e2a\u0e41\u0e01\u0e19\u0e40\u0e25\u0e02\u0e1e\u0e31\u0e2a\u0e14\u0e38</div><div id=\"_rcvScanSt\" style=\"font-size:11px;color:#06b6d4;margin-top:2px\">\u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e1b\u0e34\u0e14\u0e01\u0e25\u0e49\u0e2d\u0e07...</div></div>"+
+      "<button onclick=\"rcvCloseScanner()\" style=\"background:#ef4444;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer\">\u2715 \u0e1b\u0e34\u0e14</button>"+
+    "</div>"+
+    "<div style=\"flex:1;position:relative;overflow:hidden\">"+
+      "<div id=\"_rcvScanCam\" style=\"width:100%;height:100%\"></div>"+
+      "<div style=\"position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center\">"+
+        "<div style=\"width:min(80vw,400px);height:min(40vh,200px);border:3px solid #06b6d4;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.35);position:relative\">"+
+          "<div style=\"position:absolute;top:-2px;left:-2px;width:30px;height:30px;border-top:5px solid #fff;border-left:5px solid #fff;border-radius:12px 0 0 0\"></div>"+
+          "<div style=\"position:absolute;top:-2px;right:-2px;width:30px;height:30px;border-top:5px solid #fff;border-right:5px solid #fff;border-radius:0 12px 0 0\"></div>"+
+          "<div style=\"position:absolute;bottom:-2px;left:-2px;width:30px;height:30px;border-bottom:5px solid #fff;border-left:5px solid #fff;border-radius:0 0 0 12px\"></div>"+
+          "<div style=\"position:absolute;bottom:-2px;right:-2px;width:30px;height:30px;border-bottom:5px solid #fff;border-right:5px solid #fff;border-radius:0 0 12px 0\"></div>"+
+        "</div>"+
+      "</div>"+
+      "<div id=\"_rcvScanHint\" style=\"position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#fff;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.9);padding:0 20px\">\u0e40\u0e25\u0e47\u0e07\u0e1a\u0e32\u0e23\u0e4c\u0e42\u0e04\u0e49\u0e14\u0e2b\u0e23\u0e37\u0e2d QR \u0e43\u0e19\u0e01\u0e23\u0e2d\u0e1a &mdash; \u0e2a\u0e41\u0e01\u0e19\u0e44\u0e14\u0e49\u0e15\u0e48\u0e2d\u0e40\u0e19\u0e37\u0e48\u0e2d\u0e07</div>"+
+      "<div id=\"_rcvScanResult\" style=\"position:absolute;top:16px;left:16px;right:16px;display:none;background:rgba(16,185,129,.95);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.5);animation:_rsFI .2s ease-out\"></div>"+
+    "</div>";
+  document.body.appendChild(wrap);
+  if(!document.getElementById("_rsAnim")){var st=document.createElement("style");st.id="_rsAnim";st.textContent="@keyframes _rsFI{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}";document.head.appendChild(st)}
+  // Init scanner
+  _rcvScanner=new Html5Qrcode("_rcvScanCam");
+  var cfg={
+    fps:10,
+    qrbox:{width:280,height:160},
+    aspectRatio:1.777,
+    formatsToSupport:[
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.CODE_93,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.ITF,
+      Html5QrcodeSupportedFormats.CODABAR,
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.DATA_MATRIX,
+      Html5QrcodeSupportedFormats.PDF_417
+    ]
+  };
+  _rcvScanner.start({facingMode:"environment"},cfg,_rcvOnScan,function(){}).then(function(){
+    var st=document.getElementById("_rcvScanSt");if(st)st.textContent="\u0e42\u0e2b\u0e21\u0e14\u0e15\u0e48\u0e2d\u0e40\u0e19\u0e37\u0e48\u0e2d\u0e07 \u2014 \u0e2a\u0e41\u0e01\u0e19\u0e44\u0e14\u0e49\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e22\u0e46";
+  }).catch(function(err){
+    var st=document.getElementById("_rcvScanSt");if(st){st.textContent="\u274c \u0e40\u0e1b\u0e34\u0e14\u0e01\u0e25\u0e49\u0e2d\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49 - "+(err.message||err);st.style.color="#ef4444"}
+    alert("\u274c \u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e40\u0e1b\u0e34\u0e14\u0e01\u0e25\u0e49\u0e2d\u0e07\u0e44\u0e14\u0e49\n\u2022 \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e34\u0e17\u0e18\u0e34\u0e4c\u0e01\u0e25\u0e49\u0e2d\u0e07\u0e43\u0e19 browser\n\u2022 \u0e15\u0e49\u0e2d\u0e07\u0e40\u0e1b\u0e34\u0e14\u0e1c\u0e48\u0e32\u0e19 HTTPS\n\n"+(err.message||err));
+  });
+}
+function _rcvOnScan(decodedText,decodedResult){
+  var txt=String(decodedText||"").trim();if(!txt)return;
+  // debounce: ignore same code within 1.5s
+  var now=Date.now();
+  if(txt===_rcvScanLastCode&&(now-_rcvScanLastTime)<1500)return;
+  _rcvScanLastCode=txt;_rcvScanLastTime=now;
+  _rcvBeep();
+  var res=document.getElementById("_rcvScanResult");
+  if(res){
+    res.style.display="block";
+    res.innerHTML="\u2705 <b>"+txt+"</b>";
+    // fade out after 2s
+    clearTimeout(window._rcvScanResHide);
+    window._rcvScanResHide=setTimeout(function(){if(res)res.style.display="none"},2000);
+  }
+  // Fill input + trigger search
+  var inp=document.getElementById("rcvSku");
+  if(inp){inp.value=txt;if(typeof rcvSearch==="function")rcvSearch()}
+  var st=document.getElementById("_rcvScanSt");
+  if(st){
+    // Show match count briefly
+    var cnt=(_rcvSearchResults&&_rcvSearchResults.length)||0;
+    st.textContent=cnt?("\u2705 \u0e40\u0e08\u0e2d "+cnt+" SKU \u2014 \u0e2a\u0e41\u0e01\u0e19\u0e15\u0e48\u0e2d\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22"):"\u274c \u0e44\u0e21\u0e48\u0e40\u0e08\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1e\u0e31\u0e2a\u0e14\u0e38\u0e19\u0e35\u0e49";
+    st.style.color=cnt?"#10b981":"#f59e0b";
+  }
+}
+function rcvCloseScanner(){
+  if(_rcvScanner){
+    try{_rcvScanner.stop().then(function(){try{_rcvScanner.clear()}catch(e){}_rcvScanner=null}).catch(function(){try{_rcvScanner.clear()}catch(e){}_rcvScanner=null})}
+    catch(e){_rcvScanner=null}
+  }
+  var m=document.getElementById("_rcvScanModal");if(m)m.remove();
+  // keep focus for typing more
+  setTimeout(function(){var inp=document.getElementById("rcvSku");if(inp)inp.focus()},100);
+}
+
 function rcvImgSearch(){
   var el=document.getElementById("rcvSug");
   var imgs=[];var seen={};
