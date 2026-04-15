@@ -3829,8 +3829,8 @@ function rcvToggleStrip(i){
   var isMobPicker=window.innerWidth<=768;
   var ph="<div class='rc-pickhd'>";
   if(isMobPicker){
-    // Mobile: "เลือกทั้งหมด" button adds all immediately
-    if(notAddedVars.length>0)ph+="<button class='rc-pickadd' onclick='rcvAddAllVars("+i+")' style='flex:1'>➕ เพิ่มทั้งหมด ("+notAddedVars.length+")</button>";
+    if(notAddedVars.length>0)ph+="<button class='rc-pickadd' onclick='rcvAddAllVars("+i+")' style='flex:1'>➕ ทั้งหมด ("+notAddedVars.length+")</button>";
+    ph+="<button class='rc-pickadd' onclick='rcvVarAddChecked("+i+")' style='flex:1;background:var(--g);border-color:var(--g)'>✓ เพิ่มที่เลือก</button>";
     ph+="<button onclick='rcvToggleStrip("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--t)'>✕ ปิด</button>";
   }else{
     ph+="<label class='rc-pickall'><input type='checkbox' onchange='rcvVarToggleAll("+i+",this.checked)'> เลือกทั้งหมด ("+notAddedVars.length+")</label>";
