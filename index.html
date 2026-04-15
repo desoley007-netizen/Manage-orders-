@@ -998,8 +998,8 @@ function _lineBuildMsg(){
   var totalCost=gArr.reduce(function(s,g){return s+g.items.reduce(function(ss,it){return ss+it.rec*it.pr},0)},0);
   var d=new Date();var ds=d.getDate()+"/"+(d.getMonth()+1)+"/"+(d.getFullYear()+543);
   var msg="🚨 เช็คด่วน สินค้าที่ห้ามลืมสั่ง!\n📅 "+ds+"\n";
-  gArr.slice(0,30).forEach(function(g,i){msg+="\n"+(i+1)+". "+g.base+" "+g.name.slice(0,25)+" — สต็อก "+g.stock.toLocaleString()+" → สั่ง "+g.rec.toLocaleString()});
-  if(gArr.length>30)msg+="\n... อีก "+(gArr.length-30)+" รายการ";
+  gArr.slice(0,5).forEach(function(g,i){msg+="\n"+(i+1)+". "+g.base+" "+g.name.slice(0,25)+" — สต็อก "+g.stock.toLocaleString()+" → สั่ง "+g.rec.toLocaleString()});
+  if(gArr.length>5)msg+="\n... อีก "+(gArr.length-5)+" รายการ";
   msg+="\n\n📊 รวม "+gArr.length+" กลุ่ม / สั่ง "+totalRec.toLocaleString()+" ชิ้น";
   msg+="\n💰 มูลค่าประมาณ ฿"+Math.round(totalCost).toLocaleString();
   var hExp=_countHoldExpired();
