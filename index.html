@@ -1018,6 +1018,7 @@ function _lineBuildMsg(){
 }
 function _lineSend(msg){
   if(!_lineConf.token||!_lineConf.userId){alert("กรุณาตั้งค่า LINE ก่อน");_lineShowSetup();return Promise.reject("no config")}
+  if(!CLOUD_URL){alert("กรุณาตั้งค่า CLOUD_URL ก่อน (Google Apps Script)");return Promise.reject("no cloud url")}
   // Messaging API push limit 5000 chars — split if needed
   var chunks=[];
   if(msg.length<=4500){chunks.push(msg)}
@@ -1031,13 +1032,13 @@ function _lineSend(msg){
   var p=Promise.resolve();
   chunks.forEach(function(c){
     p=p.then(function(){
-      return fetch("https://api.line.me/v2/bot/message/push",{
+      return fetch(CLOUD_URL,{
         method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+_lineConf.token},
-        body:JSON.stringify({to:_lineConf.userId,messages:[{type:"text",text:c}]})
-      }).then(function(r){
-        if(!r.ok)return r.json().then(function(j){throw new Error(j.message||"HTTP "+r.status)});
-        return r.json();
+        headers:{"Content-Type":"text/plain"},
+        body:JSON.stringify({action:"linePush",token:_lineConf.token,userId:_lineConf.userId,message:c})
+      }).then(function(r){return r.json()}).then(function(j){
+        if(j.status!=="ok")throw new Error(j.error||"LINE send failed");
+        return j;
       })
     });
   });
