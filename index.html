@@ -202,10 +202,11 @@ body{padding-bottom:64px}
 .btn{font-size:14px;padding:11px 18px;border-radius:12px;min-height:44px}
 .bs{min-height:36px}
 
-/* --- STATS SUMMARY: wrap nicely --- */
-.ss{flex-direction:row;flex-wrap:wrap;gap:4px 10px;font-size:11px;padding:10px 12px;border-radius:12px}
-.ss span{white-space:nowrap}
+/* --- STATS SUMMARY: 2-row grid wrap --- */
+.ss{flex-direction:row;flex-wrap:wrap;gap:4px 8px;font-size:11px;padding:8px 10px;border-radius:12px;align-items:center}
+.ss span{white-space:nowrap;font-size:11px}
 .ss b{font-size:12px}
+.ss button{font-size:14px!important;padding:2px 4px!important}
 
 /* --- FILTER BAR: horizontal scroll, bigger touch targets --- */
 .fbar{gap:6px;margin-bottom:10px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scroll-snap-type:x proximity}
@@ -332,9 +333,11 @@ table:has(#ltb){display:block!important;width:100%!important}
 .view-toggle{width:100%;border-radius:12px}
 .vt-btn{flex:1;padding:10px 4px;font-size:12px;text-align:center;border-radius:10px;min-height:40px}
 
-/* --- ORDER SUB-TAB TOGGLE: ออเดอร์ปกติ / สินค้าใหม่ 1688 --- */
-#t-ord>div:first-child{display:flex!important;gap:6px!important;margin-bottom:10px!important;background:var(--c1)!important;padding:4px!important;border-radius:12px!important;border:1px solid var(--bd)!important}
-#ordSubNorm,#ordSubNew{flex:1!important;text-align:center!important;font-size:11px!important;padding:10px 6px!important;border-radius:10px!important;min-height:44px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;white-space:nowrap!important;line-height:1.2!important}
+/* --- ORDER SUB-TAB TOGGLE: horizontal scroll + auto-shrink --- */
+#t-ord>div:first-child{display:flex!important;gap:4px!important;margin-bottom:10px!important;background:var(--c1)!important;padding:4px!important;border-radius:12px!important;border:1px solid var(--bd)!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;flex-wrap:nowrap!important;scroll-snap-type:x proximity!important;position:relative!important}
+#t-ord>div:first-child::-webkit-scrollbar{display:none}
+#t-ord>div:first-child.has-scroll-right::after{content:'›';position:sticky;right:-4px;top:0;display:flex;align-items:center;justify-content:center;width:28px;min-width:28px;height:100%;background:linear-gradient(to right,transparent,var(--c1) 40%);color:var(--a);font-size:20px;font-weight:700;pointer-events:none;flex-shrink:0;z-index:2}
+#t-ord>div:first-child .vt-btn{flex:0 0 auto!important;text-align:center!important;font-size:11px!important;padding:8px 10px!important;border-radius:10px!important;min-height:40px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;white-space:nowrap!important;line-height:1.2!important;scroll-snap-align:start!important;max-width:none!important}
 
 /* --- ORDER TAB: toolbar — search full-width, buttons row --- */
 #ord-tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:stretch!important}
@@ -350,11 +353,11 @@ table:has(#ltb){display:block!important;width:100%!important}
 #ordSub-normal>.tb>.mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px}
 #ordSub-normal>.tb>.mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px}
 
-/* --- ORDER SUB: new1688 toolbar --- */
-#ordSub-new1688>.tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+/* --- ORDER SUB: new1688 toolbar — buttons in 1 row --- */
+#ordSub-new1688>.tb{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
 #ordSub-new1688>.tb .sb{width:100%!important;flex:none!important}
 #ordSub-new1688>.tb .sel{width:100%!important;flex:none!important;font-size:14px!important;padding:10px 12px!important}
-#ordSub-new1688>.tb .btn{flex:1 1 calc(50% - 4px)!important;font-size:12px!important;padding:10px 8px!important;min-height:44px!important;text-align:center!important}
+#ordSub-new1688>.tb .btn{flex:1 1 0!important;font-size:11px!important;padding:8px 6px!important;min-height:40px!important;text-align:center!important;white-space:nowrap!important}
 
 /* --- LINK TAB: toolbar — search full-width, buttons 2x2 grid --- */
 #lnk-tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:stretch!important}
@@ -367,23 +370,26 @@ table:has(#ltb){display:block!important;width:100%!important}
 .st div:first-child{font-size:16px!important}
 
 /* --- RCV TAB --- */
+#t-rcv>.tb{display:flex!important;flex-direction:column!important;gap:8px!important}
 #t-rcv>.tb>.view-toggle{display:flex;background:var(--c1);border-radius:12px;padding:3px;border:1px solid var(--bd);width:100%}
 #t-rcv>.tb>.view-toggle .vt-btn{flex:1;padding:10px 4px;font-size:12px;text-align:center;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:40px}
 #rcvOrd,#rcvOrdNP{width:100%;font-size:14px;padding:12px 14px;border-radius:12px}
+#rcvOrdWrap{flex-direction:column!important;gap:6px!important}
 
 /* Work area */
 #rcv-count>.ss{padding:12px;margin-bottom:8px;border-radius:12px;gap:6px;border-left:3px solid var(--a)}
 #rcv-count>.ss div:first-child{font-size:14px!important}
 #rcv-count>.ss div:last-child{font-size:11px!important;display:none}
 
-/* Search form */
-#rcv-count .tb{display:flex!important;flex-wrap:wrap!important;flex-direction:row!important;gap:8px!important;margin-top:8px!important}
-#rcv-count .tb .sel{flex:0 0 auto;width:auto!important;min-width:70px!important;font-size:14px!important;padding:10px 8px!important;border-radius:10px!important;min-height:44px!important}
-#rcv-count .tb .sb{flex:1!important;min-width:0!important;font-size:16px!important;padding:12px 14px!important;border-radius:12px!important;width:auto!important;min-height:44px!important}
-#rcv-count .tb .btn.bs.b2{flex:0 0 auto!important;width:44px!important;height:44px!important;padding:0!important;font-size:18px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
-#rcv-count .tb .btn.bs[style*="background:var(--y)"]{flex:0 0 auto!important;width:auto!important;padding:10px 14px!important;font-size:13px!important;border-radius:10px!important;min-height:44px!important}
-#rcv-count .tb input[type="number"]{flex:1!important;width:auto!important;min-width:60px!important;font-size:22px!important;padding:10px 8px!important;text-align:center!important;border-radius:12px!important;min-height:44px!important}
-#rcv-count .tb .btn.bp{flex:0 0 auto!important;width:auto!important;padding:12px 24px!important;font-size:15px!important;border-radius:12px!important;min-height:44px!important}
+/* Search form — 2 rows: [mode|search|camera] + [NEW|qty|add] */
+#rcv-count .tb{display:flex!important;flex-wrap:wrap!important;flex-direction:row!important;gap:6px!important;margin-top:8px!important}
+#rcv-count .tb .sel{flex:0 0 auto;width:auto!important;min-width:60px!important;font-size:13px!important;padding:8px 6px!important;border-radius:10px!important;min-height:44px!important}
+#rcv-count .tb .sb{flex:1!important;min-width:0!important;font-size:16px!important;padding:10px 12px!important;border-radius:12px!important;width:auto!important;min-height:44px!important}
+#rcv-count .tb .btn.bs.b2{flex:0 0 auto!important;width:40px!important;height:44px!important;padding:0!important;font-size:16px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#rcv-count .tb .btn.bs[style*="background:var(--y)"]{flex:0 0 auto!important;width:auto!important;padding:8px 12px!important;font-size:12px!important;border-radius:10px!important;min-height:40px!important}
+#rcv-count .tb input[type="number"]{flex:1 1 60px!important;width:auto!important;min-width:50px!important;max-width:80px!important;font-size:20px!important;padding:8px 6px!important;text-align:center!important;border-radius:12px!important;min-height:40px!important}
+#rcv-count .tb .btn.bp{flex:1 1 auto!important;width:auto!important;padding:10px 18px!important;font-size:15px!important;border-radius:12px!important;min-height:44px!important}
+#rcv-count .tb #rcvTrkScanBtn{flex:0 0 auto!important;width:40px!important;height:44px!important;padding:0 8px!important;border-radius:10px!important}
 
 /* Scanned items - mobile */
 #rcvList .rc-card{display:block!important;overflow:visible!important;background:var(--bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--bd)}
@@ -403,14 +409,19 @@ table:has(#ltb){display:block!important;width:100%!important}
 #rcvList .rc-pickall{display:flex!important;align-items:center!important;gap:6px!important;font-size:13px!important;color:var(--p)!important;cursor:pointer!important;font-weight:600!important}
 #rcvList .rc-pickall input[type="checkbox"]{width:18px!important;height:18px!important;accent-color:var(--p)!important;cursor:pointer!important}
 #rcvList .rc-pickadd{background:var(--p)!important;color:#fff!important;border:none!important;border-radius:8px!important;padding:8px 14px!important;font-size:13px!important;font-weight:700!important;cursor:pointer!important;box-shadow:0 2px 8px rgba(99,102,241,.3)!important}
-#rcvList .rc-grid{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:8px!important;width:100%!important;box-sizing:border-box!important}
-#rcvList .rc-gcard{position:relative!important;background:var(--bg)!important;border:2px solid var(--bd)!important;border-radius:10px!important;padding:8px!important;cursor:pointer!important;box-sizing:border-box!important;text-align:center!important;transition:all .15s!important}
+/* Variant picker: scrollable container + compact list view on mobile */
+#rcvList .rc-grid{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important;box-sizing:border-box!important;max-height:50vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;padding-right:4px!important}
+#rcvList .rc-gcard{position:relative!important;background:var(--bg)!important;border:1px solid var(--bd)!important;border-radius:10px!important;padding:8px 10px!important;cursor:pointer!important;box-sizing:border-box!important;text-align:left!important;transition:all .15s!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important}
 #rcvList .rc-gcard.rc-gdone{background:var(--glow)!important;border-color:var(--g)!important;opacity:.75!important}
-#rcvList .rc-gcb{position:absolute!important;top:6px!important;left:6px!important;width:22px!important;height:22px!important;accent-color:var(--p)!important;cursor:pointer!important;z-index:2!important;margin:0!important;background:#fff!important;border-radius:4px!important}
-#rcvList .rc-gchk{position:absolute!important;top:6px!important;left:6px!important;width:22px!important;height:22px!important;background:var(--g)!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:12px!important;color:#fff!important;z-index:2!important;font-weight:700!important}
-#rcvList .rc-gimg{width:100%!important;aspect-ratio:1!important;object-fit:cover!important;border-radius:6px!important;margin-bottom:6px!important;display:block!important}
-#rcvList .rc-gph{width:100%!important;aspect-ratio:1!important;background:var(--c2)!important;border-radius:6px!important;margin-bottom:6px!important;align-items:center!important;justify-content:center!important;font-size:28px!important}
+#rcvList .rc-gcb{position:relative!important;top:auto!important;left:auto!important;width:22px!important;height:22px!important;accent-color:var(--p)!important;cursor:pointer!important;z-index:2!important;margin:0!important;background:#fff!important;border-radius:4px!important;flex-shrink:0!important}
+#rcvList .rc-gchk{position:relative!important;top:auto!important;left:auto!important;width:22px!important;height:22px!important;background:var(--g)!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:12px!important;color:#fff!important;z-index:2!important;font-weight:700!important;flex-shrink:0!important}
+#rcvList .rc-gimg{width:48px!important;height:48px!important;aspect-ratio:1!important;object-fit:cover!important;border-radius:8px!important;margin-bottom:0!important;display:block!important;flex-shrink:0!important}
+#rcvList .rc-gph{width:48px!important;height:48px!important;aspect-ratio:1!important;background:var(--c2)!important;border-radius:8px!important;margin-bottom:0!important;align-items:center!important;justify-content:center!important;font-size:18px!important;flex-shrink:0!important}
 #rcvList .rc-gph[style*="display:none"]{display:none!important}
+#rcvList .rc-gsku{font-size:13px!important;font-weight:700!important}
+#rcvList .rc-gvn{font-size:11px!important}
+#rcvList .rc-gnm{font-size:10px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:calc(100vw - 160px)!important}
+#rcvList .rc-gadded{font-size:10px!important}
 #rcvList .rc-gsku{font-size:13px!important;font-weight:700!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-bottom:2px!important}
 #rcvList .rc-gvn{font-size:11px!important;color:var(--a)!important;font-weight:600!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 #rcvList .rc-gnm{font-size:10px!important;color:var(--t2)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-top:2px!important}
@@ -1038,7 +1049,7 @@ function _runPendingSave() {
 
 function cloudSave() {
   if (!CLOUD_URL) return;
-  // Debounce: รอ 500ms หลังการเปลี่ยนแปลงครั้งสุดท้าย แล้วค่อย save
+  // Debounce: รอ 2000ms หลังการเปลี่ยนแปลงครั้งสุดท้าย แล้วค่อย save (ลดจาก 500ms เพื่อลด write conflict)
   // ป้องกัน cloudLoad แทรกระหว่างที่กำลังจะ save โดย mark busy ทันที
   clearTimeout(_cloudSaveTimer);
   _cloudBusy = true;            // lock ทันทีเมื่อตั้ง timer (กัน cloudLoad แทรก)
@@ -1077,7 +1088,7 @@ function cloudSave() {
       _pendingRetry = true;
       _schedulePendingRetry();
     });
-  }, 500);
+  }, 2000);
 }
 
 // ถ้ากลับมาออนไลน์ → ลอง retry ทันที
@@ -1131,6 +1142,76 @@ function cloudForceSave(cb){
   _doSave();
 }
 
+// ===== OPTIMISTIC MERGE — ป้องกันข้อมูลหายเมื่อหลายคนใช้พร้อมกัน =====
+// Merge O[] หรือ NP[] by id: ใช้ _lm (last modified timestamp) ตัดสิน
+function _mergeById(local, cloud, idKey) {
+  idKey = idKey || "id";
+  var localMap = {};
+  local.forEach(function(o) { localMap[o[idKey]] = o; });
+  var cloudMap = {};
+  cloud.forEach(function(o) { cloudMap[o[idKey]] = o; });
+  var seen = {};
+  var merged = [];
+  // เอา cloud เป็นฐาน (ลำดับตาม cloud)
+  cloud.forEach(function(co) {
+    var k = co[idKey];
+    seen[k] = true;
+    var lo = localMap[k];
+    if (!lo) { merged.push(co); return; } // cloud only
+    // ทั้งสองมี → เอาตัวที่ _lm ใหม่กว่า
+    var loLm = lo._lm || 0;
+    var coLm = co._lm || 0;
+    merged.push(loLm >= coLm ? lo : co);
+  });
+  // เพิ่มตัวที่มีแค่ใน local (ออเดอร์ใหม่ที่สร้างยังไม่ได้ sync)
+  local.forEach(function(lo) {
+    if (!seen[lo[idKey]]) merged.unshift(lo);
+  });
+  return merged;
+}
+
+// Merge RC{} by key: แต่ละ PO id แยกกัน ไม่ทับข้าม PO
+function _mergeRC(local, cloud) {
+  var merged = {};
+  for (var k in cloud) { if (cloud.hasOwnProperty(k)) merged[k] = cloud[k]; }
+  for (var k in local) {
+    if (!local.hasOwnProperty(k)) continue;
+    if (!merged[k]) { merged[k] = local[k]; continue; } // local only
+    // ทั้งสองมี → เอาตัวที่วันที่ใหม่กว่า หรือ local ถ้าเท่ากัน
+    var ld = local[k].date || "";
+    var cd = merged[k].date || "";
+    if (ld >= cd) merged[k] = local[k];
+  }
+  return merged;
+}
+
+// Merge SI[] by sku: เก็บจำนวนสูงสุด (เพราะ SI สะสมจาก rcvApprove)
+function _mergeSI(local, cloud) {
+  var map = {};
+  cloud.forEach(function(s) { map[s.sku] = s; });
+  local.forEach(function(s) {
+    if (!map[s.sku]) { map[s.sku] = s; }
+    else if (s.qty > map[s.sku].qty) { map[s.sku] = s; }
+  });
+  var out = [];
+  for (var k in map) { if (map.hasOwnProperty(k)) out.push(map[k]); }
+  return out;
+}
+
+// Merge ALOG[]: รวม + deduplicate by ts+uid+type, sort newest first, trim 500
+function _mergeAlog(local, cloud) {
+  var seen = {};
+  var merged = [];
+  var all = local.concat(cloud);
+  all.forEach(function(e) {
+    if (!e || !e.ts) return;
+    var key = e.ts + "|" + (e.uid || "") + "|" + (e.type || "");
+    if (!seen[key]) { seen[key] = true; merged.push(e); }
+  });
+  merged.sort(function(a, b) { return (b.ts || "").localeCompare(a.ts || ""); });
+  return merged.slice(0, 500);
+}
+
 function cloudLoad(manual) {
   if (!CLOUD_URL) return;
   if (_cloudBusy && !manual) return;
@@ -1158,11 +1239,11 @@ function cloudLoad(manual) {
       var raw_vn = _chunkJoin("ts_vn", d.data);
       var raw_alog = _chunkJoin("ts_alog", d.data);
 
-      if (raw_o && raw_o !== JSON.stringify(O)) { O = JSON.parse(raw_o); localStorage.setItem("ts_o", raw_o); changed = true; }
+      if (raw_o && raw_o !== JSON.stringify(O)) { O = _mergeById(O, JSON.parse(raw_o), "id"); localStorage.setItem("ts_o", JSON.stringify(O)); changed = true; }
       if (raw_l && raw_l !== JSON.stringify(L)) { L = JSON.parse(raw_l); localStorage.setItem("ts_l", raw_l); changed = true; }
-      if (raw_rc && raw_rc !== JSON.stringify(RC)) { RC = JSON.parse(raw_rc); localStorage.setItem("ts_rc", raw_rc); changed = true; }
-      if (raw_si && raw_si !== JSON.stringify(SI)) { SI = JSON.parse(raw_si); localStorage.setItem("ts_si", raw_si); changed = true; }
-      if (raw_np && raw_np !== JSON.stringify(NP)) { NP = JSON.parse(raw_np); localStorage.setItem("ts_np", raw_np); changed = true; }
+      if (raw_rc && raw_rc !== JSON.stringify(RC)) { RC = _mergeRC(RC, JSON.parse(raw_rc)); localStorage.setItem("ts_rc", JSON.stringify(RC)); changed = true; }
+      if (raw_si && raw_si !== JSON.stringify(SI)) { SI = _mergeSI(SI, JSON.parse(raw_si)); localStorage.setItem("ts_si", JSON.stringify(SI)); changed = true; }
+      if (raw_np && raw_np !== JSON.stringify(NP)) { NP = _mergeById(NP, JSON.parse(raw_np), "id"); localStorage.setItem("ts_np", JSON.stringify(NP)); changed = true; }
       if (d.data.ts_thc) { TH_C = parseInt(d.data.ts_thc) || 7; localStorage.setItem("ts_thc", TH_C); }
       if (d.data.ts_thl) { TH_L = parseInt(d.data.ts_thl) || 14; localStorage.setItem("ts_thl", TH_L); }
       // อัปเดต R array (ข้อมูล SKU หลัก + รูปภาพ) จาก cloud
@@ -1181,7 +1262,7 @@ function cloudLoad(manual) {
       // อัปเดต USERS จาก cloud ด้วย (merge ไม่เขียนทับ)
       if (raw_disc) { try{DISC=JSON.parse(raw_disc);localStorage.setItem("ts_disc",JSON.stringify(DISC))}catch(e){} }
       if (raw_vn) { try{VN=JSON.parse(raw_vn);localStorage.setItem("ts_vn",JSON.stringify(VN))}catch(e){} }
-      if (raw_alog) { try{var ca=JSON.parse(raw_alog);if(Array.isArray(ca)){ALOG=ca;localStorage.setItem("ts_alog",JSON.stringify(ALOG))}}catch(e){} }
+      if (raw_alog) { try{var ca=JSON.parse(raw_alog);if(Array.isArray(ca)){ALOG=_mergeAlog(ALOG,ca);localStorage.setItem("ts_alog",JSON.stringify(ALOG))}}catch(e){} }
       if (raw_hold) { try{HOLD=JSON.parse(raw_hold);localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
       // ดึง deleted user IDs จาก cloud มา merge กับ local
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
@@ -1204,7 +1285,7 @@ var _autoRefresh = null;
 function startAutoRefresh(skipFirstLoad) {
   if (!CLOUD_URL) return;
   stopAutoRefresh();
-  _autoRefresh = setInterval(function() { cloudLoad(false); }, 30000);
+  _autoRefresh = setInterval(function() { cloudLoad(false); }, 60000); // 60s (ลดจาก 30s เพื่อลด conflict)
   // โหลดครั้งแรก (ยกเว้นหลัง force save เพื่อป้องกัน overwrite)
   if(!skipFirstLoad) cloudLoad(true);
 }
@@ -2028,6 +2109,21 @@ function toggleOrdCollapse(){ordCollapsed=!ordCollapsed;document.getElementById(
 var npCollapsed=false;
 function toggleNpCollapse(){npCollapsed=!npCollapsed;document.getElementById("npColBtn").textContent=npCollapsed?"▶ แสดงรายละเอียด":"▼ ซ่อนรายละเอียด";document.getElementById("npl").style.display=npCollapsed?"none":"";document.getElementById("npe").style.display="none"}
 var ordSubMode="normal";
+// === Scroll indicator for order sub-tabs on mobile ===
+function _initTabScroll(){
+  var el=document.querySelector("#t-ord>div:first-child");
+  if(!el)return;
+  function upd(){
+    if(el.scrollWidth>el.clientWidth+4&&el.scrollLeft<el.scrollWidth-el.clientWidth-8){
+      el.classList.add("has-scroll-right");
+    }else{
+      el.classList.remove("has-scroll-right");
+    }
+  }
+  el.addEventListener("scroll",upd,{passive:true});
+  window.addEventListener("resize",upd);
+  setTimeout(upd,300);
+}
 function swOrdSub(m){
   ordSubMode=m;
   document.getElementById("ordSub-normal").style.display=m==="normal"?"":"none";
@@ -2302,7 +2398,7 @@ function sno(){
   var _l1688=(document.getElementById("ol1688")||{}).value||"";
   var _trk=(document.getElementById("otr").value||"").trim();
   var _initSt=_trk?"shipped":"pending";
-  O.unshift({id:oid,name:document.getElementById("onm").value,date:d,month:d.slice(0,7),items:_s.map(function(s){return{sku:s.sku,qty:s.qty}}),tracking:_trk,note:document.getElementById("onn").value,amount:_amtv,link1688:_l1688,status:_initSt,statusChangedAt:d});
+  O.unshift({id:oid,name:document.getElementById("onm").value,date:d,month:d.slice(0,7),items:_s.map(function(s){return{sku:s.sku,qty:s.qty}}),tracking:_trk,note:document.getElementById("onn").value,amount:_amtv,link1688:_l1688,status:_initSt,statusChangedAt:d,_lm:Date.now()});
   sv();cp();uk();rt();cm=d.slice(0,7);rmt();ro();
   if(_trk)_autoTrkToast("&#9989; \u0e21\u0e35\u0e40\u0e25\u0e02\u0e1e\u0e31\u0e2a\u0e14\u0e38 \u2192 \u0e15\u0e31\u0e49\u0e07\u0e2a\u0e16\u0e32\u0e19\u0e30 '\u0e08\u0e31\u0e14\u0e2a\u0e48\u0e07\u0e41\u0e25\u0e49\u0e27' \u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34");
 }
@@ -2331,6 +2427,7 @@ function se(i){
   var newTrk=(document.getElementById("etr").value||"").trim();
   O[i].tracking=newTrk;
   O[i].note=document.getElementById("enn").value;var _eamt=document.getElementById("eAmt");O[i].amount=_eamt?(parseFloat(_eamt.value)||0):(O[i].amount||0);var _el1=document.getElementById("el1688");if(_el1)O[i].link1688=_el1.value||"";
+  O[i]._lm=Date.now();
   // Auto-change status ตามเลขพัสดุ
   var autoMsg="";
   if(!oldTrk&&newTrk&&oldSt==="pending"){O[i].status="shipped";O[i].statusChangedAt=new Date().toISOString().slice(0,10);autoMsg="&#9989; เปลี่ยนเป็น 'จัดส่งแล้ว' อัตโนมัติ"}
@@ -2381,7 +2478,7 @@ function ss2(i){
     else if(oldTrk&&!newTrk&&oldSt==="shipped"){userSt="pending";autoMsg="&#8617;&#65039; เปลี่ยนกลับเป็น 'รอจัดส่ง' อัตโนมัติ"}
   }
   if(userSt!==oldSt)O[i].statusChangedAt=new Date().toISOString().slice(0,10);
-  O[i].status=userSt;O[i].tracking=newTrk;O[i].note=document.getElementById("sn2").value;
+  O[i].status=userSt;O[i].tracking=newTrk;O[i].note=document.getElementById("sn2").value;O[i]._lm=Date.now();
   sv();cp();uk();ro();rt();
   if(autoMsg)_autoTrkToast(autoMsg);
 }
@@ -2502,7 +2599,8 @@ function saveNP(){
     status:"ordered",
     statusChangedAt:dt,
     tracking:"",
-    addedSKU:""
+    addedSKU:"",
+    _lm:Date.now()
   });
   sv();cp();swOrdSub("new1688");rnp();ro();
 }
@@ -2731,6 +2829,7 @@ function saveUNP(i){
   p.tracking=newTrk;
   p.addedSKU=document.getElementById("npSku2").value.trim();
   p.note=document.getElementById("npNote2").value.trim();
+  p._lm=Date.now();
   sv();cp();rnp();
   if(autoMsg)_autoTrkToast(autoMsg);
 }
@@ -2951,7 +3050,8 @@ function doNPImp(){
       status:it.status||"ordered",
       statusChangedAt:it.date,
       tracking:"",
-      addedSKU:it.sku||""
+      addedSKU:it.sku||"",
+      _lm:Date.now()
     });
     added++;
   });
@@ -4728,7 +4828,7 @@ function rcvApprove(idx){
   if(!CUR_USER){alert("\u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e47\u0e2d\u0e01\u0e2d\u0e34\u0e19\u0e01\u0e48\u0e2d\u0e19\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34");return}
   var o=O[idx];if(!o)return;
   _chkOpen=null;
-  o.status="received";
+  o.status="received";o._lm=Date.now();
   o.note=(o.note?o.note+" | ":"")+"ตรวจรับ "+new Date().toISOString().slice(0,10);
   // Accumulate into Stock-In list using counted quantities
   var rc=RC[o.id];
@@ -4753,7 +4853,7 @@ function rcvNegotiate(idx){
     var cnt=0;if(rc)rc.items.forEach(function(r){if(r.sku===x.sku)cnt=r.qty});
     var d=x.qty-cnt;if(d>0)shorts.push(x.sku+" ขาด "+d);
   });
-  o.status="partial";
+  o.status="partial";o._lm=Date.now();
   o.note=(o.note?o.note+" | ":"")+"ของขาด: "+shorts.join(", ");
   sv();cp();uk();ro();rt();rrcv();
   rcvGoTrack(o.id);
@@ -5275,6 +5375,7 @@ function initApp(){
   // แสดง sync status ทันที
   try{syncUI("loading")}catch(e){}
   try{recalcS();uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
+  try{_initTabScroll()}catch(e){}
   try{_updateNetBadge()}catch(e){}
   try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
   // Fetch cloud users → merge → push กลับ (ไม่เขียนทับข้อมูลเครื่องอื่น)
