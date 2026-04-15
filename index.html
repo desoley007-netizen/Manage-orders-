@@ -209,9 +209,9 @@ body{padding-bottom:64px}
 .ss button{font-size:14px!important;padding:2px 4px!important}
 
 /* --- FILTER BAR: horizontal scroll, bigger touch targets --- */
-.fbar{gap:6px;margin-bottom:10px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scroll-snap-type:x proximity}
-.fbar::-webkit-scrollbar{display:none}
-.fb{padding:8px 14px;font-size:12px;border-radius:16px;flex-shrink:0;min-height:36px;scroll-snap-align:start}
+.fbar{display:flex!important;gap:6px!important;margin-bottom:10px!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;padding-bottom:4px!important}
+.fbar::-webkit-scrollbar{display:none!important}
+.fb{padding:6px 10px!important;font-size:11px!important;border-radius:14px!important;min-height:32px!important;white-space:nowrap!important;flex-shrink:0!important}
 
 /* --- TABLES: compact with horizontal scroll --- */
 .tw{border-radius:12px;overflow:hidden}
@@ -360,10 +360,12 @@ table:has(#ltb){display:block!important;width:100%!important}
 #ordSub-new1688>.tb .btn{flex:1 1 0!important;font-size:11px!important;padding:8px 6px!important;min-height:40px!important;text-align:center!important;white-space:nowrap!important}
 
 /* --- LINK TAB: toolbar — search full-width, buttons 2x2 grid --- */
-#lnk-tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:stretch!important}
-#lnk-tb .sb{width:100%!important;flex:none!important;order:0!important}
-.lnk-act{flex:1 1 calc(50% - 4px)!important;min-width:0!important;width:auto!important;height:auto!important;padding:10px 6px!important;font-size:12px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-.lnk-act .m-hide{display:inline!important;font-size:11px!important}
+#lnk-tb{display:grid!important;grid-template-columns:1fr!important;gap:6px!important}
+#lnk-tb .sb{width:100%!important;font-size:14px!important;padding:10px 12px!important;border-radius:10px!important;box-sizing:border-box!important}
+#lnk-tb-actions{display:flex!important;gap:6px!important;width:100%!important}
+#lnk-tb-actions>*{flex:1!important;min-width:0!important}
+#lnk-tb-actions button,#lnk-tb-actions .btn{width:100%!important;padding:10px 8px!important;font-size:12px!important;border-radius:10px!important;white-space:nowrap!important;box-sizing:border-box!important}
+.lnk-act .m-hide{display:none!important}
 .lnk-card{flex-direction:column}
 .sr{flex-wrap:wrap;gap:8px}
 .st{padding:10px;min-width:0}
@@ -392,25 +394,27 @@ table:has(#ltb){display:block!important;width:100%!important}
 #rcv-count .tb #rcvTrkScanBtn{flex:0 0 auto!important;width:40px!important;height:44px!important;padding:0 8px!important;border-radius:10px!important}
 
 /* Scanned items - mobile */
-#rcvList .rc-card{display:block!important;overflow:visible!important;background:var(--bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--bd)}
+#rcvList .rc-card{display:block!important;overflow:visible!important;background:var(--bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--bd);-webkit-transform:translateZ(0)!important;transform:translateZ(0)!important}
 #rcvList .rc-card.rc-open{border-color:var(--a)}
-#rcvList .rc-top{display:flex!important;align-items:center!important;gap:8px!important;padding:10px 12px!important}
+#rcvList .rc-top{display:flex!important;align-items:center!important;gap:8px!important;padding:10px 12px!important;-webkit-transform:translateZ(0)!important;transform:translateZ(0)!important}
 #rcvList .rc-top img{width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0}
 #rcvList .rc-info{flex:1;min-width:0}
 #rcvList .rc-info .rc-sku{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #rcvList .rc-info .rc-vn{font-size:11px;color:var(--a);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #rcvList .rc-info .rc-nm{font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #rcvList .rc-top input[type="number"]{width:60px!important;background:var(--c1);border:1px solid var(--bd);border-radius:6px;padding:8px;color:var(--t);font-size:15px;text-align:center;flex-shrink:0}
-#rcvList .rc-btns{display:block!important;padding:6px 10px 8px!important;border-top:1px solid var(--bd)!important;text-align:left!important;line-height:1.8!important}
-#rcvList .rc-btns button{display:inline-block!important;vertical-align:middle!important;margin:2px 4px 2px 0!important;font-size:12px!important;padding:6px 12px!important;border-radius:8px!important;cursor:pointer!important;font-weight:600!important}
-#rcvList .rc-picker{display:block!important;padding:10px 10px 12px!important;border-top:1px solid var(--bd)!important;background:var(--c1)!important;box-sizing:border-box!important}
-#rcvList .rc-card:not(.rc-open) .rc-picker{display:none!important}
-#rcvList .rc-pickhd{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;margin-bottom:10px!important;flex-wrap:wrap!important}
+#rcvList .rc-btns{display:none!important}
+#rcvList .rc-ab{display:none!important}
+#rcvList .rc-tb{display:none!important}
+#rcvList .rc-card{cursor:pointer!important;-webkit-tap-highlight-color:rgba(59,130,246,.15)!important;transition:border-color .15s!important}
+#rcvList{padding-bottom:80px!important}
+#rcvList .rc-picker{background:var(--c1)!important;box-sizing:border-box!important;padding:8px 10px!important;border-top:1px solid var(--bd)!important;max-height:40vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important}
+#rcvList .rc-pickhd{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;margin-bottom:8px!important;flex-wrap:wrap!important;position:sticky!important;top:0!important;background:var(--c1)!important;z-index:2!important;padding:4px 0!important}
 #rcvList .rc-pickall{display:flex!important;align-items:center!important;gap:6px!important;font-size:13px!important;color:var(--p)!important;cursor:pointer!important;font-weight:600!important}
 #rcvList .rc-pickall input[type="checkbox"]{width:18px!important;height:18px!important;accent-color:var(--p)!important;cursor:pointer!important}
 #rcvList .rc-pickadd{background:var(--p)!important;color:#fff!important;border:none!important;border-radius:8px!important;padding:8px 14px!important;font-size:13px!important;font-weight:700!important;cursor:pointer!important;box-shadow:0 2px 8px rgba(99,102,241,.3)!important}
 /* Variant picker: scrollable container + compact list view on mobile */
-#rcvList .rc-grid{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important;box-sizing:border-box!important;max-height:50vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;padding-right:4px!important}
+#rcvList .rc-grid{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important;box-sizing:border-box!important;max-height:none!important;overflow-y:visible!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;padding-bottom:10px!important}
 #rcvList .rc-gcard{position:relative!important;background:var(--bg)!important;border:1px solid var(--bd)!important;border-radius:10px!important;padding:8px 10px!important;cursor:pointer!important;box-sizing:border-box!important;text-align:left!important;transition:all .15s!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important}
 #rcvList .rc-gcard.rc-gdone{background:var(--glow)!important;border-color:var(--g)!important;opacity:.75!important}
 #rcvList .rc-gcb{position:relative!important;top:auto!important;left:auto!important;width:22px!important;height:22px!important;accent-color:var(--p)!important;cursor:pointer!important;z-index:2!important;margin:0!important;background:#fff!important;border-radius:4px!important;flex-shrink:0!important}
@@ -503,6 +507,10 @@ html,body{overflow-x:hidden!important}
 .fb[data-f="done"].act{background:var(--a2)}
 .fb[data-f="reord"].act{background:var(--o)}
 .fb[data-f="nord"].act{background:#ef4444}
+.fb[data-f="hold"].act{background:#f59e0b;color:#000}
+.hold-expired{animation:holdPulse 1.5s ease-in-out infinite}
+@keyframes holdPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.fb[data-f="disc"].act{background:#6b7280;color:#fff}
 .fb .fc{font-size:11px;opacity:.8;margin-left:4px}
 /* Scanned items - desktop defaults */
 #rcvList .rc-card{display:block;overflow:visible;background:var(--bg);border-radius:10px;margin-bottom:6px;border:1px solid var(--bd)}
@@ -514,18 +522,22 @@ html,body{overflow-x:hidden!important}
 #rcvList .rc-info .rc-vn{font-size:11px;color:var(--a);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #rcvList .rc-info .rc-nm{font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #rcvList .rc-top input[type="number"]{width:70px;background:var(--c1);border:1px solid var(--bd);border-radius:6px;padding:8px;color:var(--t);font-size:15px;text-align:center}
-#rcvList .rc-btns{display:block;padding:6px 10px 8px;border-top:1px solid var(--bd);line-height:1.8}
-#rcvList .rc-btns button{display:inline-block;vertical-align:middle;margin:2px 4px 2px 0;font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:600}
-#rcvList .rc-picker{display:block;padding:12px;border-top:1px solid var(--bd);background:var(--c1);box-sizing:border-box}
-#rcvList .rc-card:not(.rc-open) .rc-picker{display:none}
+#rcvList .rc-btns{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border-top:1px solid var(--bd);align-items:center}
+#rcvList .rc-ab{display:inline-block;background:var(--c2);border:1px solid var(--bd);color:var(--t);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+#rcvList .rc-ab:hover{background:var(--c1);border-color:var(--a)}
+#rcvList .rc-tb{color:var(--a)}
+#rcvList .rc-picker{padding:10px 12px;border-top:1px solid var(--bd);background:var(--c1);box-sizing:border-box}
 #rcvList .rc-pickhd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 #rcvList .rc-pickall{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--p);cursor:pointer;font-weight:600}
 #rcvList .rc-pickall input[type="checkbox"]{width:18px;height:18px;accent-color:var(--p);cursor:pointer}
 #rcvList .rc-pickadd{background:var(--p);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(99,102,241,.3)}
 #rcvList .rc-pickadd:hover{opacity:.9;transform:translateY(-1px)}
-#rcvList .rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;width:100%;box-sizing:border-box}
-#rcvList .rc-gcard{position:relative;background:var(--bg);border:2px solid var(--bd);border-radius:12px;padding:10px;cursor:pointer;box-sizing:border-box;text-align:center;transition:all .15s}
+#rcvList .rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;width:100%;box-sizing:border-box;max-height:45vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:60px}
+#rcvList .rc-gcard{position:relative;background:var(--bg);border:2px solid var(--bd);border-radius:12px;padding:10px;cursor:pointer;box-sizing:border-box;text-align:center;transition:all .15s;touch-action:pan-y}
 #rcvList .rc-gcard:hover{border-color:var(--p);transform:translateY(-1px)}
+#rcvList .rc-grid::-webkit-scrollbar{width:6px}
+#rcvList .rc-grid::-webkit-scrollbar-thumb{background:var(--a);border-radius:3px}
+#rcvList .rc-grid::-webkit-scrollbar-track{background:var(--c2);border-radius:3px}
 #rcvList .rc-gcard.rc-gdone{background:var(--glow);border-color:var(--g);opacity:.8}
 #rcvList .rc-gcb{position:absolute;top:8px;left:8px;width:20px;height:20px;accent-color:var(--p);cursor:pointer;z-index:2;margin:0;background:#fff;border-radius:4px}
 #rcvList .rc-gchk{position:absolute;top:8px;left:8px;width:22px;height:22px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;z-index:2;font-weight:700}
@@ -699,7 +711,7 @@ html,body{overflow-x:hidden!important}
 <button class="vt-btn act" id="rvCount" onclick="rcvMode='count';rrcv()">&#128221; <span class="m-hide">พนักงาน 1: </span>นับของ</button>
 <button class="vt-btn" id="rvCheck" onclick="rcvMode='check';rrcv()">&#128270; <span class="m-hide">พนักงาน 2: </span>ตรวจสอบ</button>
 </div>
-<button onclick="var w=document.getElementById('rcvOrdWrap');var s=w.style.display==='none';w.style.display=s?'flex':'none';this.textContent=s?'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25b2':'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25bc'" style="background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--t2);cursor:pointer;white-space:nowrap">&#128230; เลือกคำสั่งซื้อ &#9660;</button>
+<button onclick="var w=document.getElementById('rcvOrdWrap');var s=w.style.display==='none';w.style.display=s?'flex':'none';this.textContent=s?'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25b2':'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25bc'" style="width:100%;background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--t2);cursor:pointer;text-align:center">&#128230; เลือกคำสั่งซื้อ &#9660;</button>
 <div id="rcvOrdWrap" style="display:none;flex:1;gap:6px">
 <select class="sel" id="rcvOrd" onchange="document.getElementById('rcvOrdNP').value='';rrcv()" style="flex:1"><option value="">-- เลือกคำสั่งซื้อ --</option></select>
 <select class="sel" id="rcvOrdNP" onchange="document.getElementById('rcvOrd').value='';rrcv()" style="flex:0 0 auto;min-width:180px;background:var(--y);color:#000;font-weight:600;display:none"><option value="">-- สินค้าใหม่ 1688 --</option></select>
@@ -724,9 +736,18 @@ html,body{overflow-x:hidden!important}
 </div>
 <div id="rcvSug" style="margin-top:4px"></div>
 <div id="rcvList" style="margin-top:12px"></div>
+<div id="rcvBottomBar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:2px solid var(--a);padding:8px 12px 6px;z-index:1001;box-shadow:0 -4px 16px rgba(0,0,0,.2)">
+<div id="rcvBarLabel" style="text-align:center;font-size:11px;color:var(--t2);margin-bottom:6px"></div>
+<div style="display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:nowrap;padding-bottom:env(safe-area-inset-bottom,0)">
+<button onclick="rcvBarEdit()" style="flex:1;background:var(--c2);border:1px solid var(--bd);color:var(--t);padding:12px 6px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">✏ แก้ไข</button>
+<button id="rcvBarVarBtn" onclick="rcvBarVariants()" style="flex:1.2;background:var(--c2);border:1px solid var(--a);color:var(--a);padding:12px 6px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🎨 ตัวเลือก</button>
+<button id="rcvBarAllBtn" onclick="rcvBarAddAll()" style="flex:1;background:var(--c2);border:1px solid var(--bd);color:var(--a);padding:12px 6px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">➕ ทั้งหมด</button>
+<button onclick="rcvBarDelete()" style="flex:0 0 44px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--r);padding:12px 6px;border-radius:10px;font-size:16px;cursor:pointer">🗑</button>
+</div>
+</div>
 <div id="rcvActions" style="margin-top:12px;display:none">
 <div style="display:flex;gap:8px">
-<button class="btn bg" onclick="rcvSave()" style="flex:2;padding:12px;font-size:15px">&#128190; บันทึกการนับ</button>
+<button id="rcvSaveBtn" class="btn bg" onclick="rcvSave()" style="flex:2;padding:12px;font-size:15px">&#128190; บันทึกการนับ</button>
 <button class="btn" onclick="rcvSavePartial()" style="flex:1;padding:12px;font-size:13px;background:#eab308;color:#000;border:none;white-space:nowrap" title="บันทึกไว้นับต่อวันหลัง">&#9208; บันทึกบางส่วน</button>
 </div>
 </div>
@@ -760,9 +781,10 @@ html,body{overflow-x:hidden!important}
 <div id="t-lnk" style="display:none">
 <div class="tb" id="lnk-tb">
 <input class="sb" type="text" placeholder="&#128269; ค้นหา SKU..." id="ls" oninput="rl()" style="flex:1;min-width:0">
+<div id="lnk-tb-actions">
 <button class="btn bs b2 lnk-act" onclick="oal()" title="เพิ่มสินค้าใหม่">+<span class="m-hide"> เพิ่มสินค้าใหม่</span></button>
-<div style="position:relative;display:inline-block" class="lnk-act" id="impDd">
-<button class="btn bp bs" onclick="document.getElementById('impDdM').classList.toggle('open')">&#128228; Import <span style="font-size:10px">&#9660;</span></button>
+<div style="position:relative" class="lnk-act" id="impDd">
+<button class="btn bp bs" onclick="document.getElementById('impDdM').classList.toggle('open')" style="width:100%">&#128228; Import <span style="font-size:10px">&#9660;</span></button>
 <div id="impDdM" class="imp-dd-menu">
 <button onclick="oim();document.getElementById('impDdM').classList.remove('open')">&#128279; Import ลิงก์ (Sheets)</button>
 <button onclick="oimgExcel();document.getElementById('impDdM').classList.remove('open')">&#128247; Import รูป</button>
@@ -771,6 +793,7 @@ html,body{overflow-x:hidden!important}
 </div>
 <input type="file" id="vnFileInp" accept=".xlsx,.xls" style="display:none" onchange="importVariantNames(this)">
 <button class="btn bs bg lnk-act" onclick="am()" title="Auto-Match">&#9889;<span class="m-hide"> Auto-Match</span></button>
+</div>
 </div>
 <div class="ss">
 <span>&#128279; ลิงก์ทั้งหมด: <b id="lt1">0</b></span>
@@ -842,13 +865,105 @@ function isDisc(sku){return DISC.indexOf(sku)>=0||DISC.indexOf(gb(sku))>=0}
 function toggleDisc(sku){var i=DISC.indexOf(sku);if(i>=0){DISC.splice(i,1)}else{DISC.push(sku)}localStorage.setItem("ts_disc",JSON.stringify(DISC));svDisc();recalcS();uk();_grpKeep=true;rt()}
 function toggleDiscMulti(skus){skus.forEach(function(s){var i=DISC.indexOf(s);if(i<0)DISC.push(s)});localStorage.setItem("ts_disc",JSON.stringify(DISC));svDisc();recalcS();uk();_grpKeep=true;rt()}
 function undoDisc(sku){var i=DISC.indexOf(sku);if(i>=0)DISC.splice(i,1);localStorage.setItem("ts_disc",JSON.stringify(DISC));svDisc();recalcS();uk();rt()}
-var HOLD=JSON.parse(localStorage.getItem("ts_hold")||"[]");
-function isHold(sku){var b=gb(sku);return HOLD.indexOf(b)>=0||HOLD.indexOf(sku)>=0}
-function toggleHold(base){var i=HOLD.indexOf(base);if(i>=0){HOLD.splice(i,1)}else{HOLD.push(base)}localStorage.setItem("ts_hold",JSON.stringify(HOLD));svHold();_grpKeep=true;rt()}
+function undoDiscGroup(base){var removed=0;I.forEach(function(it){if(gb(it.sku)===base){var i=DISC.indexOf(it.sku);if(i>=0){DISC.splice(i,1);removed++}}});var i2=DISC.indexOf(base);if(i2>=0){DISC.splice(i2,1);removed++}if(removed>0){localStorage.setItem("ts_disc",JSON.stringify(DISC));svDisc();recalcS();uk();_grpKeep=true;rt()}}
+var _rawHold=JSON.parse(localStorage.getItem("ts_hold")||"[]");
+// Migrate: old format was array of strings, new format is object {sku:{expire:"YYYY-MM-DD"}}
+var HOLD=(function(r){
+  if(Array.isArray(r)){var o={};r.forEach(function(s){o[s]={expire:null}});localStorage.setItem("ts_hold",JSON.stringify(o));return o}
+  if(r&&typeof r==="object")return r;
+  return {};
+})(_rawHold);
+function _holdKeys(){return Object.keys(HOLD)}
+function _holdLen(){return _holdKeys().length}
+function isHold(sku){var b=gb(sku);return !!HOLD[b]||!!HOLD[sku]}
+function getHoldInfo(sku){var b=gb(sku);return HOLD[b]||HOLD[sku]||null}
+function holdDaysLeft(sku){var h=getHoldInfo(sku);if(!h||!h.expire)return null;var now=new Date();now.setHours(0,0,0,0);var exp=new Date(h.expire);exp.setHours(0,0,0,0);return Math.ceil((exp-now)/(86400000))}
+function _countHoldExpired(){var n=0;_holdKeys().forEach(function(k){var d=holdDaysLeft(k);if(d!==null&&d<=0)n++});return n}
+function holdBadgeHtml(sku){
+  var b=gb(sku);var dl=holdDaysLeft(sku);var h=getHoldInfo(sku);var rs=(h&&h.reason)?h.reason:"";
+  var rsPart=rs?" — "+rs:"";
+  var click=" onclick=\"event.stopPropagation();_editHold('"+b+"')\" style=\"cursor:pointer;";
+  if(dl===null)return"<span class=\"grp-badge\""+click+"background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700\">⏳ เฝ้ารอ"+rsPart+"</span>";
+  if(dl<=0)return"<span class=\"grp-badge hold-expired\""+click+"background:rgba(239,68,68,.15);color:#ef4444;font-weight:700\">⚠️ หมดเวลา!"+rsPart+"</span>";
+  return"<span class=\"grp-badge\""+click+"background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700\">⏳ เฝ้ารอ ("+dl+" วัน)"+rsPart+"</span>";
+}
+function toggleHold(base){
+  if(HOLD[base]){delete HOLD[base];localStorage.setItem("ts_hold",JSON.stringify(HOLD));svHold();_grpKeep=true;rt();return}
+  _showHoldPicker(base);
+}
+function _showHoldPicker(base){
+  var ov=document.createElement("div");ov.id="holdPickerOv";
+  ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px";
+  var reasons=["รอราคาลด","รอตัวเลือกอื่นหมด","ขายไม่ค่อยดี","ร้านเลิกขาย"];
+  var opts=[{d:3,l:"3 วัน"},{d:7,l:"7 วัน"},{d:14,l:"14 วัน"},{d:30,l:"30 วัน"}];
+  var h="<div style=\"background:var(--bg);border-radius:14px;padding:20px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto\">";
+  h+="<div style=\"font-weight:700;font-size:16px;margin-bottom:4px\">⏳ ตั้งเวลาเฝ้ารอ</div>";
+  h+="<div style=\"font-size:12px;color:var(--t2);margin-bottom:14px\">SKU: "+base+"</div>";
+  // Reason section
+  h+="<div style=\"font-weight:600;font-size:13px;margin-bottom:8px\">📝 เหตุผลที่เฝ้ารอ</div>";
+  h+="<div style=\"display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px\">";
+  reasons.forEach(function(r){
+    h+="<button class=\"hold-reason-chip\" onclick=\"_pickHoldReason(this,'"+r+"')\" style=\"padding:6px 12px;border:1px solid var(--bd);border-radius:20px;background:var(--c2);color:var(--t);font-size:12px;cursor:pointer\">"+r+"</button>";
+  });
+  h+="</div>";
+  h+="<input type=\"text\" id=\"holdReasonInput\" placeholder=\"พิมพ์เหตุผลเอง หรือกดเลือกด้านบน...\" style=\"width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--c2);color:var(--t);font-size:13px;margin-bottom:14px;box-sizing:border-box\">";
+  // Duration section
+  h+="<div style=\"font-weight:600;font-size:13px;margin-bottom:8px\">⏱️ ระยะเวลา</div>";
+  opts.forEach(function(o){
+    h+="<button onclick=\"_setHold('"+base+"',"+o.d+")\" style=\"display:block;width:100%;padding:12px;margin-bottom:8px;border:1px solid var(--bd);border-radius:10px;background:var(--c2);color:var(--t);font-size:14px;cursor:pointer;text-align:left\">⏳ "+o.l+"</button>";
+  });
+  h+="<div style=\"display:flex;gap:8px;margin-top:4px\">";
+  h+="<input type=\"date\" id=\"holdCustomDate\" style=\"flex:1;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--c2);color:var(--t);font-size:13px\">";
+  h+="<button onclick=\"_setHoldCustom('"+base+"')\" style=\"padding:10px 16px;border:1px solid var(--a);border-radius:10px;background:var(--a);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap\">📅 ตั้งเอง</button>";
+  h+="</div>";
+  h+="<button onclick=\"_setHold('"+base+"',0)\" style=\"display:block;width:100%;padding:10px;margin-top:10px;border:1px solid var(--bd);border-radius:10px;background:rgba(245,158,11,.1);color:#f59e0b;font-size:13px;cursor:pointer\">♾️ ไม่กำหนดเวลา</button>";
+  h+="<button onclick=\"_closeHoldPicker()\" style=\"display:block;width:100%;padding:10px;margin-top:6px;border:none;border-radius:10px;background:transparent;color:var(--t2);font-size:13px;cursor:pointer\">✕ ยกเลิก</button>";
+  h+="</div>";
+  ov.innerHTML=h;
+  ov.addEventListener("click",function(e){if(e.target===ov)_closeHoldPicker()});
+  document.body.appendChild(ov);
+}
+function _pickHoldReason(btn,txt){
+  document.getElementById("holdReasonInput").value=txt;
+  var chips=document.querySelectorAll(".hold-reason-chip");
+  chips.forEach(function(c){c.style.background="var(--c2)";c.style.borderColor="var(--bd)";c.style.color="var(--t)"});
+  btn.style.background="rgba(245,158,11,.2)";btn.style.borderColor="#f59e0b";btn.style.color="#f59e0b";
+}
+function _getHoldReason(){var el=document.getElementById("holdReasonInput");return el?el.value.trim():""}
+function _setHold(base,days){
+  var exp=null;
+  if(days>0){var d=new Date();d.setDate(d.getDate()+days);exp=d.toISOString().slice(0,10)}
+  var reason=_getHoldReason();
+  HOLD[base]={expire:exp,reason:reason||""};
+  localStorage.setItem("ts_hold",JSON.stringify(HOLD));svHold();_closeHoldPicker();_grpKeep=true;rt();
+}
+function _setHoldCustom(base){
+  var v=document.getElementById("holdCustomDate").value;
+  if(!v){alert("กรุณาเลือกวันที่");return}
+  var sel=new Date(v);var now=new Date();now.setHours(0,0,0,0);sel.setHours(0,0,0,0);
+  if(sel<=now){alert("กรุณาเลือกวันที่ในอนาคต");return}
+  var reason=_getHoldReason();
+  HOLD[base]={expire:v,reason:reason||""};
+  localStorage.setItem("ts_hold",JSON.stringify(HOLD));svHold();_closeHoldPicker();_grpKeep=true;rt();
+}
+function _closeHoldPicker(){var ov=document.getElementById("holdPickerOv");if(ov)ov.remove()}
+function _editHold(base){
+  _showHoldPicker(base);
+  // Pre-fill reason from existing data
+  var h=HOLD[base];if(!h)return;
+  setTimeout(function(){
+    var inp=document.getElementById("holdReasonInput");
+    if(inp&&h.reason){inp.value=h.reason;
+      var chips=document.querySelectorAll(".hold-reason-chip");
+      chips.forEach(function(c){if(c.textContent===h.reason){c.style.background="rgba(245,158,11,.2)";c.style.borderColor="#f59e0b";c.style.color="#f59e0b"}});
+    }
+    if(h.expire){var di=document.getElementById("holdCustomDate");if(di)di.value=h.expire}
+  },50);
+}
 function svHold(){if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_hold",JSON.stringify(HOLD));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
 var _discSel={};
 var _mgrMode=false;
-function toggleMgrMode(){_mgrMode=!_mgrMode;_discSel={};rt();renderDiscBar();var b=document.getElementById("mgrBtn");if(b)b.innerHTML=_mgrMode?"&#9989; ปิดโหมดจัดการ":"&#9881; โหมดจัดการ";var hcb=document.getElementById("discSelAllCb");if(hcb)hcb.style.display=_mgrMode?"inline-block":"none"}
+function toggleMgrMode(){_mgrMode=!_mgrMode;_discSel={};_grpKeep=true;rt();renderDiscBar();var b=document.getElementById("mgrBtn");if(b)b.innerHTML=_mgrMode?"&#9989; ปิดโหมดจัดการ":"&#9881; โหมดจัดการ";var hcb=document.getElementById("discSelAllCb");if(hcb)hcb.style.display=_mgrMode?"inline-block":"none"}
 function discSelToggle(sku){if(_discSel[sku])delete _discSel[sku];else _discSel[sku]=1;renderDiscBar()}
 function discSelAll(){var cbs=document.querySelectorAll(".disc-cb");cbs.forEach(function(cb){_discSel[cb.dataset.sku]=1});renderDiscBar();cbs.forEach(function(cb){cb.checked=true})}
 function discSelNone(){_discSel={};renderDiscBar();var cbs=document.querySelectorAll(".disc-cb");cbs.forEach(function(cb){cb.checked=false})}
@@ -1263,7 +1378,7 @@ function cloudLoad(manual) {
       if (raw_disc) { try{DISC=JSON.parse(raw_disc);localStorage.setItem("ts_disc",JSON.stringify(DISC))}catch(e){} }
       if (raw_vn) { try{VN=JSON.parse(raw_vn);localStorage.setItem("ts_vn",JSON.stringify(VN))}catch(e){} }
       if (raw_alog) { try{var ca=JSON.parse(raw_alog);if(Array.isArray(ca)){ALOG=_mergeAlog(ALOG,ca);localStorage.setItem("ts_alog",JSON.stringify(ALOG))}}catch(e){} }
-      if (raw_hold) { try{HOLD=JSON.parse(raw_hold);localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
+      if (raw_hold) { try{var _rh=JSON.parse(raw_hold);if(Array.isArray(_rh)){var _ho={};_rh.forEach(function(s){_ho[s]={expire:null,reason:""}});HOLD=_ho}else if(_rh&&typeof _rh==="object"){HOLD=_rh}localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
       // ดึง deleted user IDs จาก cloud มา merge กับ local
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
       if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
@@ -1915,13 +2030,13 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
   var fbs=[
     {f:"a",l:"ทั้งหมด",n:I.length-DISC.length},
     {f:"nord",l:"ยังไม่สั่ง",n:cNone},
+    {f:"reord",l:"ควรสั่งอีก 🚢🚛",n:cReord},
+    {f:"hold",l:"⏳ เฝ้ารอ",n:_holdLen(),ex:_countHoldExpired()},
     {f:"ord",l:"สั่งแล้ว ✔",n:cAct},
     {f:"done",l:"ของถึงแล้ว ✔",n:cDone},
-    {f:"reord",l:"ควรสั่งอีก 🚢🚛",n:cReord},
-    {f:"hold",l:"\u23F3 เฝ้ารอ",n:HOLD.length},
     {f:"disc",l:"\u{1F6AB} เลิกขาย",n:DISC.length}
   ];
-  var fh="";fbs.forEach(function(b){fh+="<button class=\"fb"+(cf===b.f?" act":"")+"\" data-f=\""+b.f+"\" onclick=\"cf='"+b.f+"';rt()\">"+b.l+"<span class=\"fc\">"+b.n+"</span></button>"});
+  var fh="";fbs.forEach(function(b){fh+="<button class=\"fb"+(cf===b.f?" act":"")+"\" data-f=\""+b.f+"\" onclick=\"cf='"+b.f+"';rt()\">"+b.l+"<span class=\"fc\">"+b.n+"</span>"+(b.ex?"<span style=\"color:#ef4444;font-weight:700;margin-left:2px\">⚠️"+b.ex+"</span>":"")+"</button>"});
   fh+="<button id=\"mgrBtn\" class=\"fb\" onclick=\"toggleMgrMode()\" style=\"margin-left:auto;background:var(--c2);border:1px solid var(--bd);font-size:11px\">"+(_mgrMode?"&#9989; ปิดโหมดจัดการ":"&#9881; โหมดจัดการ")+"</button>";
   document.getElementById("fbar").innerHTML=fh;
 }
@@ -1983,7 +2098,7 @@ function renderGrouped(items){
 
     h+="<tr class=\"grp\" onclick=\"toggleGrp('"+base+"')\">"+
       "<td><span class=\"dot "+st.d+"\"></span>"+st.l+"</td>"+
-      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?"<span class=\"grp-badge\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700\">\u23F3 เฝ้ารอ</span>":"")+"</td>"+
+      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?holdBadgeHtml(base):"")+"</td>"+
       "<td class=\"nm\">"+name+"</td>"+
       "<td>"+g.totalStock+"</td>"+
       "<td>"+(g.minDays===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":"~"+g.minDays)+"</td>"+
@@ -1994,7 +2109,7 @@ function renderGrouped(items){
       "<td></td>"+
       "<td>"+(anyOrdered?"<span style=\"color:var(--g)\">&#10004;</span>":"")+"</td>"+
       "<td>"+
-        "<button class=\"btn bp bs\" onclick=\"event.stopPropagation();orderGroup('"+base+"')\">สั่งทั้งกลุ่ม</button>"+(_mgrMode?" <button class=\"btn bs\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-size:10px;border:1px solid #f59e0b\" onclick=\"event.stopPropagation();toggleHold('"+base+"')\">"+(isHold(base)?"&#9989; ยกเลิกเฝ้ารอ":"&#9203; เฝ้ารอ")+"</button> <button class=\"btn bs\" style=\"background:var(--c2);color:var(--t2);font-size:10px\" onclick=\"event.stopPropagation();toggleDiscMulti("+JSON.stringify(g.items.map(function(x){return x.sku})).replace(/"/g,"&quot;")+")\">&#128683; เลิกขาย</button>":"")+" "+
+        (cf==="disc"?"<button class=\"btn bs\" style=\"background:rgba(34,197,94,.15);color:#16a34a;font-size:11px;border:1px solid #16a34a;font-weight:600\" onclick=\"event.stopPropagation();undoDiscGroup('"+base+"')\">&#x21A9; คืนสถานะขาย</button>":"<button class=\"btn bp bs\" onclick=\"event.stopPropagation();orderGroup('"+base+"')\">สั่งทั้งกลุ่ม</button>")+(_mgrMode?" <button class=\"btn bs\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-size:10px;border:1px solid #f59e0b\" onclick=\"event.stopPropagation();toggleHold('"+base+"')\">"+(isHold(base)?"&#9989; ยกเลิกเฝ้ารอ":"&#9203; เฝ้ารอ")+"</button> <button class=\"btn bs\" style=\"background:var(--c2);color:var(--t2);font-size:10px\" onclick=\"event.stopPropagation();toggleDiscMulti("+JSON.stringify(g.items.map(function(x){return x.sku})).replace(/"/g,"&quot;")+")\">&#128683; เลิกขาย</button>":"")+" "+
         (lkUrl?"<a href=\""+lkUrl+"\" target=\"_blank\" class=\"lk\" onclick=\"event.stopPropagation()\" style=\"margin-left:3px\">&#128279;1</a>":"")+
         (lk2?"<a href=\""+lk2+"\" target=\"_blank\" class=\"lk\" onclick=\"event.stopPropagation()\">&#128279;2</a>":"")+
       "</td></tr>";
@@ -3623,31 +3738,129 @@ function rrcv(){
 }
 
 var _rcvVarOpen=-1;
+var _rcvSelected=-1;
+function rcvSelectCard(i){
+  var cards=document.getElementById("rcvList").querySelectorAll(".rc-card");
+  // If tapping same card, deselect
+  if(_rcvSelected===i){_rcvSelected=-1}else{_rcvSelected=i}
+  // Update card borders
+  for(var c=0;c<cards.length;c++){
+    cards[c].style.borderColor=(c===_rcvSelected)?"var(--a)":"var(--bd)";
+    cards[c].style.borderWidth=(c===_rcvSelected)?"2px":"1px";
+  }
+  // Close picker if switching cards
+  if(_rcvVarOpen>=0&&_rcvVarOpen!==_rcvSelected){
+    var oldPicker=cards[_rcvVarOpen]?cards[_rcvVarOpen].querySelector(".rc-picker"):null;
+    if(oldPicker)oldPicker.parentNode.removeChild(oldPicker);
+    _rcvVarOpen=-1;
+  }
+  _rcvUpdateBottomBar();
+}
+function _rcvUpdateBottomBar(){
+  var bar=document.getElementById("rcvBottomBar");
+  var label=document.getElementById("rcvBarLabel");
+  var varBtn=document.getElementById("rcvBarVarBtn");
+  var allBtn=document.getElementById("rcvBarAllBtn");
+  if(!bar)return;
+  if(_rcvSelected<0||_rcvSelected>=_rcvItems.length){
+    bar.style.display="none";_rcvSelected=-1;return;
+  }
+  bar.style.display="block";
+  var r=_rcvItems[_rcvSelected];
+  var vars=rcvGetVariants(r.sku);
+  var hasVars=vars.length>0;
+  label.textContent="📦 "+r.sku+(r.qty?" ("+r.qty+" ชิ้น)":"");
+  // Show/hide variant buttons
+  varBtn.style.display=hasVars?"":"none";
+  allBtn.style.display=hasVars?"":"none";
+  // Update variant button state
+  if(hasVars){
+    var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
+    var addedCount=vars.length-notAdded.length;
+    var isOpen=(_rcvVarOpen===_rcvSelected);
+    varBtn.textContent="🎨 ตัวเลือก ("+addedCount+"/"+vars.length+") "+(isOpen?"▲":"▼");
+    varBtn.style.background=isOpen?"var(--a)":"var(--c2)";
+    varBtn.style.color=isOpen?"#fff":"var(--a)";
+    allBtn.style.display=notAdded.length>0?"":"none";
+  }
+}
+function rcvBarEdit(){if(_rcvSelected>=0)rcvEditSku(_rcvSelected)}
+function rcvBarVariants(){if(_rcvSelected>=0)rcvToggleStrip(_rcvSelected);_rcvUpdateBottomBar()}
+function rcvBarAddAll(){if(_rcvSelected>=0)rcvAddAllVars(_rcvSelected)}
+function rcvBarDelete(){
+  if(_rcvSelected>=0&&_rcvSelected<_rcvItems.length){
+    _rcvItems.splice(_rcvSelected,1);
+    _rcvSelected=-1;_rcvVarOpen=-1;
+    _rcvUpdateBottomBar();
+    renderRcvCount();
+  }
+}
 function rcvGetVariants(sku){
   var base=gb(sku);
   if(base.length<2)base=sku;
   return I.filter(function(x){return (gb(x.sku)===base||gb(x.sku)===sku||x.sku.indexOf(sku)===0)&&x.sku!==sku}).sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});
 }
-function _rcvApplyOpenState(){
-  // CSS-based toggle: only flip .rc-open class + update toggle button inline styles.
-  // Never re-render the list (avoids iOS Safari DOM-drop bug where rc-btns disappears).
-  var list=document.getElementById('rcvList');if(!list)return;
-  var cards=list.querySelectorAll('.rc-card');
-  for(var k=0;k<cards.length;k++){
-    var card=cards[k];
-    var opened=(k===_rcvVarOpen);
-    if(opened)card.classList.add('rc-open');else card.classList.remove('rc-open');
-    var btn=card.querySelector("button[onclick*='rcvToggleStrip'],button[onclick*='rcvToggleVariants']");
-    if(btn){
-      btn.style.setProperty('background',opened?'var(--a)':'var(--c2)','important');
-      btn.style.setProperty('border-color',opened?'var(--a)':'var(--bd)','important');
-      btn.style.setProperty('color',opened?'#fff':'var(--a)','important');
-      btn.innerHTML=btn.innerHTML.replace(/[\u25B2\u25BC]/g,opened?'\u25B2':'\u25BC');
+function rcvToggleVariants(i){rcvToggleStrip(i)}
+function rcvToggleStrip(i){
+  var wasOpen=(_rcvVarOpen===i);
+  _rcvVarOpen=wasOpen?-1:i;
+  var cards=document.getElementById("rcvList").querySelectorAll(".rc-card");
+  // Close any previously open picker
+  for(var c=0;c<cards.length;c++){
+    var oldPicker=cards[c].querySelector(".rc-picker");
+    if(oldPicker)oldPicker.parentNode.removeChild(oldPicker);
+    // Reset toggle button style in all cards
+    var tbs=cards[c].querySelectorAll(".rc-tb");
+    for(var t=0;t<tbs.length;t++){
+      tbs[t].style.background="var(--c2)";tbs[t].style.borderColor="var(--bd)";tbs[t].style.color="var(--a)";
+      tbs[t].innerHTML=tbs[t].innerHTML.replace("▲","▼");
     }
   }
+  if(wasOpen)return; // just closed, done
+  // Open picker for card i
+  var card=cards[i];if(!card)return;
+  var r=_rcvItems[i];if(!r)return;
+  var vars=rcvGetVariants(r.sku);if(!vars.length)return;
+  // Update toggle button to "open" style
+  var tb=card.querySelector(".rc-tb");
+  if(tb){tb.style.background="var(--a)";tb.style.borderColor="var(--a)";tb.style.color="#fff";tb.innerHTML=tb.innerHTML.replace("▼","▲")}
+  // Build picker HTML
+  var notAddedVars=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
+  var isMobPicker=window.innerWidth<=768;
+  var ph="<div class='rc-pickhd'>";
+  if(isMobPicker){
+    // Mobile: "เลือกทั้งหมด" button adds all immediately
+    if(notAddedVars.length>0)ph+="<button class='rc-pickadd' onclick='rcvAddAllVars("+i+")' style='flex:1'>➕ เพิ่มทั้งหมด ("+notAddedVars.length+")</button>";
+    ph+="<button onclick='rcvToggleStrip("+i+")' style='background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--t)'>✕ ปิด</button>";
+  }else{
+    ph+="<label class='rc-pickall'><input type='checkbox' onchange='rcvVarToggleAll("+i+",this.checked)'> เลือกทั้งหมด ("+notAddedVars.length+")</label>";
+    ph+="<button class='rc-pickadd' onclick='rcvVarAddChecked("+i+")'>&#10003; เพิ่มที่เลือก</button>";
+  }
+  ph+="</div><div class='rc-grid'>";
+  vars.forEach(function(v,vi){
+    var already=_rcvItems.some(function(x){return x.sku===v.sku});
+    var vim=v.img||gimg(v.sku)||"";
+    var vnm=VN[v.sku]||"";
+    var vit=I.find(function(p){return p.sku===v.sku});
+    var vname=vit?vit.name:"";
+    ph+="<div class='rc-gcard"+(already?" rc-gdone":"")+"' onclick=\"rcvVarToggleOne("+i+","+vi+")\">";
+    if(!already){ph+="<input type='checkbox' class='rc-gcb rcvVarCb"+i+"' data-vi='"+vi+"' onclick='event.stopPropagation()'>";}
+    else{ph+="<div class='rc-gchk'>&#10003;</div>";}
+    if(vim)ph+="<img class='rc-gimg' src='"+vim+"' onerror=\"this.parentNode.querySelector('.rc-gph').style.display='flex';this.style.display='none'\">";
+    ph+="<div class='rc-gph' style='display:"+(vim?"none":"flex")+"'>&#128247;</div>";
+    ph+="<div class='rc-gsku'>"+v.sku+"</div>";
+    if(vnm)ph+="<div class='rc-gvn'>"+vnm+"</div>";
+    if(vname)ph+="<div class='rc-gnm'>"+vname+"</div>";
+    if(already)ph+="<div class='rc-gadded'>&#10003; เพิ่มแล้ว</div>";
+    ph+="</div>";
+  });
+  ph+="</div>";
+  // Create picker element and append to card (targeted DOM, no innerHTML rebuild)
+  var pickerEl=document.createElement("div");
+  pickerEl.className="rc-picker";
+  pickerEl.innerHTML=ph;
+  card.appendChild(pickerEl);
 }
-function rcvToggleVariants(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;_rcvApplyOpenState()}
-function rcvToggleStrip(i){_rcvVarOpen=(_rcvVarOpen===i)?-1:i;_rcvApplyOpenState()}
 function rcvAddVariant(sku){
   var ex=_rcvItems.find(function(r){return r.sku===sku});
   if(ex){ex.qty+=1}else{_rcvItems.push({sku:sku,qty:1})}
@@ -3664,7 +3877,7 @@ function rcvAddAllVars(parentIdx){
   vars.forEach(function(v){
     if(!_rcvItems.some(function(x){return x.sku===v.sku})){_rcvItems.push({sku:v.sku,qty:1});added++}
   });
-  if(added>0)renderRcvCount();
+  if(added>0){_rcvVarOpen=-1;renderRcvCount()}
 }
 function rcvVarToggleAll(itemIdx,checked){
   var cbs=document.querySelectorAll(".rcvVarCb"+itemIdx);
@@ -3673,7 +3886,6 @@ function rcvVarToggleAll(itemIdx,checked){
 function rcvVarToggleOne(itemIdx,varIdx){
   var cb=document.querySelector(".rcvVarCb"+itemIdx+"[data-vi='"+varIdx+"']");
   if(cb){cb.checked=!cb.checked;
-    // Visually highlight the card when selected
     var card=cb.closest(".rc-gcard");
     if(card){if(cb.checked){card.style.borderColor="var(--p)";card.style.background="var(--glow)"}else{card.style.borderColor="";card.style.background=""}}
   }
@@ -3690,8 +3902,8 @@ function rcvVarAddChecked(itemIdx){
     var ex=_rcvItems.find(function(x){return x.sku===v.sku});
     if(!ex){_rcvItems.push({sku:v.sku,qty:1});added++}
   });
-  if(added)renderRcvCount();
-  else alert("ยังไม่ได้เลือกรายการ หรือเลือกรายการที่เพิ่มแล้ว");
+  if(added){_rcvVarOpen=-1;renderRcvCount()}
+  else alert("\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 \u0e2b\u0e23\u0e37\u0e2d\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e41\u0e25\u0e49\u0e27");
 }
 function rcvAddCustomSku(){
   var sku=prompt("พิมพ์ SKU สินค้าที่ต้องการเพิ่ม:");
@@ -3711,9 +3923,9 @@ function rcvEditSku(i){
   var nv=prompt("แก้ไข SKU:",cur);
   if(nv&&nv.trim()){_rcvItems[i].sku=nv.trim().toUpperCase();renderRcvCount()}
 }
-function rcvSortItems(){_rcvItems.sort(function(a,b){return a.sku.localeCompare(b.sku)});renderRcvCount()}
+function rcvSortItems(){_rcvSelected=-1;_rcvItems.sort(function(a,b){return a.sku.localeCompare(b.sku)});renderRcvCount()}
 function rcvClearAll(){
-  _rcvItems=[];
+  _rcvItems=[];_rcvSelected=-1;_rcvVarOpen=-1;
   var idx=parseInt(document.getElementById("rcvOrd").value);
   var o=O[idx];
   if(o&&RC[o.id])delete RC[o.id];
@@ -3803,70 +4015,71 @@ function renderRcvCount(){
     h+="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'><span style='font-size:13px;color:var(--t2)'>&#128203; นับได้ <b>"+_rcvItems.length+"</b> SKU | <b>"+_rcvItems.reduce(function(s,x){return s+x.qty},0)+"</b> ชิ้น</span><div style='display:flex;gap:6px'><button class='btn bs' onclick='rcvSortItems()' style='font-size:11px;background:rgba(59,130,246,.1);color:var(--a);border:1px solid var(--a)'>&#8645; เรียง SKU</button><button class='btn bs' onclick='rcvAddCustomSku()' style='font-size:11px;background:rgba(59,130,246,.1);color:var(--a);border:1px solid var(--a)'>&#10133; เพิ่ม SKU พิเศษ</button><button class='btn bs brd' onclick='if(confirm(\"เคลียร์ทั้งหมด \"+_rcvItems.length+\" รายการ?\")){rcvClearAll()}' style='font-size:11px;position:relative;z-index:10'>&#128465; เคลียร์ทั้งหมด</button></div></div>";
     var hasZero=_rcvItems.some(function(r){return!r.qty||r.qty===0});
     if(hasZero)h+="<div style='background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#eab308'>&#9888; มีรายการที่ยังไม่ได้กรอกจำนวน (0 ชิ้น) — กรอกจำนวนที่นับได้จริง</div>";
+    if(isMob&&_rcvSelected<0)h+="<div style='text-align:center;padding:6px;font-size:12px;color:var(--a);background:rgba(59,130,246,.08);border-radius:8px;margin-bottom:6px'>&#9757; กดที่การ์ดเพื่อแก้ไข/เปิดตัวเลือก</div>";
+    var isMob=window.innerWidth<=768;
     _rcvItems.forEach(function(r,i){
       var im=gimg(r.sku);
       var itn=I.find(function(p){return p.sku===r.sku||gb(p.sku)===gb(r.sku)});
       var vars=rcvGetVariants(r.sku);
       var hasVars=vars.length>0;
       var isOpen=(_rcvVarOpen===i);
+      var isSel=(_rcvSelected===i);
       var rvn=VN[r.sku]||"";
-      h+="<div class='rc-card"+(isOpen?" rc-open":"")+"'>";
+      h+="<div class='rc-card' style='"+(isSel&&isMob?"border:2px solid var(--a)":"")+"'"+(isMob?" onclick='rcvSelectCard("+i+")'":"")+">";
       h+="<div class='rc-top'>";
       if(im)h+="<img src='"+im+"' onerror=\"this.style.display='none'\">";
       h+="<div class='rc-info'><div class='rc-sku'>"+r.sku+"</div>";
       if(rvn)h+="<div class='rc-vn'>"+rvn+"</div>";
       if(itn)h+="<div class='rc-nm'>"+itn.name+"</div>";
       h+="</div>";
-      h+="<input type='number' value='"+r.qty+"' min='0' style='border-color:"+(r.qty?"var(--bd)":"#eab308")+"' onchange='_rcvItems["+i+"].qty=parseInt(this.value)||0;renderRcvCount()'>";
+      h+="<input type='number' value='"+r.qty+"' min='0' style='border-color:"+(r.qty?"var(--bd)":"#eab308")+"' onclick='event.stopPropagation()' onchange='_rcvItems["+i+"].qty=parseInt(this.value)||0;renderRcvCount()'>";
       h+="<span style='font-size:12px;color:var(--t2)'>\u0e0a\u0e34\u0e49\u0e19</span>";
-      h+="<button onclick='_rcvItems.splice("+i+",1);renderRcvCount()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px;padding:4px 8px'>&times;</button>";
+      if(!isMob)h+="<button onclick='_rcvItems.splice("+i+",1);renderRcvCount()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:18px;padding:4px 8px'>&times;</button>";
       h+="</div>";
-      h+="<div class='rc-btns' style='display:flex!important;flex-wrap:wrap;gap:6px;padding:8px 10px;border-top:1px solid var(--bd);min-height:44px;align-items:center;visibility:visible!important;opacity:1!important'>";
-      h+="<button onclick='rcvEditSku("+i+")' style='background:var(--c2);border:1px solid var(--bd);color:var(--t);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#9998; \u0e41\u0e01\u0e49\u0e44\u0e02 SKU</button>";
-      if(hasVars){var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
-      var addedCount=vars.length-notAdded.length;
-      h+="<button onclick='rcvToggleStrip("+i+")' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border:1px solid "+(isOpen?"var(--a)":"var(--bd)")+";color:"+(isOpen?"#fff":"var(--a)")+";padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#127912; \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01 ("+addedCount+"/"+vars.length+") "+(isOpen?"&#9650;":"&#9660;")+"</button>";
-      if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' style='background:var(--c2);border:1px solid var(--bd);color:var(--a);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;display:inline-block!important;visibility:visible!important'>&#10133; \u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";}
-      h+="</div>";
-      if(hasVars){
-        var notAddedVars=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
-        h+="<div class='rc-picker'>";
-        h+="<div class='rc-pickhd'>";
-        h+="<label class='rc-pickall'><input type='checkbox' onchange='rcvVarToggleAll("+i+",this.checked)'> \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 ("+notAddedVars.length+")</label>";
-        h+="<button class='rc-pickadd' onclick='rcvVarAddChecked("+i+")'>&#10003; \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e17\u0e35\u0e48\u0e40\u0e25\u0e37\u0e2d\u0e01</button>";
-        h+="</div>";
-        h+="<div class='rc-grid'>";
-        vars.forEach(function(v,vi){
-          var already=_rcvItems.some(function(x){return x.sku===v.sku});
-          var vim=v.img||gimg(v.sku)||"";
-          var vnm=VN[v.sku]||"";
-          var vit=I.find(function(p){return p.sku===v.sku});
-          var vname=vit?vit.name:"";
-          h+="<div class='rc-gcard"+(already?" rc-gdone":"")+"' onclick=\"rcvVarToggleOne("+i+","+vi+")\">";
-          if(!already){
-            h+="<input type='checkbox' class='rc-gcb rcvVarCb"+i+"' data-vi='"+vi+"' onclick='event.stopPropagation()'>";
-          }else{
-            h+="<div class='rc-gchk'>&#10003;</div>";
-          }
-          if(vim)h+="<img class='rc-gimg' src='"+vim+"' onerror=\"this.parentNode.querySelector('.rc-gph').style.display='flex';this.style.display='none'\">";
-          h+="<div class='rc-gph' style='display:"+(vim?"none":"flex")+"'>&#128247;</div>";
-          h+="<div class='rc-gsku'>"+v.sku+"</div>";
-          if(vnm)h+="<div class='rc-gvn'>"+vnm+"</div>";
-          if(vname)h+="<div class='rc-gnm'>"+vname+"</div>";
-          if(already)h+="<div class='rc-gadded'>&#10003; \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e41\u0e25\u0e49\u0e27</div>";
-          h+="</div>";
-        });
-        h+="</div>";
+      // Desktop: show rc-btns inline as before. Mobile: use bottom bar instead
+      if(!isMob){
+        h+="<div class='rc-btns'>";
+        h+="<button onclick='rcvEditSku("+i+")' class='rc-ab'>&#9998; \u0e41\u0e01\u0e49\u0e44\u0e02 SKU</button>";
+        if(hasVars){var notAdded=vars.filter(function(v){return!_rcvItems.some(function(x){return x.sku===v.sku})});
+        var addedCount=vars.length-notAdded.length;
+        h+="<button onclick='rcvToggleStrip("+i+")' class='rc-ab rc-tb' style='background:"+(isOpen?"var(--a)":"var(--c2)")+";border-color:"+(isOpen?"var(--a)":"var(--bd)")+";color:"+(isOpen?"#fff":"var(--a)")+"'>&#127912; \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01 ("+addedCount+"/"+vars.length+") "+(isOpen?"\u25B2":"\u25BC")+"</button>";
+        if(notAdded.length>0)h+="<button onclick='rcvAddAllVars("+i+")' class='rc-ab' style='color:var(--a)'>&#10133; \u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";}
         h+="</div>";
       }
+      // Picker placeholder — added via targeted DOM in rcvToggleStrip()
       h+="</div>";
     });
     act.style.display="block";
+    // Disable save button if any item has qty=0
+    var saveBtn=document.getElementById("rcvSaveBtn");
+    if(saveBtn){
+      var hasZeroQty=_rcvItems.some(function(r){return!r.qty||r.qty===0});
+      saveBtn.disabled=hasZeroQty;
+      saveBtn.style.opacity=hasZeroQty?"0.4":"1";
+      saveBtn.title=hasZeroQty?"กรอกจำนวนให้ครบก่อนบันทึก":"";
+    }
   }else{
+    _rcvSelected=-1;
     h+="<div style='text-align:center;padding:30px;color:var(--t2)'>&#128073; พิมพ์ SKU ด้านบนเพื่อค้นหาจากคำสั่งซื้อ แล้วติ๊กเลือกรายการที่ต้องการนับ<br><br><button class='btn bp' onclick='rcvAddCustomSku()' style='font-size:13px;padding:10px 20px'>&#10133; เพิ่ม SKU พิเศษ (ไม่มีในระบบ)</button></div>";
     act.style.display="none";
   }
   el.innerHTML=h;
+  // Update bottom bar state
+  _rcvUpdateBottomBar();
+  // Re-disable save after innerHTML (button re-rendered)
+  var saveBtnPost=document.getElementById("rcvSaveBtn");
+  if(saveBtnPost&&_rcvItems.length>0){
+    var hasZeroPost=_rcvItems.some(function(r){return!r.qty||r.qty===0});
+    saveBtnPost.disabled=hasZeroPost;
+    saveBtnPost.style.opacity=hasZeroPost?"0.4":"1";
+    saveBtnPost.title=hasZeroPost?"กรอกจำนวนให้ครบก่อนบันทึก":"";
+  }
+  // Re-open picker via targeted DOM after innerHTML settles (avoids iOS Safari DOM-drop bug)
+  if(_rcvVarOpen>=0&&_rcvVarOpen<_rcvItems.length){
+    var openIdx=_rcvVarOpen;
+    _rcvVarOpen=-1;
+    setTimeout(function(){rcvToggleStrip(openIdx)},0);
+  }
 }
 
 function rcvAdd(){
@@ -3882,7 +4095,8 @@ function rcvAdd(){
   document.getElementById("rcvSku").value="";
   document.getElementById("rcvQty").value="1";
   document.getElementById("rcvSug").innerHTML="";
-  // Idea C: Auto-open variant picker if the added SKU has variants (parent SKU)
+  // Auto-select card on mobile and auto-open variants if available
+  if(window.innerWidth<=768)_rcvSelected=addedIdx;
   var vars=rcvGetVariants(_rcvItems[addedIdx].sku);
   if(vars.length>0){
     _rcvVarOpen=addedIdx;
