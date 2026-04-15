@@ -986,30 +986,20 @@ function sv(){_lastLocalEdit=Date.now();localStorage.setItem("ts_o",JSON.stringi
 // ===== LINE MESSAGING API =====
 var _lineConf=JSON.parse(localStorage.getItem("ts_line_conf")||"{}");
 // _lineConf = { token: "Channel Access Token", userId: "User ID or Group ID" }
-function _lineSaveConf(){localStorage.setItem("ts_line_conf",JSON.stringify(_lineConf))}
+function _lineSaveConf(){localStorage.setItem("ts_line_conf",JSON.stringify(_lineConf));if(CLOUD_URL){try{fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({ts_line_conf:JSON.stringify(_lineConf)})}).catch(function(){})}catch(e){}}}
 function _lineBuildMsg(){
   var activeI=I.filter(function(it){return!isDisc(it.sku)&&it.src!=="shopee"&&!isHold(it.sku)});
   var nordItems=activeI.filter(function(it){return ioSmart(it.sku).st==="none"});
   if(nordItems.length===0)return null;
-  var grps={};nordItems.forEach(function(it){var b=gb(it.sku);if(!grps[b])grps[b]={base:b,name:it.name,stock:0,rec:0,worst:3,items:[]};grps[b].items.push(it);grps[b].stock+=it.stock;grps[b].rec+=it.rec;var si=gi(it);if(si<grps[b].worst)grps[b].worst=si});
+  var grps={};nordItems.forEach(function(it){var b=gb(it.sku);if(!grps[b])grps[b]={base:b,name:it.name,stock:0,rec:0,items:[]};grps[b].items.push(it);grps[b].stock+=it.stock;grps[b].rec+=it.rec});
   var gArr=Object.values(grps);
-  gArr.sort(function(a,b){return a.worst-b.worst||b.rec-a.rec});
-  var urgent=gArr.filter(function(g){return g.worst<=1});
-  var warning=gArr.filter(function(g){return g.worst===2});
+  gArr.sort(function(a,b){return b.rec-a.rec});
   var totalRec=gArr.reduce(function(s,g){return s+g.rec},0);
   var totalCost=gArr.reduce(function(s,g){return s+g.items.reduce(function(ss,it){return ss+it.rec*it.pr},0)},0);
   var d=new Date();var ds=d.getDate()+"/"+(d.getMonth()+1)+"/"+(d.getFullYear()+543);
-  var msg="📦 THAISURE สรุปสินค้ายังไม่สั่ง\n📅 "+ds+"\n";
-  if(urgent.length>0){
-    msg+="\n⚠️ หมดสต็อก/วิกฤต (สั่งด่วน):";
-    urgent.slice(0,15).forEach(function(g){msg+="\n• "+g.base+" "+g.name.slice(0,25)+" — สต็อก "+g.stock+" / สั่ง "+g.rec});
-    if(urgent.length>15)msg+="\n... อีก "+(urgent.length-15)+" รายการ";
-  }
-  if(warning.length>0){
-    msg+="\n\n🟡 ใกล้หมด:";
-    warning.slice(0,10).forEach(function(g){msg+="\n• "+g.base+" "+g.name.slice(0,25)+" — สต็อก "+g.stock+" / สั่ง "+g.rec});
-    if(warning.length>10)msg+="\n... อีก "+(warning.length-10)+" รายการ";
-  }
+  var msg="🚨 เช็คด่วน สินค้าที่ห้ามลืมสั่ง!\n📅 "+ds+"\n";
+  gArr.slice(0,30).forEach(function(g,i){msg+="\n"+(i+1)+". "+g.base+" "+g.name.slice(0,25)+" — สต็อก "+g.stock.toLocaleString()+" → สั่ง "+g.rec.toLocaleString()});
+  if(gArr.length>30)msg+="\n... อีก "+(gArr.length-30)+" รายการ";
   msg+="\n\n📊 รวม "+gArr.length+" กลุ่ม / สั่ง "+totalRec.toLocaleString()+" ชิ้น";
   msg+="\n💰 มูลค่าประมาณ ฿"+Math.round(totalCost).toLocaleString();
   var hExp=_countHoldExpired();
@@ -1237,6 +1227,8 @@ function _buildCloudPayload() {
   payload.ts_thc = String(TH_C);
   payload.ts_thl = String(TH_L);
   payload.ts_del_users = JSON.stringify(_delIds);
+  // บันทึกข้อความแจ้งเตือน LINE + timestamp สำหรับ auto notify
+  try{var _lm=_lineBuildMsg();payload.ts_line_msg=_lm||"";payload.ts_line_msg_ts=String(Date.now())}catch(e){}
   return payload;
 }
 
@@ -1501,6 +1493,8 @@ function cloudLoad(manual) {
       if (raw_vn) { try{VN=JSON.parse(raw_vn);localStorage.setItem("ts_vn",JSON.stringify(VN))}catch(e){} }
       if (raw_alog) { try{var ca=JSON.parse(raw_alog);if(Array.isArray(ca)){ALOG=_mergeAlog(ALOG,ca);localStorage.setItem("ts_alog",JSON.stringify(ALOG))}}catch(e){} }
       if (raw_hold) { try{var _rh=JSON.parse(raw_hold);if(Array.isArray(_rh)){var _ho={};_rh.forEach(function(s){_ho[s]={expire:null,reason:""}});HOLD=_ho}else if(_rh&&typeof _rh==="object"){HOLD=_rh}localStorage.setItem("ts_hold",JSON.stringify(HOLD))}catch(e){} }
+      // ดึง LINE config จาก cloud
+      if(d.data.ts_line_conf){try{var _lc=JSON.parse(d.data.ts_line_conf);if(_lc&&_lc.token&&_lc.userId){_lineConf=_lc;localStorage.setItem("ts_line_conf",JSON.stringify(_lineConf))}}catch(e){}}
       // ดึง deleted user IDs จาก cloud มา merge กับ local
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
       if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
