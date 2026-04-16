@@ -40,6 +40,7 @@ body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;backgroun
 .tb{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 .sb{flex:1;min-width:200px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:11px 16px;color:var(--t);font-size:14px;outline:none;transition:border .2s,box-shadow .2s;box-shadow:var(--sh)}
 .sb:focus{border-color:var(--a);box-shadow:0 0 0 3px var(--glow)}
+.sb-wrap{position:relative;flex:1;min-width:0;display:flex}.sb-wrap .sb{width:100%;padding-right:36px}.sb-x{display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--bd);border:none;border-radius:50%;width:24px;height:24px;font-size:14px;color:var(--t2);cursor:pointer;align-items:center;justify-content:center;line-height:1;z-index:2}.sb-x:hover{background:var(--r);color:#fff}.sb-wrap .sb:not(:placeholder-shown)~.sb-x{display:flex}
 .sel{background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:9px 14px;color:var(--t);font-size:13px;box-shadow:var(--sh)}
 .tw{background:var(--c1);border-radius:var(--radius);border:1px solid var(--bd);overflow:hidden;box-shadow:var(--sh)}
 .ts{overflow-x:auto;max-height:65vh;overflow-y:auto}
@@ -346,7 +347,7 @@ table:has(#ltb){display:block!important;width:100%!important}
 /* --- INVENTORY TAB --- */
 #t-inv>.tb{gap:8px}
 #t-inv>.tb>.view-toggle{order:1;width:100%}
-#t-inv>.tb>.sb{order:0;font-size:15px;padding:12px 14px}
+#t-inv>.tb>.sb,#t-inv>.tb>.sb-wrap{order:0}#t-inv>.tb>.sb-wrap .sb{font-size:15px;padding:12px 14px;padding-right:36px}
 #t-inv>.tb>.btn{order:2;font-size:13px;padding:10px 14px;width:100%}
 #t-inv>.tb>.sel{order:3;font-size:13px;padding:10px 12px;width:100%}
 .view-toggle{width:100%;border-radius:12px}
@@ -360,7 +361,7 @@ table:has(#ltb){display:block!important;width:100%!important}
 
 /* --- ORDER TAB: toolbar — search full-width, buttons row --- */
 #ord-tb{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:stretch!important}
-#ord-tb .sb{width:100%!important;flex:none!important}
+#ord-tb .sb-wrap{width:100%!important;flex:none!important}#ord-tb .sb{width:100%!important}
 #ord-tb .sel{width:100%!important;flex:none!important;font-size:14px!important;padding:10px 12px!important;border-radius:12px!important}
 #ord-tb .mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;width:100%;padding-bottom:4px}
 #ord-tb .mt::-webkit-scrollbar{display:none}
@@ -374,13 +375,13 @@ table:has(#ltb){display:block!important;width:100%!important}
 
 /* --- ORDER SUB: new1688 toolbar — buttons in 1 row --- */
 #ordSub-new1688>.tb{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
-#ordSub-new1688>.tb .sb{width:100%!important;flex:none!important}
+#ordSub-new1688>.tb .sb-wrap{width:100%!important;flex:none!important}#ordSub-new1688>.tb .sb{width:100%!important}
 #ordSub-new1688>.tb .sel{width:100%!important;flex:none!important;font-size:14px!important;padding:10px 12px!important}
 #ordSub-new1688>.tb .btn{flex:1 1 0!important;font-size:11px!important;padding:8px 6px!important;min-height:40px!important;text-align:center!important;white-space:nowrap!important}
 
 /* --- LINK TAB: toolbar — search full-width, buttons 2x2 grid --- */
 #lnk-tb{display:grid!important;grid-template-columns:1fr!important;gap:6px!important}
-#lnk-tb .sb{width:100%!important;font-size:14px!important;padding:10px 12px!important;border-radius:10px!important;box-sizing:border-box!important}
+#lnk-tb .sb-wrap{width:100%!important;box-sizing:border-box!important}#lnk-tb .sb{width:100%!important;font-size:14px!important;padding:10px 12px!important;padding-right:36px!important;border-radius:10px!important;box-sizing:border-box!important}
 #lnk-tb-actions{display:flex!important;gap:6px!important;width:100%!important}
 #lnk-tb-actions>*{flex:1!important;min-width:0!important}
 #lnk-tb-actions button,#lnk-tb-actions .btn{width:100%!important;padding:10px 8px!important;font-size:12px!important;border-radius:10px!important;white-space:nowrap!important;box-sizing:border-box!important}
@@ -405,7 +406,7 @@ table:has(#ltb){display:block!important;width:100%!important}
 /* Search form — Row 1: [SKU input full width] Row 2: [mode|camera|NEW|qty|add] */
 #rcv-count .tb{display:flex!important;flex-wrap:wrap!important;flex-direction:row!important;gap:6px!important;margin-top:8px!important}
 #rcv-count .tb .sel{flex:0 0 auto;width:auto!important;min-width:60px!important;font-size:13px!important;padding:8px 6px!important;border-radius:10px!important;min-height:44px!important;order:2}
-#rcv-count .tb .sb{flex:0 0 100%!important;min-width:0!important;font-size:18px!important;padding:14px 16px!important;border-radius:12px!important;width:100%!important;min-height:50px!important;order:1;border:2px solid var(--a)!important;box-shadow:0 0 0 3px rgba(99,102,241,.15)!important}
+#rcv-count .tb .sb-wrap{flex:0 0 100%!important;min-width:0!important;width:100%!important;order:1}#rcv-count .tb .sb{font-size:18px!important;padding:14px 16px!important;padding-right:40px!important;border-radius:12px!important;width:100%!important;min-height:50px!important;border:2px solid var(--a)!important;box-shadow:0 0 0 3px rgba(99,102,241,.15)!important}
 #rcv-count .tb .btn.bs.b2{flex:0 0 auto!important;width:40px!important;height:44px!important;padding:0!important;font-size:16px!important;border-radius:10px!important;display:flex!important;align-items:center!important;justify-content:center!important;order:3}
 #rcv-count .tb .btn.bs[style*="background:var(--y)"]{flex:0 0 auto!important;width:auto!important;padding:8px 12px!important;font-size:12px!important;border-radius:10px!important;min-height:40px!important;order:4}
 #rcv-count .tb input[type="number"]{flex:1 1 60px!important;width:auto!important;min-width:50px!important;max-width:80px!important;font-size:20px!important;padding:8px 6px!important;text-align:center!important;border-radius:12px!important;min-height:44px!important;order:5}
@@ -691,7 +692,7 @@ html,body{overflow-x:hidden!important}
 <!-- TAB: Inventory -->
 <div id="t-inv">
 <div class="tb">
-<input class="sb" type="text" placeholder="&#128269; ค้นหา SKU หรือชื่อสินค้า..." id="si" oninput="clearTimeout(_searchTimer);if(this.value.trim())cf='a';_searchTimer=setTimeout(rt,300)">
+<div class="sb-wrap"><input class="sb" type="text" placeholder="&#128269; ค้นหา SKU หรือชื่อสินค้า..." id="si" oninput="clearTimeout(_searchTimer);if(this.value.trim())cf='a';_searchTimer=setTimeout(rt,300)"><button class="sb-x" type="button" onclick="var i=document.getElementById('si');i.value='';i.focus();clearTimeout(_searchTimer);_searchTimer=setTimeout(rt,300)">&times;</button></div>
 <div class="view-toggle"><button class="vt-btn" id="vFlat" onclick="setView('flat')">ทีละ SKU</button><button class="vt-btn act" id="vGrp" onclick="setView('group')">ตามสินค้า</button></div>
 <button class="btn bp bs" onclick="document.getElementById('impXlsx').click()" style="white-space:nowrap">&#128260; อัพเดทข้อมูลจาก BigSeller</button><input type="file" id="impXlsx" accept=".xlsx,.xls" multiple style="display:none" onchange="importBigSeller(this)">
 <select class="sel" id="srt" onchange="colSort='';colDir=1;rt()"><option value="u">เรียงตาม: ความเร่งด่วน</option><option value="s">ยอดขาย 30 วัน</option><option value="k">สต็อก น้อย→มาก</option><option value="d">วันคงเหลือ</option><option value="r">จำนวนแนะนำสั่ง</option></select>
@@ -720,7 +721,7 @@ html,body{overflow-x:hidden!important}
 <!-- Sub: Normal Orders -->
 <div id="ordSub-normal">
 <div class="tb" id="ord-tb">
-<input class="sb" type="text" placeholder="&#128269; ค้นหา SKU, เลขพัสดุ, ชื่อ, หมายเหตุ..." id="osi" oninput="_ordResetPg()" style="flex:1;min-width:0">
+<div class="sb-wrap" style="flex:1;min-width:0"><input class="sb" type="text" placeholder="&#128269; ค้นหา SKU, เลขพัสดุ, ชื่อ, หมายเหตุ..." id="osi" oninput="_ordResetPg()"><button class="sb-x" type="button" onclick="var i=document.getElementById('osi');i.value='';i.focus();_ordResetPg()">&times;</button></div>
 <select class="sel" id="ofl" onchange="_ordResetPg()"><option value="a">สถานะ: ทั้งหมด</option><option value="aging">&#128680; ค้างนาน (ทุกสถานะ)</option><option value="pending">สั่งแล้ว-รอจัดส่ง</option><option value="shipped">จัดส่งแล้ว</option><option value="arrived_th">ถึงไทย-รอตรวจ</option><option value="received">ได้รับครบ</option><option value="partial">ได้รับ-ขาด</option><option value="negotiate">รอเจรจา</option><option value="refunded">ร้านคืนเงินแล้ว</option><option value="resolved">เคลียร์แล้ว</option></select>
 <div class="mt" id="mtabs"></div>
 <button class="btn bp bs ord-act" onclick="no()" title="สร้างรายการสั่งซื้อ">+<span class="m-hide"> สร้างรายการสั่งซื้อ</span></button>
@@ -733,7 +734,7 @@ html,body{overflow-x:hidden!important}
 <!-- Sub: New Products 1688 -->
 <div id="ordSub-new1688" style="display:none">
 <div class="tb">
-<input class="sb" type="text" placeholder="&#128269; ค้นหาสินค้าใหม่..." id="npSi" oninput="rnp()">
+<div class="sb-wrap"><input class="sb" type="text" placeholder="&#128269; ค้นหาสินค้าใหม่..." id="npSi" oninput="rnp()"><button class="sb-x" type="button" onclick="var i=document.getElementById('npSi');i.value='';i.focus();rnp()">&times;</button></div>
 <select class="sel" id="npFl" onchange="rnp()"><option value="a">สถานะ: ทั้งหมด</option><option value="aging">&#128680; ค้างนาน (ทุกสถานะ)</option><option value="idea">รอตัดสินใจ</option><option value="ordered">สั่งแล้ว</option><option value="shipped">จัดส่งแล้ว</option><option value="arrived_th">ถึงไทย-รอตรวจ</option><option value="arrived">ของถึงแล้ว</option><option value="added">เพิ่มเข้าระบบแล้ว</option><option value="shortage">ของขาด-รอแก้ไข</option></select>
 <button class="btn bs" onclick="nnp()" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none">+ เพิ่มสินค้าใหม่</button>
 <button class="btn b2 bs" onclick="npImpDialog()">&#128229; นำเข้าจาก Excel</button>
@@ -768,7 +769,7 @@ html,body{overflow-x:hidden!important}
 </div>
 <div class="tb" style="margin-top:12px">
 <select id="rcvMode" class="sel" style="width:auto;min-width:120px;font-size:14px;padding:12px 8px" onchange="document.getElementById('rcvSku').value='';document.getElementById('rcvSug').innerHTML='';_rcvSearchResults=[];var p={'sku':'&#128269; สแกนหรือพิมพ์ SKU...','name':'&#128269; พิมพ์ชื่อสินค้า...','cat':'&#128269; พิมพ์ Base SKU เช่น F479...','trk':'&#128747; สแกนเลขพัสดุ CNS...'};document.getElementById('rcvSku').placeholder=p[this.value];var tb=document.getElementById('rcvTrkScanBtn');if(tb)tb.style.display=this.value==='trk'?'':'none';document.getElementById('rcvSku').focus()"><option value="sku">SKU</option><option value="name">ชื่อสินค้า</option><option value="cat">หมวดหมู่</option><option value="trk">&#128747; เลขพัสดุ</option></select>
-<input class="sb" type="text" placeholder="&#128269; สแกนหรือพิมพ์ SKU..." id="rcvSku" autofocus style="font-size:16px;padding:14px;flex:1" onkeydown="if(event.key==='Enter')rcvAdd()" oninput="rcvSearch()">
+<div class="sb-wrap" style="flex:1"><input class="sb" type="text" placeholder="&#128269; สแกนหรือพิมพ์ SKU..." id="rcvSku" autofocus style="font-size:16px;padding:14px" onkeydown="if(event.key==='Enter')rcvAdd()" oninput="clearTimeout(window._rcvSTimer);window._rcvSTimer=setTimeout(rcvSearch,250)"><button class="sb-x" type="button" onclick="var i=document.getElementById('rcvSku');i.value='';i.focus();document.getElementById('rcvSug').innerHTML='';_rcvSearchResults=[]">&times;</button></div>
 <button class="btn bs" id="rcvTrkScanBtn" onclick="rcvOpenScanner()" style="display:none;padding:10px 12px;white-space:nowrap;background:#06b6d4;color:#fff;border:none;align-items:center;justify-content:center" title="สแกนบาร์โค้ด/QR เลขพัสดุด้วยกล้อง"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;vertical-align:middle"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h1v1"/><path d="M17 14v3"/><path d="M14 17h3"/></svg></button>
 <button class="btn bs b2" onclick="rcvImgSearch()" style="padding:12px;font-size:18px;white-space:nowrap" title="ค้นหาด้วยรูปภาพ">&#128247;</button>
 <button class="btn bs" onclick="rcvNewProducts()" style="padding:12px;font-size:13px;white-space:nowrap;background:var(--y);color:#000" title="สินค้าใหม่ 1688">&#127381; ใหม่</button>
@@ -821,7 +822,7 @@ html,body{overflow-x:hidden!important}
 <!-- TAB: Links 1688 -->
 <div id="t-lnk" style="display:none">
 <div class="tb" id="lnk-tb">
-<input class="sb" type="text" placeholder="&#128269; ค้นหา SKU..." id="ls" oninput="rl()" style="flex:1;min-width:0">
+<div class="sb-wrap" style="flex:1;min-width:0"><input class="sb" type="text" placeholder="&#128269; ค้นหา SKU..." id="ls" oninput="rl()"><button class="sb-x" type="button" onclick="var i=document.getElementById('ls');i.value='';i.focus();rl()">&times;</button></div>
 <div id="lnk-tb-actions">
 <button class="btn bs b2 lnk-act" onclick="oal()" title="เพิ่มสินค้าใหม่">+<span class="m-hide"> เพิ่มสินค้าใหม่</span></button>
 <div style="position:relative" class="lnk-act" id="impDd">
@@ -4831,6 +4832,15 @@ function rcvAdd(){
 }
 
 var _rcvSearchResults=[];
+// Lookup map สำหรับ rcvSearch — สร้างครั้งเดียว ใช้ซ้ำ
+var _rcvIMap=null,_rcvIMapVer=0;
+function _rcvGetIMap(){
+  if(_rcvIMap&&_rcvIMapVer===I.length)return _rcvIMap;
+  _rcvIMap={};
+  I.forEach(function(p){_rcvIMap[p.sku]=p;_rcvIMap[gb(p.sku)]=_rcvIMap[gb(p.sku)]||p});
+  _rcvIMapVer=I.length;
+  return _rcvIMap;
+}
 function rcvSearch(){
   var q=document.getElementById("rcvSku").value.trim().toLowerCase();
   var el=document.getElementById("rcvSug");
@@ -4838,6 +4848,7 @@ function rcvSearch(){
   _sugShowAll=false;
   var mode=document.getElementById("rcvMode").value;
   _rcvSearchResults=[];
+  var imap=_rcvGetIMap();
   // Tracking mode — find order/NP by tracking number, then expand to items
   if(mode==="trk"){
     var foundAny=false;
@@ -4849,7 +4860,7 @@ function rcvSearch(){
       foundAny=true;
       matchedOIs[oi]=true;
       o.items.forEach(function(x){
-        var it=I.find(function(p){return p.sku===x.sku||gb(p.sku)===gb(x.sku)});
+        var it=imap[x.sku]||imap[gb(x.sku)];
         _rcvSearchResults.push({sku:x.sku,name:it?it.name:"",img:gimg(x.sku),oi:oi,oid:o.name||o.id,odate:o.date,ostatus:o.status,checked:true});
       });
     });
@@ -4878,7 +4889,7 @@ function rcvSearch(){
     if(o.status!=="pending"&&o.status!=="shipped"&&o.status!=="arrived_th")return;
     o.items.forEach(function(x){
       var sl=x.sku.toLowerCase(),bl=gb(x.sku).toLowerCase();
-      var it=I.find(function(p){return p.sku===x.sku||gb(p.sku)===gb(x.sku)});
+      var it=imap[x.sku]||imap[gb(x.sku)];
       var matched=false;
       if(mode==="sku"){
         matched=sl.indexOf(q)>-1||bl.indexOf(q)>-1;
