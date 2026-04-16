@@ -914,7 +914,7 @@ function _idbDel(key){
 // Sync wrapper — ทำงานเหมือน localStorage แต่เก็บใน IndexedDB
 function _tsGet(key){
   if(_idbReady&&_IDB_KEYS.indexOf(key)>=0)return _idbCache[key]||null;
-  return _tsGet(key);
+  return localStorage.getItem(key);
 }
 function _tsSet(key,val){
   if(_IDB_KEYS.indexOf(key)>=0){
@@ -922,7 +922,7 @@ function _tsSet(key,val){
     _idbPut(key,val);
     return;
   }
-  _tsSet(key,val);
+  localStorage.setItem(key,val);
 }
 function _tsRemove(key){
   if(_IDB_KEYS.indexOf(key)>=0){
@@ -930,7 +930,7 @@ function _tsRemove(key){
     _idbDel(key);
     return;
   }
-  _tsRemove(key);
+  localStorage.removeItem(key);
 }
 
 // Init: เปิด IndexedDB → โหลดข้อมูล → ย้ายจาก localStorage อัตโนมัติ
@@ -949,12 +949,12 @@ function _tsInit(){
         var migrated=false;
         _IDB_KEYS.forEach(function(key){
           if(!_idbCache[key]){
-            var lsVal=_tsGet(key);
+            var lsVal=localStorage.getItem(key);
             if(lsVal){_idbCache[key]=lsVal;_idbPut(key,lsVal);migrated=true}
           }
         });
         // ลบข้อมูลใหญ่ออกจาก localStorage เพื่อคืนพื้นที่
-        _IDB_KEYS.forEach(function(key){try{_tsRemove(key)}catch(e){}});
+        _IDB_KEYS.forEach(function(key){try{localStorage.removeItem(key)}catch(e){}});
         _idbReady=true;
         if(migrated)console.log("[Storage] Migrated data from localStorage to IndexedDB");
         else console.log("[Storage] IndexedDB ready");
@@ -5052,8 +5052,21 @@ function rcvImgAddSelected(){
   var imgs=window._rcvImgs;if(!imgs)return;
   var sel=imgs.filter(function(m){return m.sel});
   if(sel.length===0){alert("เลือกอย่างน้อย 1 รายการ");return}
-  _rcvSearchResults=sel.map(function(m){return{sku:m.sku,name:m.name,img:m.img,oi:m.oi,oid:m.oid,odate:m.odate,ostatus:m.ostatus,checked:true}});
-  rcvRenderSug();
+  // ข้ามหน้ายืนยัน → เพิ่มเข้า form นับเลย
+  if(sel.length>0&&sel[0].oi!=null)document.getElementById("rcvOrd").value=sel[0].oi;
+  var lastAddedWithVarsIdx=-1;
+  sel.forEach(function(m){
+    var ex=_rcvItems.find(function(r){return r.sku.toLowerCase()===m.sku.toLowerCase()});
+    if(!ex){
+      _rcvItems.push({sku:m.sku,qty:0});
+      if(rcvGetVariants(m.sku).length>0)lastAddedWithVarsIdx=_rcvItems.length-1;
+    }
+  });
+  document.getElementById("rcvSku").value="";
+  document.getElementById("rcvSug").innerHTML="";
+  _rcvSearchResults=[];
+  if(lastAddedWithVarsIdx>-1)_rcvVarOpen=lastAddedWithVarsIdx;
+  renderRcvCount();
 }
 function rcvNewProducts(){
   var el=document.getElementById("rcvSug");
