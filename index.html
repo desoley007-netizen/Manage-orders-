@@ -11,7 +11,7 @@
 /* Permission hide — ใช้ !important เพื่อเขียนทับ mobile CSS */
 .perm-hide{display:none!important}
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0a0e1a;--c1:#111827;--c2:#1f2937;--a:#6366f1;--a2:#8b5cf6;--p:#6366f1;--g:#10b981;--y:#f59e0b;--r:#ef4444;--o:#f97316;--t:#f1f5f9;--t2:#9ca3af;--bd:rgba(255,255,255,.08);--sh:0 1px 3px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2);--glass:rgba(255,255,255,.03);--glow:rgba(99,102,241,.15);--radius:14px}
 [data-theme="light"]{--bg:#f0f2f5;--c1:#ffffff;--c2:#e5e7eb;--a:#4f46e5;--a2:#7c3aed;--p:#4f46e5;--g:#059669;--y:#d97706;--r:#dc2626;--o:#ea580c;--t:#111827;--t2:#6b7280;--bd:rgba(0,0,0,.08);--sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);--glass:rgba(0,0,0,.02);--glow:rgba(79,70,229,.08)}
 body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--t);min-height:100vh;transition:background .3s,color .3s;-webkit-font-smoothing:antialiased}
@@ -695,6 +695,7 @@ html,body{overflow-x:hidden!important}
 <table><thead><tr><th><label style="display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap"><input type="checkbox" id="discSelAllCb" onclick="this.checked?discSelAll():discSelNone()" style="display:none;width:18px;height:18px;accent-color:var(--r);cursor:pointer"> สถานะ</label></th><th>SKU</th><th style="white-space:normal;min-width:120px">ชื่อสินค้า</th><th class="th-sort" onclick="thSort('stock')">สต็อก <span id="thI_stock"></span></th><th class="th-sort" onclick="thSort('days')">เหลือ(วัน) <span id="thI_days"></span></th><th class="th-sort" onclick="thSort('avg')">ขาย/วัน <span id="thI_avg"></span></th><th class="th-sort" onclick="thSort('s7')">ขาย7วัน <span id="thI_s7"></span></th><th class="th-sort" onclick="thSort('s30')">ขาย30วัน <span id="thI_s30"></span></th><th class="th-sort" onclick="thSort('rec')">แนะนำสั่ง <span id="thI_rec"></span></th><th class="th-sort" onclick="thSort('pr')">ต้นทุน <span id="thI_pr"></span></th><th>สั่งแล้ว</th><th>จัดการ</th></tr></thead>
 <tbody id="itb"></tbody></table>
 </div></div>
+<div style="height:50px"></div>
 </div>
 
 <!-- TAB: Orders -->
@@ -2142,7 +2143,8 @@ var _grpKeep=false;
 function goPage(n){_grpPage=n;_grpKeep=true;rt();window.scrollTo(0,document.getElementById("itb").closest("table").offsetTop-80)}
 function _pgBar(cur,total,pgSize){
   var pages=Math.ceil(total/pgSize);if(pages<=1)return"";
-  var h="<div style='text-align:center;padding:14px 0;display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap'>";
+  var isMob=window.innerWidth<=900;
+  var h="<div style='position:fixed;bottom:"+(isMob?"60px":"0")+";left:0;right:0;z-index:190;background:var(--bg);border-top:1px solid var(--bd);box-shadow:0 -2px 8px rgba(0,0,0,.1);padding:8px 0;display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap'>";
   if(cur>1)h+="<button onclick='goPage("+(cur-1)+")' style='padding:6px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px'>&laquo; ก่อนหน้า</button>";
   var startP=Math.max(1,cur-3),endP=Math.min(pages,cur+3);
   if(startP>1){h+="<button onclick='goPage(1)' style='padding:6px 10px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px'>1</button>";if(startP>2)h+="<span style='padding:0 4px;color:#999'>...</span>"}
@@ -2278,7 +2280,7 @@ function renderGrouped(items){
     tr+=g.totalRec;tc+=g.items.reduce(function(s,it){return s+it.rec*it.pr},0);
     var anyOrdered=g.items.some(function(it){return io(it.sku)});
 
-    h+="<tr class=\"grp\" onclick=\"toggleGrp('"+base+"')\">"+
+    h+="<tr class=\"grp\" data-base=\""+base+"\" onclick=\"toggleGrp('"+base+"')\">"+
       "<td><span class=\"dot "+st.d+"\"></span>"+st.l+"</td>"+
       "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?holdBadgeHtml(base):"")+"</td>"+
       "<td class=\"nm\">"+name+"</td>"+
@@ -2292,10 +2294,9 @@ function renderGrouped(items){
       "<td>"+(anyOrdered?"<span style=\"color:var(--g)\">&#10004;</span>":"")+"</td>"+
       "<td>"+
         (cf==="disc"?"<button class=\"btn bs\" style=\"background:rgba(34,197,94,.15);color:#16a34a;font-size:11px;border:1px solid #16a34a;font-weight:600\" onclick=\"event.stopPropagation();undoDiscGroup('"+base+"')\">&#x21A9; คืนสถานะขาย</button>":"<button class=\"btn bp bs\" onclick=\"event.stopPropagation();orderGroup('"+base+"')\">สั่งทั้งกลุ่ม</button>")+(_mgrMode?" <button class=\"btn bs\" style=\"background:rgba(245,158,11,.15);color:#f59e0b;font-size:10px;border:1px solid #f59e0b\" onclick=\"event.stopPropagation();toggleHold('"+base+"')\">"+(isHold(base)?"&#9989; ยกเลิกเฝ้ารอ":"&#9203; เฝ้ารอ")+"</button> <button class=\"btn bs\" style=\"background:var(--c2);color:var(--t2);font-size:10px\" onclick=\"event.stopPropagation();toggleDiscMulti("+JSON.stringify(g.items.map(function(x){return x.sku})).replace(/"/g,"&quot;")+")\">&#128683; เลิกขาย</button>":"")+" "+
-        (lkUrl?"<a href=\""+lkUrl+"\" target=\"_blank\" class=\"lk\" onclick=\"event.stopPropagation()\" style=\"margin-left:3px\">&#128279;1</a>":"")+
-        (lk2?"<a href=\""+lk2+"\" target=\"_blank\" class=\"lk\" onclick=\"event.stopPropagation()\">&#128279;2</a>":"")+
+        (lkUrl?"<a href=\""+lkUrl+"\" class=\"lk\" onclick=\"_openWin(event,'"+lkUrl+"')\" style=\"margin-left:3px\">&#128279;1</a>":"")+
+        (lk2?"<a href=\""+lk2+"\" class=\"lk\" onclick=\"_openWin(event,'"+lk2+"')\">&#128279;2</a>":"")+
         " <span onclick=\"event.stopPropagation();openPnotes('"+base+"')\" style=\"cursor:pointer;font-size:12px;opacity:"+(_pnoteCount(base)>0?"1":"0.35")+";margin-left:2px\" title=\"โน้ตสินค้า\">💬"+(_pnoteCount(base)>0?"<span style='font-size:10px;font-weight:700;color:var(--a)'>"+_pnoteCount(base)+"</span>":"")+"</span>"+
-        " <span onclick=\"event.stopPropagation();openStoreTag('"+base+"')\" style=\"cursor:pointer;font-size:11px;opacity:"+(STAGS[base]?"1":"0.35")+";margin-left:2px\" title=\"ตั้งชื่อร้าน\">🏷️"+(STAGS[base]?"<span style='font-size:9px;font-weight:600;color:var(--o);margin-left:1px;max-width:60px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle'>"+STAGS[base]+"</span>":"")+"</span>"+
       "</td></tr>";
 
     if(isOpen){
@@ -2382,7 +2383,7 @@ function renderStoreView(items){
         var stInfo=[{d:"dr",c:"var(--r)"},{d:"do",c:"var(--o)"},{d:"dy",c:"var(--y)"},{d:"dg",c:"var(--g)"}][ws];
         var anyOrd=g.items.some(function(it){return io(it.sku)});
         var lk=fl(g.base),lkUrl=lk?(typeof lk==="string"?lk:(lk.link1||"")):"";
-        html+="<tr style=\"cursor:pointer\" onclick=\"toggleGrp('"+g.base+"')\">";
+        html+="<tr style=\"cursor:pointer\" data-base=\""+g.base+"\" onclick=\"toggleGrp('"+g.base+"')\">";
         html+="<td><span class=\"dot "+stInfo.d+"\"></span></td>";
         html+="<td style=\"font-weight:600\">"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(openGroups[g.base]?"open":"")+"\">&#9654;</span> "+g.base+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span></td>";
         html+="<td class=\"nm\">"+g.items[0].name+"</td>";
@@ -2393,7 +2394,7 @@ function renderStoreView(items){
         html+="<td style=\"color:var(--a);font-weight:700\">"+g.totalRec+"</td>";
         html+="<td></td>";
         html+="<td>"+(anyOrd?"<span style=\"color:var(--g)\">&#10004;</span>":"")+"</td>";
-        html+="<td><button class=\"btn bp bs\" onclick=\"event.stopPropagation();orderGroup('"+g.base+"')\">สั่งทั้งกลุ่ม</button>"+(lkUrl?" <a href=\""+lkUrl+"\" target=\"_blank\" class=\"lk\" onclick=\"event.stopPropagation()\">&#128279;</a>":"")+" <span onclick=\"event.stopPropagation();openPnotes('"+g.base+"')\" style=\"cursor:pointer;font-size:12px;opacity:"+(_pnoteCount(g.base)>0?"1":"0.35")+"\" title=\"โน้ตสินค้า\">💬"+(_pnoteCount(g.base)>0?"<span style='font-size:10px;font-weight:700;color:var(--a)'>"+_pnoteCount(g.base)+"</span>":"")+"</span> <span onclick=\"event.stopPropagation();openStoreTag('"+g.base+"')\" style=\"cursor:pointer;font-size:11px;opacity:"+(STAGS[g.base]?"1":"0.35")+"\" title=\"ตั้งชื่อร้าน\">🏷️</span></td>";
+        html+="<td><button class=\"btn bp bs\" onclick=\"event.stopPropagation();orderGroup('"+g.base+"')\">สั่งทั้งกลุ่ม</button>"+(lkUrl?" <a href=\""+lkUrl+"\" class=\"lk\" onclick=\"_openWin(event,'"+lkUrl+"')\">&#128279;</a>":"")+" <span onclick=\"event.stopPropagation();openPnotes('"+g.base+"')\" style=\"cursor:pointer;font-size:12px;opacity:"+(_pnoteCount(g.base)>0?"1":"0.35")+"\" title=\"โน้ตสินค้า\">💬"+(_pnoteCount(g.base)>0?"<span style='font-size:10px;font-weight:700;color:var(--a)'>"+_pnoteCount(g.base)+"</span>":"")+"</span></td>";
         html+="</tr>";
         // Show child rows if group is open
         if(openGroups[g.base]){
@@ -2460,8 +2461,8 @@ function renderFlat(items){
       "<td>฿"+it.pr+"</td>"+
       "<td><span style=\"color:"+sm.c+";font-size:11px;white-space:nowrap\">"+sm.l+(sm.date?" <span style=\"font-size:10px;opacity:.7\">"+sm.date+"</span>":"")+"</span></td>"+
       "<td><button class=\"btn bp bs\" onclick=\"os('"+it.sku+"',"+it.rec+","+it.pr+")\">สั่งซื้อ</button>"+
-      (lkUrl?" <a href=\""+lkUrl+"\" target=\"_blank\" class=\"lk\" style=\"margin-left:4px\">&#128279;1</a>":"")+
-      (lk&&typeof lk!=="string"&&lk.link2?" <a href=\""+lk.link2+"\" target=\"_blank\" class=\"lk\">&#128279;2</a>":"")+
+      (lkUrl?" <a href=\""+lkUrl+"\" class=\"lk\" onclick=\"_openWin(event,'"+lkUrl+"')\" style=\"margin-left:4px\">&#128279;1</a>":"")+
+      (lk&&typeof lk!=="string"&&lk.link2?" <a href=\""+lk.link2+"\" class=\"lk\" onclick=\"_openWin(event,'"+lk.link2+"')\">&#128279;2</a>":"")+
       "</td></tr>";
   });
   document.getElementById("itb").innerHTML=h;
@@ -2472,7 +2473,14 @@ function renderFlat(items){
   document.getElementById("s3").textContent=items.length.toLocaleString()+" รายการ";
 }
 
-function toggleGrp(base){openGroups[base]=!openGroups[base];_grpKeep=true;rt()}
+function toggleGrp(base){
+  var sc=document.querySelector(".ts");
+  var sy=sc?sc.scrollTop:0;
+  var wy=window.scrollY||window.pageYOffset;
+  openGroups[base]=!openGroups[base];_grpKeep=true;rt();
+  if(sc)sc.scrollTop=sy;
+  window.scrollTo(0,wy);
+}
 
 function orderGroup(base){
   var items=I.filter(function(it){return gb(it.sku)===base});
@@ -2830,6 +2838,7 @@ function no(){
   document.getElementById("ptt").innerHTML="สร้างรายการสั่งซื้อ <button class=\"cb\" onclick=\"cp()\">&times;</button>";
   _s=[];
   document.getElementById("pb").innerHTML=
+    (_orderBase?_build1688Btns():"")+
     "<div class=\"fg\"><label>ชื่อรายการ</label><input type=\"text\" id=\"onm\" placeholder=\"เช่น ซองกันน้ำ, สายรัด ฯลฯ\"></div>"+
     "<div class=\"fg\"><label>หมายเลขคำสั่งซื้อ <span style=\"color:var(--r)\">*บังคับ</span></label><input type=\"text\" id=\"oidIn\" placeholder=\"เช่น 51057314660... หรือ PO-001\" style=\"border:2px solid var(--p)\"></div>"+
     "<div class=\"fg\"><label>มูลค่ารวม (฿)</label><input type=\"number\" id=\"oAmt\" step=\"0.01\" min=\"0\" placeholder=\"0.00\"></div>"+
@@ -2841,6 +2850,39 @@ function no(){
     "<button class=\"btn bp\" onclick=\"sno()\" style=\"width:100%\">&#128190; บันทึก</button>";
 }
 
+function _openWin(ev,url){ev.preventDefault();ev.stopPropagation();var sw=screen.availWidth;var sh=screen.availHeight;var hw=Math.floor(sw/2);window.moveTo(0,0);window.resizeTo(hw,sh);window.open(url,"_blank","width="+hw+",height="+sh+",left="+hw+",top=0,scrollbars=yes,resizable=yes")}
+function _build1688Btns(){
+  if(!_orderBase)return"";
+  var lk=fl(_orderBase);
+  if(!lk)return"";
+  var url1=typeof lk==="string"?lk:(lk.link1||"");
+  var url2=lk&&typeof lk!=="string"?(lk.link2||""):"";
+  if(!url1&&!url2)return"";
+  var h="<div style=\"margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap\">";
+  var btnS="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:var(--c2);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:12px;font-weight:600;text-decoration:none;cursor:pointer";
+  var tabS="display:inline-flex;align-items:center;padding:6px 8px;background:var(--c2);border:1px solid var(--bd);border-radius:8px;color:var(--t2);font-size:11px;text-decoration:none;cursor:pointer";
+  if(url1&&!url2){
+    h+="<a href=\"javascript:void(0)\" onclick=\"_open1688Win('"+_escAttr(url1)+"')\" style=\""+btnS+"\">🔗 เปิดลิงค์ 1688</a>";
+    h+="<a href=\"javascript:void(0)\" onclick=\"_open1688Tab('"+_escAttr(url1)+"')\" style=\""+tabS+"\" title=\"เปิดในแท็บใหม่\">&#8599;</a>";
+  } else {
+    if(url1){
+      h+="<a href=\"javascript:void(0)\" onclick=\"_open1688Win('"+_escAttr(url1)+"')\" style=\""+btnS+"\">🔗1</a>";
+      h+="<a href=\"javascript:void(0)\" onclick=\"_open1688Tab('"+_escAttr(url1)+"')\" style=\""+tabS+"\" title=\"ลิงค์ 1 แท็บใหม่\">&#8599;</a>";
+    }
+    if(url2){
+      h+="<a href=\"javascript:void(0)\" onclick=\"_open1688Win('"+_escAttr(url2)+"')\" style=\""+btnS+"\">🔗2</a>";
+      h+="<a href=\"javascript:void(0)\" onclick=\"_open1688Tab('"+_escAttr(url2)+"')\" style=\""+tabS+"\" title=\"ลิงค์ 2 แท็บใหม่\">&#8599;</a>";
+    }
+  }
+  h+="</div>";
+  return h;
+}
+function _open1688Tab(url){
+  window.open(url,"_blank");
+}
+function _open1688Win(url){
+  var sw=screen.availWidth;var sh=screen.availHeight;var hw=Math.floor(sw/2);window.moveTo(0,0);window.resizeTo(hw,sh);window.open(url,"_blank","width="+hw+",height="+sh+",left="+hw+",top=0,scrollbars=yes,resizable=yes");
+}
 function os(sku,qty,pr){_orderBase=gb(sku);no();_s=[{sku:sku,qty:qty}];rsk()}
 function addS(){var v=document.getElementById("ski").value.trim();if(!v)return;var f=I.find(function(i){return i.sku.toLowerCase()===v.toLowerCase()});_s.push({sku:f?f.sku:v,qty:f?(f.rec||1):1});_s.sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});document.getElementById("ski").value="";rsk()}
 function cpSku(ev,sku){ev.stopPropagation();navigator.clipboard.writeText(sku).then(function(){var el=ev.currentTarget;var orig=el.innerHTML;el.classList.add("copied");el.innerHTML="&#10003; Copied!";setTimeout(function(){el.classList.remove("copied");el.innerHTML=orig},1200)}).catch(function(){})}
@@ -3191,7 +3233,7 @@ function rnp(){
         h+="<div style=\"flex:1;text-align:center;padding:3px 0;border-radius:4px;font-weight:"+(done||active?"700":"400")+";background:"+(done?"rgba(34,197,94,.2)":active?"rgba(99,102,241,.2)":"var(--c2)")+";color:"+(done?"var(--g)":active?"var(--p)":"var(--t2)")+"\">"+s+(done?" ✓":"")+"</div>";
       });
       h+="</div>";
-      if(p.link)h+="<div style=\"font-size:12px;margin-bottom:4px\"><a href=\""+p.link+"\" target=\"_blank\" class=\"lk\" style=\"word-break:break-all\">&#128279; ดูสินค้าใน 1688</a></div>";
+      if(p.link)h+="<div style=\"font-size:12px;margin-bottom:4px\"><a href=\""+p.link+"\" class=\"lk\" onclick=\"_openWin(event,'"+p.link+"')\" style=\"word-break:break-all\">&#128279; ดูสินค้าใน 1688</a></div>";
       if(p.note)h+="<div style=\"font-size:12px;color:var(--y)\">"+p.note+"</div>";
       h+="<div style=\"margin-top:6px;display:flex;gap:6px;flex-wrap:wrap\">";
       h+="<button class=\"btn bs b2\" onclick=\"enpf("+ri+")\">แก้ไข</button><button class=\"btn bs bg\" onclick=\"unpf("+ri+")\">อัปเดตสถานะ</button><button class=\"btn bs brd\" onclick=\"dnpf("+ri+")\">ลบ</button>";
@@ -3585,8 +3627,8 @@ function rl(){
     var l2=lk?(typeof lk==="string"?"":(lk.link2||"")):"";
     var vn=VN[it.sku]||"";
     h+="<tr><td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+(vn?"<div style=\"font-size:10px;color:var(--t2);font-weight:400;margin-top:2px;padding-left:2px\">"+vn+"</div>":"")+"</td><td style=\"color:var(--a2)\">"+b+"</td><td style=\"max-width:160px;overflow:hidden;text-overflow:ellipsis\">"+it.name+"</td>"+
-      "<td>"+(l1?"<a href=\""+l1+"\" target=\"_blank\" class=\"lk\" style=\"word-break:break-all\">&#128279; "+l1.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
-      "<td>"+(l2?"<a href=\""+l2+"\" target=\"_blank\" class=\"lk\" style=\"word-break:break-all\">&#128279; "+l2.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
+      "<td>"+(l1?"<a href=\""+l1+"\" class=\"lk\" onclick=\"_openWin(event,'"+l1+"')\" style=\"word-break:break-all\">&#128279; "+l1.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
+      "<td>"+(l2?"<a href=\""+l2+"\" class=\"lk\" onclick=\"_openWin(event,'"+l2+"')\" style=\"word-break:break-all\">&#128279; "+l2.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
       "<td><button class=\"btn bs b2\" onclick=\"elf('"+it.sku+"')\">"+(l1?"แก้ไข":"+ เพิ่ม")+"</button></td></tr>";
   });
   document.getElementById("ltb").innerHTML=h;
