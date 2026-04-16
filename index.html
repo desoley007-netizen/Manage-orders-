@@ -1067,6 +1067,9 @@ var R=[["Waterproof bag04","ของแท้ ส่งเร็ว 7฿ ซอ
 try{var _savedR=_tsGet("ts_r");if(_savedR){var _parsedR=JSON.parse(_savedR);if(_parsedR.length>0)R=_parsedR}}catch(e){}
 // Unpack compressed data: [sku, name, stock, days, avgDaily, s7, s30, recQty, price]
 var I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});
+var _importedSkuSet={};
+try{var _isRaw=_tsGet("ts_imported_skus");if(_isRaw){JSON.parse(_isRaw).forEach(function(s){_importedSkuSet[s]=true})}}catch(e){}
+function isImported(sku){return !!_importedSkuSet[sku]}
 var O=JSON.parse(_tsGet("ts_o")||"[]");
 var L=JSON.parse(_tsGet("ts_l")||"{}");
 var VN=JSON.parse(_tsGet("ts_vn")||"{}");
@@ -1920,7 +1923,7 @@ function cloudLoad(manual) {
       if (changed) {
         if(typeof _cleanupHold==="function")_cleanupHold();
         var _prevTab=_curTab;
-        recalcS(); cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
+        recalcS(); var _panelOpen=document.getElementById("po")&&document.getElementById("po").style.display==="block";if(!_panelOpen)cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
         if(_prevTab&&_prevTab!=="inv")sw(_prevTab);
       }
       var t = new Date().toLocaleTimeString("th-TH", {hour:"2-digit",minute:"2-digit"});
@@ -2086,6 +2089,10 @@ function _processBigSellerRows(rows,fileCount){
   // Persist imported data to localStorage
   _gimgCache={};
   try{_tsSet("ts_r",JSON.stringify(R));_tsSet("ts_r_date",new Date().toISOString())}catch(e){console.warn("localStorage full, R not saved")}
+  // Save the set of SKUs from latest import for filtering
+  var _importedSkus=Object.keys(skuMap);
+  try{_tsSet("ts_imported_skus",JSON.stringify(_importedSkus))}catch(e){}
+  _importedSkuSet={};_importedSkus.forEach(function(s){_importedSkuSet[s]=true});
   cloudSave();
   rt();rl();ro();rrcv();recalcS();uk();
   if(typeof updateFm==="function")updateFm();
@@ -2614,11 +2621,14 @@ function setView(m){viewMode=m;document.getElementById("vFlat").className="vt-bt
 
 function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=1;_grpKeep=false;
   var q=(document.getElementById("si").value||"").toLowerCase();
+  var _hasImportSet=Object.keys(_importedSkuSet).length>0;
   var items=I.filter(function(it){
     if(cf==='disc')return isDisc(it.sku);
     if(cf==='hold')return isHold(it.sku);
+    if(cf==='notimported')return _hasImportSet&&!isImported(it.sku)&&!isDisc(it.sku);
     if(isDisc(it.sku)||it.src==="shopee")return false;
     if(isHold(it.sku))return false;
+    if(_hasImportSet&&!isImported(it.sku))return false;
     if(q&&it.sku.toLowerCase().indexOf(q)<0&&it.name.toLowerCase().indexOf(q)<0&&gb(it.sku).toLowerCase().indexOf(q)<0)return false;
     if(cf==="o")return it.stock<=0;
     if(cf==="c")return it.stock>0&&it.days<=TH_C;
@@ -2655,6 +2665,7 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
   var co=0,cc=0,cl=0,cs=0,cAct=0,cDone=0,cReord=0,cNone=0,cAll=0;
   I.forEach(function(it){
     if(isDisc(it.sku)||it.src==="shopee"||isHold(it.sku))return;
+    if(_hasImportSet&&!isImported(it.sku))return;
     cAll++;
     if(it.stock<=0)co++;
     else if(it.days<=TH_C)cc++;
@@ -2675,7 +2686,8 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
     {f:"done",l:"ของถึงแล้ว ✔",n:cDone},
     {f:"disc",l:"\u{1F6AB} เลิกขาย",n:DISC.length}
   ];
-  var fh="";fbs.forEach(function(b){fh+="<button class=\"fb"+(cf===b.f?" act":"")+"\" data-f=\""+b.f+"\" onclick=\"cf='"+b.f+"';rt()\">"+b.l+"<span class=\"fc\">"+b.n+"</span>"+(b.ex?"<span style=\"color:#ef4444;font-weight:700;margin-left:2px\">⚠️"+b.ex+"</span>":"")+"</button>"});
+  if(_hasImportSet){var _notImpCount=I.filter(function(it){return!isImported(it.sku)&&!isDisc(it.sku)}).length;if(_notImpCount>0)fbs.push({f:"notimported",l:"📁 ไม่พบในไฟล์",n:_notImpCount})}
+  var fh="";fbs.forEach(function(b){var _isNI=b.f==="notimported";var _niStyle=_isNI?" style=\"background:rgba(245,158,11,.15);color:#d97706;border:1px dashed #d97706;font-weight:600\"":"";fh+="<button class=\"fb"+(cf===b.f?" act":"")+"\" data-f=\""+b.f+"\" onclick=\"cf='"+b.f+"';rt()\""+_niStyle+">"+b.l+"<span class=\"fc\""+(b.f==="notimported"?" style=\"background:#d97706;color:#fff\"":"")+">"+b.n+"</span>"+(b.ex?"<span style=\"color:#ef4444;font-weight:700;margin-left:2px\">⚠️"+b.ex+"</span>":"")+"</button>"});
   fh+="<button id=\"mgrBtn\" class=\"fb\" onclick=\"toggleMgrMode()\" style=\"margin-left:auto;background:var(--c2);border:1px solid var(--bd);font-size:11px\">"+(_mgrMode?"&#9989; ปิดโหมดจัดการ":"&#9881; โหมดจัดการ")+"</button>";
   document.getElementById("fbar").innerHTML=fh;
 }
@@ -2960,8 +2972,9 @@ function toggleGrp(base){
 }
 
 function orderGroup(base){
-  var items=I.filter(function(it){return gb(it.sku)===base});
-  if(items.length===0){alert("ไม่มี SKU ในกลุ่ม "+base);return}
+  var _hIS=Object.keys(_importedSkuSet).length>0;
+  var items=I.filter(function(it){return gb(it.sku)===base&&(!_hIS||isImported(it.sku))&&!isDisc(it.sku)});
+  if(items.length===0){alert("ไม่มี SKU ในกลุ่ม "+base+" (อาจไม่มีในไฟล์ BigSeller ล่าสุด)");return}
   _orderBase=base;
   no();
   document.getElementById("pp").classList.add("pn-full");
@@ -2990,6 +3003,8 @@ function _buildStoreSuggestions(base){
     var items=I.filter(function(it){return gb(it.sku)===b});
     var noneItems=items.filter(function(it){
       if(it.src==="shopee"||isDisc(it.sku)||isHold(it.sku))return false;
+      var _hIS2=Object.keys(_importedSkuSet).length>0;
+      if(_hIS2&&!isImported(it.sku))return false;
       var io=ioSmart(it.sku);
       return io.st==="none"&&!currentSkus[it.sku];
     });
