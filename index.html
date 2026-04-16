@@ -400,11 +400,15 @@ table:has(#ltb){display:block!important;width:100%!important}
 /* --- INVENTORY TAB --- */
 #t-inv>.tb{gap:8px}
 #t-inv>.tb>.view-toggle{order:1;width:100%}
-#t-inv>.tb>.sb,#t-inv>.tb>.sb-wrap{order:0}#t-inv>.tb>.sb-wrap .sb{font-size:15px;padding:12px 14px;padding-right:36px}
+#t-inv>.tb>.sb,#t-inv>.tb>.sb-wrap{order:0;width:100%!important;flex:none!important}#t-inv>.tb>.sb-wrap .sb{font-size:15px;padding:12px 14px;padding-right:36px;width:100%!important;box-sizing:border-box!important}
 #t-inv>.tb>.btn{order:2;font-size:13px;padding:10px 14px;width:100%}
 #t-inv>.tb>.sel{order:3;font-size:13px;padding:10px 12px;width:100%}
 .view-toggle{width:100%;border-radius:12px}
 .vt-btn{flex:1;padding:10px 4px;font-size:12px;text-align:center;border-radius:10px;min-height:40px}
+
+/* --- ORDER TRACKING BUTTONS: dropdown on mobile, inline on desktop --- */
+.ord-trk-btns{display:none!important}
+.ord-trk-dd{display:block!important;flex:0 0 auto!important}
 
 /* --- ORDER SUB-TAB TOGGLE: horizontal scroll + auto-shrink --- */
 #t-ord>div:first-child{display:flex!important;gap:4px!important;margin-bottom:10px!important;background:var(--c1)!important;padding:4px!important;border-radius:12px!important;border:1px solid var(--bd)!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;flex-wrap:nowrap!important;scroll-snap-type:x proximity!important;position:relative!important}
@@ -764,7 +768,7 @@ html,body{overflow-x:hidden!important}
 <div class="kp kgr" onclick="cf='s';document.getElementById('si').value='';rt()"><div class="kl" id="kl4">&#128994; ปลอดภัย >14วัน</div><div class="kv" id="k4">0</div><div class="ks">ยังไม่ต้องสั่ง</div></div>
 <div class="kp kb" onclick="cf='a';document.getElementById('si').value='';rt()"><div class="kl">&#128202; สต็อกทั้งหมด</div><div class="kv" id="k5">0</div><div class="ks" id="k5s">0 SKU</div></div>
 <div class="kp kpu" onclick="cf='ord';document.getElementById('si').value='';rt()"><div class="kl">&#128666; รอของเข้า</div><div class="kv" id="k6">0</div><div class="ks">รายการสั่งแล้ว</div></div>
-<div class="kp" onclick="sw('ord');setTimeout(function(){var fl=document.getElementById('ofl');if(fl){fl.value='arrived_th';if(typeof _ordResetPg==='function')_ordResetPg();}},50)" style="background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.08));border:1px solid rgba(6,182,212,.35);cursor:pointer"><div class="kl" style="color:#06b6d4">&#128747; รอตรวจสอบ</div><div class="kv" id="k7" style="color:#06b6d4">0</div><div class="ks">ถึงไทย-รอ CNS ตรวจ</div></div>
+<div class="kp" onclick="sw('ord');setTimeout(function(){cm='all';var fl=document.getElementById('ofl');if(fl){fl.value='arrived_th';}rmt();if(typeof _ordResetPg==='function')_ordResetPg();},50)" style="background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.08));border:1px solid rgba(6,182,212,.35);cursor:pointer"><div class="kl" style="color:#06b6d4">&#128747; รอตรวจสอบ</div><div class="kv" id="k7" style="color:#06b6d4">0</div><div class="ks">ถึงไทย-รอ CNS ตรวจ</div></div>
 </div>
 <div class="tabs">
 <a class="tab act" data-t="inv" href="#inv" onclick="event.preventDefault();sw('inv')"><span style="font-size:18px">&#128203;</span><span class="m-hide"> คำแนะนำสั่งซื้อ</span> <span class="badge" id="bg1">0</span></a>
@@ -797,11 +801,21 @@ html,body{overflow-x:hidden!important}
 <div style="display:flex;gap:6px;margin-bottom:10px">
 <button class="vt-btn act" id="ordSubNorm" onclick="swOrdSub('normal')">&#128230; ออเดอร์ปกติ <span class="badge" id="ordSubNormBg" style="font-size:10px">0</span></button>
 <button class="vt-btn" id="ordSubNew" onclick="swOrdSub('new1688')">&#127381; สินค้าใหม่ 1688 <span class="badge" id="ordSubNewBg" style="font-size:10px;background:linear-gradient(135deg,#f59e0b,#ef4444)">0</span></button>
+<div class="ord-trk-btns" id="ordTrkBtns" style="display:flex;gap:6px;flex:0 0 auto">
 <button class="vt-btn" id="ordSubTrk" onclick="document.getElementById('trk1688Inp').click()" style="background:var(--g);color:#fff;flex:0 0 auto;padding:10px 14px" title="อัพเดทเลขพัสดุจากไฟล์ Excel 1688">&#128230; อัพเดทเลขพัสดุ (1688)</button>
-<input type="file" id="trk1688Inp" accept=".xlsx,.xls" multiple style="display:none" onchange="impTrk1688(this)">
 <button class="vt-btn" id="ordSubCNS" onclick="document.getElementById('cnsInp').click()" style="background:#06b6d4;color:#fff;flex:0 0 auto;padding:10px 14px" title="อัพเดทเลขพัสดุและข้อมูลขนส่งจากไฟล์ CNS">&#128747; อัพเดทเลขพัสดุ CNS</button>
-<input type="file" id="cnsInp" accept=".xlsx,.xls" multiple style="display:none" onchange="importCNS(this)">
 <button class="vt-btn" id="ordSubBatch" onclick="batchTrkOpen()" style="background:#8b5cf6;color:#fff;flex:0 0 auto;padding:10px 14px" title="กรอกเลขพัสดุหลายรายการพร้อมกัน">✏️ กรอกเลขพัสดุ (Manual)</button>
+</div>
+<div class="ord-trk-dd" id="ordTrkDD" style="display:none;flex:0 0 auto">
+<button class="vt-btn" onclick="_toggleTrkMenu(this)" style="background:var(--g);color:#fff;padding:10px 14px;font-weight:700">&#128230; อัพเดทเลขพัสดุ &#9660;</button>
+</div>
+<div id="ordTrkMenu" style="display:none;position:fixed;min-width:240px;background:var(--c1);border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:9999;overflow:hidden">
+<button onclick="document.getElementById('trk1688Inp').click();document.getElementById('ordTrkMenu').style.display='none'" style="display:block;width:100%;text-align:left;padding:14px 16px;background:none;border:none;border-bottom:1px solid var(--bd);color:var(--t);font-size:14px;cursor:pointer;font-weight:600">&#128230; อัพเดทเลขพัสดุ (1688)</button>
+<button onclick="document.getElementById('cnsInp').click();document.getElementById('ordTrkMenu').style.display='none'" style="display:block;width:100%;text-align:left;padding:14px 16px;background:none;border:none;border-bottom:1px solid var(--bd);color:var(--t);font-size:14px;cursor:pointer;font-weight:600">&#128747; อัพเดทเลขพัสดุ CNS</button>
+<button onclick="batchTrkOpen();document.getElementById('ordTrkMenu').style.display='none'" style="display:block;width:100%;text-align:left;padding:14px 16px;background:none;border:none;color:var(--t);font-size:14px;cursor:pointer;font-weight:600">✏️ กรอกเลขพัสดุ (Manual)</button>
+</div>
+<input type="file" id="trk1688Inp" accept=".xlsx,.xls" multiple style="display:none" onchange="impTrk1688(this)">
+<input type="file" id="cnsInp" accept=".xlsx,.xls" multiple style="display:none" onchange="importCNS(this)">
 </div>
 <!-- Sub: Normal Orders -->
 <div id="ordSub-normal">
@@ -7136,6 +7150,10 @@ function toggleFab(){fabOpen=!fabOpen;var f=document.querySelector(".fab");if(fa
 
 // ปิด import dropdown เมื่อกดข้างนอก
 document.addEventListener("click",function(e){var dd=document.getElementById("impDdM");if(dd&&dd.classList.contains("open")&&!e.target.closest("#impDd")){dd.classList.remove("open")}});
+// Toggle tracking dropdown (fixed position)
+function _toggleTrkMenu(btn){var m=document.getElementById("ordTrkMenu");if(m.style.display==="block"){m.style.display="none";return}var r=btn.getBoundingClientRect();m.style.left=Math.max(8,Math.min(r.left,window.innerWidth-250))+"px";m.style.top=(r.bottom+4)+"px";m.style.display="block"}
+// ปิด tracking dropdown เมื่อกดข้างนอก
+document.addEventListener("click",function(e){var m=document.getElementById("ordTrkMenu");if(m&&m.style.display==="block"&&!e.target.closest("#ordTrkDD")&&!e.target.closest("#ordTrkMenu")){m.style.display="none"}});
 
 function updateFm(){
   // Inventory stats
