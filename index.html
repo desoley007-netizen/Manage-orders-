@@ -196,9 +196,9 @@ body{padding-bottom:64px}
 /* --- KPI CARDS: horizontal scroll strip --- */
 .kg{display:flex!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;gap:8px!important;margin-bottom:12px!important;padding-bottom:4px!important;scroll-snap-type:x mandatory!important}
 .kg::-webkit-scrollbar{display:none}
-.kp{min-width:130px!important;max-width:160px!important;flex-shrink:0!important;padding:10px 12px!important;border-radius:12px!important;scroll-snap-align:start!important}
-.kl{font-size:9px;margin-bottom:3px;letter-spacing:.3px}
-.kv{font-size:22px}
+.kp{min-width:120px!important;max-width:160px!important;flex-shrink:0!important;padding:10px 12px!important;border-radius:12px!important;scroll-snap-align:start!important}
+.kl{font-size:9px;margin-bottom:3px;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv{font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ks{font-size:9px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* --- TOOLBAR: vertical stack with better spacing --- */
@@ -671,12 +671,12 @@ html,body{overflow-x:hidden!important}
 <div class="hd"><h1>&#128230; <span>THAISURE</span> <span class="hd-sub">ระบบจัดการสั่งซื้อ</span></h1><div class="hd-right"><div class="user-badge" id="userBadge" onclick="openAdmin()">&#128100; <span class="uname" id="dispName">แอดมิน</span> &#9662;</div><div class="user-badge" id="logoutBtn" onclick="doLogout()" style="cursor:pointer" title="ออกจากระบบ">&#128682; ออก</div><div id="netBadge" style="display:none;align-items:center;gap:4px;background:rgba(239,68,68,.15);color:var(--r);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;animation:offPulse 2s infinite" title="ไม่มีอินเทอร์เน็ต — ข้อมูลบันทึกในเครื่อง จะ sync อัตโนมัติเมื่อกลับมาออนไลน์">&#9888; Offline</div><div id="syncStatus" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none" onclick="cloudLoad(true)" title="กดเพื่อ sync ตอนนี้"></div><div class="db" id="cd"></div><button id="lineNotifyBtnTop" onclick="lineNotifyNord()" style="padding:4px 10px;border:1px solid #06c755;border-radius:6px;background:rgba(6,199,85,.1);color:#06c755;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🔔 แจ้งเตือน LINE</button><button onclick="_lineShowSetup()" style="padding:4px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--c2);color:var(--t2);font-size:11px;cursor:pointer" title="ตั้งค่า LINE Token">⚙️</button><button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">&#127769;</button></div></div>
 <div class="mn">
 <div class="kg" id="kpiCards">
-<div class="kp kr" onclick="cf='o';rt()"><div class="kl">&#128308; หมดสต็อก</div><div class="kv" id="k1">0</div><div class="ks">ต้องสั่งด่วน!</div></div>
-<div class="kp ko" onclick="cf='c';rt()"><div class="kl" id="kl2">&#128992; วิกฤต ≤7วัน</div><div class="kv" id="k2">0</div><div class="ks"><span style="cursor:pointer;text-decoration:underline dotted;opacity:.8" onclick="event.stopPropagation();editTH('c')">เหลือน้อยมาก ✏️</span></div></div>
-<div class="kp ky" onclick="cf='l';rt()"><div class="kl" id="kl3">&#128993; ใกล้หมด ≤14วัน</div><div class="kv" id="k3">0</div><div class="ks"><span style="cursor:pointer;text-decoration:underline dotted;opacity:.8" onclick="event.stopPropagation();editTH('l')">ควรเตรียมสั่ง ✏️</span></div></div>
-<div class="kp kgr" onclick="cf='s';rt()"><div class="kl" id="kl4">&#128994; ปลอดภัย >14วัน</div><div class="kv" id="k4">0</div><div class="ks">ยังไม่ต้องสั่ง</div></div>
-<div class="kp kb" onclick="cf='a';rt()"><div class="kl">&#128202; สต็อกทั้งหมด</div><div class="kv" id="k5">0</div><div class="ks" id="k5s">0 SKU</div></div>
-<div class="kp kpu" onclick="cf='ord';rt()"><div class="kl">&#128666; รอของเข้า</div><div class="kv" id="k6">0</div><div class="ks">รายการสั่งแล้ว</div></div>
+<div class="kp kr" onclick="cf='o';document.getElementById('si').value='';rt()"><div class="kl">&#128308; หมดสต็อก</div><div class="kv" id="k1">0</div><div class="ks">ต้องสั่งด่วน!</div></div>
+<div class="kp ko" onclick="cf='c';document.getElementById('si').value='';rt()"><div class="kl" id="kl2">&#128992; วิกฤต ≤7วัน</div><div class="kv" id="k2">0</div><div class="ks"><span style="cursor:pointer;text-decoration:underline dotted;opacity:.8" onclick="event.stopPropagation();editTH('c')">เหลือน้อยมาก ✏️</span></div></div>
+<div class="kp ky" onclick="cf='l';document.getElementById('si').value='';rt()"><div class="kl" id="kl3">&#128993; ใกล้หมด ≤14วัน</div><div class="kv" id="k3">0</div><div class="ks"><span style="cursor:pointer;text-decoration:underline dotted;opacity:.8" onclick="event.stopPropagation();editTH('l')">ควรเตรียมสั่ง ✏️</span></div></div>
+<div class="kp kgr" onclick="cf='s';document.getElementById('si').value='';rt()"><div class="kl" id="kl4">&#128994; ปลอดภัย >14วัน</div><div class="kv" id="k4">0</div><div class="ks">ยังไม่ต้องสั่ง</div></div>
+<div class="kp kb" onclick="cf='a';document.getElementById('si').value='';rt()"><div class="kl">&#128202; สต็อกทั้งหมด</div><div class="kv" id="k5">0</div><div class="ks" id="k5s">0 SKU</div></div>
+<div class="kp kpu" onclick="cf='ord';document.getElementById('si').value='';rt()"><div class="kl">&#128666; รอของเข้า</div><div class="kv" id="k6">0</div><div class="ks">รายการสั่งแล้ว</div></div>
 <div class="kp" onclick="sw('ord');setTimeout(function(){var fl=document.getElementById('ofl');if(fl){fl.value='arrived_th';if(typeof _ordResetPg==='function')_ordResetPg();}},50)" style="background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.08));border:1px solid rgba(6,182,212,.35);cursor:pointer"><div class="kl" style="color:#06b6d4">&#128747; รอตรวจสอบ</div><div class="kv" id="k7" style="color:#06b6d4">0</div><div class="ks">ถึงไทย-รอ CNS ตรวจ</div></div>
 </div>
 <div class="tabs">
@@ -689,7 +689,7 @@ html,body{overflow-x:hidden!important}
 <!-- TAB: Inventory -->
 <div id="t-inv">
 <div class="tb">
-<input class="sb" type="text" placeholder="&#128269; ค้นหา SKU หรือชื่อสินค้า..." id="si" oninput="clearTimeout(_searchTimer);_searchTimer=setTimeout(rt,300)">
+<input class="sb" type="text" placeholder="&#128269; ค้นหา SKU หรือชื่อสินค้า..." id="si" oninput="clearTimeout(_searchTimer);if(this.value.trim())cf='a';_searchTimer=setTimeout(rt,300)">
 <div class="view-toggle"><button class="vt-btn" id="vFlat" onclick="setView('flat')">ทีละ SKU</button><button class="vt-btn act" id="vGrp" onclick="setView('group')">ตามสินค้า</button></div>
 <button class="btn bp bs" onclick="document.getElementById('impXlsx').click()" style="white-space:nowrap">&#128260; อัพเดทข้อมูลจาก BigSeller</button><input type="file" id="impXlsx" accept=".xlsx,.xls" multiple style="display:none" onchange="importBigSeller(this)">
 <select class="sel" id="srt" onchange="colSort='';colDir=1;rt()"><option value="u">เรียงตาม: ความเร่งด่วน</option><option value="s">ยอดขาย 30 วัน</option><option value="k">สต็อก น้อย→มาก</option><option value="d">วันคงเหลือ</option><option value="r">จำนวนแนะนำสั่ง</option></select>
@@ -1136,8 +1136,9 @@ function _lineTestSend(){
 function _lineCloseSetup(){var ov=document.getElementById("lineSetupOv");if(ov)ov.remove()}
 
 // ===== GOOGLE SHEETS CLOUD SYNC =====
-// วาง URL ของ Google Apps Script Web App ที่นี่ (ดูคู่มือ)
-var CLOUD_URL = "https://script.google.com/macros/s/AKfycbztoejb5TvK5mTd63ZwSLyizF4skvZuqSlhxpgX-tltFXejE-GsTcT3t7I7AEts9vZX/exec";
+// URL ถูก encode เพื่อไม่ให้เปิดเผยตรงๆ ใน source code (ป้องกัน casual scraping)
+var _cu = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6dG9lamI1VHZLNW1UZDYzWndTTHlpekY0c2t2WnVxU2xoeHBnWC10bHRGWGVqRS1Hc1RjVDN0N0k3QUV0czl2WlgvZXhlYw==";
+var CLOUD_URL = atob(_cu);
 var _cloudSaveTimer = null;
 var _cloudBusy = false;
 var _lastLocalEdit = 0;            // timestamp ของ edit ล่าสุด (ป้องกัน cloudLoad เขียนทับ)
@@ -5589,7 +5590,7 @@ function renderSI(){
     h+="<td><input type='number' value='"+s.qty+"' min='1' style='width:70px;background:var(--c1);border:1px solid var(--bd);border-radius:6px;padding:6px;color:var(--t);font-size:14px;text-align:center' onchange='SI["+i+"].qty=parseInt(this.value)||0;sv();renderSI()'></td>";
     h+="<td style='font-size:12px;color:var(--t2)'>"+s.from+"</td>";
     h+="<td style='font-size:12px;color:var(--t2)'>"+s.date+"</td>";
-    h+="<td><button onclick='SI.splice("+i+",1);sv();renderSI()' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:16px'>&times;</button></td>";
+    h+="<td><button onclick='if(confirm(\"ลบ "+s.sku.replace(/'/g,"\\'")+' ออกจากรายการ Export?\")){SI.splice('+i+",1);sv();renderSI()}' style='background:none;border:none;color:var(--r);cursor:pointer;font-size:16px'>&times;</button></td>";
     h+="</tr>";
   });
   h+="</tbody></table></div></div>";
