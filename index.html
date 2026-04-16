@@ -62,7 +62,13 @@ tr:hover td{background:var(--glow)}
 .bs{padding:6px 14px;font-size:12px;border-radius:8px}
 .b2{background:var(--c2);color:var(--t);border:1px solid var(--bd)}
 .ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:none}
-.pn{position:fixed;top:0;right:0;width:520px;height:100vh;background:var(--c1);z-index:201;overflow-y:auto;display:none;border-left:1px solid var(--bd);padding:28px;box-shadow:-8px 0 40px rgba(0,0,0,.3)}
+.pn{position:fixed;top:0;right:0;width:520px;height:100vh;background:var(--c1);z-index:201;overflow-y:auto;display:none;border-left:1px solid var(--bd);padding:28px;box-shadow:-8px 0 40px rgba(0,0,0,.3);transition:width .25s ease,left .25s ease}
+.pn.pn-full{width:100%;left:0;border-left:none;padding:28px 5%}
+.pn-full #pb{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+.pn-full #pb>.fg:first-child,.pn-full #pb>.fg:nth-child(2){grid-column:span 1}
+.pn-full #pb>.fg:last-of-type,.pn-full #pb>button,.pn-full #pb>#skl+.fg,.pn-full #pb>div[style*="margin-top:14px"]{grid-column:1/-1}
+.pn-full #skl{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:6px}
+.pn-full #skl>div:last-child{grid-column:1/-1}
 .pn h2{font-size:18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;font-weight:700}
 .cb{background:none;border:none;color:var(--t2);font-size:24px;cursor:pointer;transition:color .2s}.cb:hover{color:var(--t)}
 .fg{margin-bottom:14px}
@@ -844,6 +850,7 @@ html,body{overflow-x:hidden!important}
 
 <div class="ov" id="po" onclick="cp()"></div>
 <div class="pn" id="pp"><h2 id="ptt">Panel <button class="cb" onclick="cp()">&times;</button></h2><div id="pb"></div></div>
+<div id="imgLB" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:9999;cursor:zoom-out;backdrop-filter:blur(6px);justify-content:center;align-items:center"><img id="imgLBsrc" src="" style="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);object-fit:contain"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
@@ -2487,6 +2494,7 @@ function orderGroup(base){
   if(items.length===0){alert("ไม่มี SKU ในกลุ่ม "+base);return}
   _orderBase=base;
   no();
+  document.getElementById("pp").classList.add("pn-full");
   _s=items.map(function(it){return{sku:it.sku,qty:it.rec>0?it.rec:1}});
   _s.sort(function(a,b){var na=a.sku.replace(/\D/g,""),nb=b.sku.replace(/\D/g,"");return(parseInt(na)||0)-(parseInt(nb)||0)});
   rsk();
@@ -2834,7 +2842,7 @@ function ro(){
 }
 
 function no(){
-  document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
+  document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";document.getElementById("pp").classList.remove("pn-full");
   document.getElementById("ptt").innerHTML="สร้างรายการสั่งซื้อ <button class=\"cb\" onclick=\"cp()\">&times;</button>";
   _s=[];
   document.getElementById("pb").innerHTML=
@@ -2890,6 +2898,7 @@ function cpNmToOrd(ev,nm){ev.stopPropagation();var inp=document.getElementById("
 function _escAttr(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function tgSkuNm(ev){ev.stopPropagation();var b=ev.currentTarget;var w=b.parentNode;var nm=w.querySelector(".sku-nm-cp");if(!nm)return;var full=nm.getAttribute("data-nm")||"";var ex=w.classList.toggle("expanded");if(ex){nm.textContent=full;b.innerHTML="&#9650;";b.title="ย่อชื่อ"}else{nm.textContent=full.length>30?full.slice(0,30)+"…":full;b.innerHTML="&#9660;";b.title="ดูชื่อเต็ม"}}
 function skuW(sku,bold){return"<span class=\"sku-cp\" onclick=\"cpSku(event,'"+sku+"')\">"+(bold?"<strong>"+sku+"</strong>":sku)+"</span>"}
+function _zoomImg(ev){ev.stopPropagation();var src=ev.currentTarget.src;if(!src)return;var lb=document.getElementById("imgLB");var img=document.getElementById("imgLBsrc");img.src=src;lb.style.display="flex"}
 var _gimgCache={};
 function gimg(sku){if(_gimgCache[sku]!==undefined)return _gimgCache[sku];var _r=_gimg(sku);_gimgCache[sku]=_r;return _r}
 function _gimg(sku){var f=I.find(function(x){return x.sku===sku});if(f&&f.img)return f.img;f=I.find(function(x){return gb(x.sku)===sku&&x.img});if(f)return f.img;var b=gb(sku);f=I.find(function(x){return gb(x.sku)===b&&x.img});if(f)return f.img;f=I.find(function(x){return x.sku.indexOf(sku)===0&&x.img});return f?f.img:""}
@@ -2907,7 +2916,7 @@ function rskDelSel(){var cbs=document.querySelectorAll(".skl-cb:checked");if(cbs
 function rskSelAll(v){document.querySelectorAll(".skl-cb").forEach(function(cb){cb.checked=v})}
 function rsk(){var h="";
   if(_s.length>1){h+="<div style=\"background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:10px\"><div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:8px\"><span style=\"font-size:13px;font-weight:700;color:var(--t)\">"+_s.length+" รายการ</span><div style=\"display:flex;gap:4px\"><button class=\"btn bs b2\" onclick=\"sortS('qty-d')\" title=\"จำนวน มาก→น้อย\" style=\"font-size:12px;padding:4px 10px\">&#9660;</button><button class=\"btn bs b2\" onclick=\"sortS('qty-a')\" title=\"จำนวน น้อย→มาก\" style=\"font-size:12px;padding:4px 10px\">&#9650;</button></div></div><div style=\"display:flex;gap:8px;align-items:center;flex-wrap:wrap\"><label style=\"font-size:12px;color:var(--t2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap\"><input type=\"checkbox\" onchange=\"rskSelAll(this.checked)\" style=\"width:17px;height:17px;accent-color:var(--p)\"> เลือกทั้งหมด</label><div style=\"height:16px;width:1px;background:var(--bd)\"></div><div style=\"display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:4px 8px\"><span style=\"font-size:11px;color:var(--t2);white-space:nowrap\">ใส่ที่เลือก:</span><input type=\"number\" id=\"saq\" min=\"1\" value=\"10\" style=\"width:45px;background:transparent;border:none;color:var(--t);text-align:center;font-size:13px;font-weight:600;padding:0\"><button class=\"btn bp bs\" onclick=\"setAll()\" style=\"font-size:11px;padding:3px 10px;border-radius:6px\">ตกลง</button></div><div style=\"height:16px;width:1px;background:var(--bd)\"></div><button class=\"btn brd bs\" onclick=\"rskDelSel()\" style=\"font-size:11px;padding:4px 12px;border-radius:6px\">&#128465; ลบที่เลือก</button></div></div>"}
-  _s.forEach(function(s,i){var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});var stk=fi?fi.stock:"-";var d=fi?fi.days:"-";var s30=fi?fi.s30:"-";var rec=fi?fi.rec:"-";var st=fi?gi(fi):{d:"",l:""};var vn=VN[s.sku]||"";h+="<div style=\"background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px\"><div style=\"display:flex;align-items:center;gap:8px\">"+(_s.length>1?"<input type=\"checkbox\" class=\"skl-cb\" data-i=\""+i+"\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0\">":"")+(im?"<img src=\""+im+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<div style=\"flex:1;min-width:0\"><strong>"+s.sku+"</strong>"+(fi&&fi.name?"<div class=\"sku-nm-wrap\"><div class=\"sku-nm-cp\" data-nm=\""+_escAttr(fi.name)+"\" onclick=\"cpNmToOrd(event,this.getAttribute('data-nm'))\" title=\"คลิกเพื่อใส่ชื่อนี้ในช่อง 'ชื่อรายการ'\">"+_escAttr(fi.name.length>30?fi.name.slice(0,30)+"…":fi.name)+"</div>"+(fi.name.length>30?"<button type=\"button\" class=\"sku-nm-tg\" onclick=\"tgSkuNm(event)\" title=\"ดูชื่อเต็ม\">&#9660;</button>":"")+"</div>":"")+(vn?"<div style=\"font-size:10px;color:var(--t2);margin-top:1px\">"+vn+"</div>":"")+"</div><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div><div style=\"display:flex;gap:6px;margin-top:4px;padding-left:"+((_s.length>1)?"26px":"0")+";flex-wrap:wrap\"><span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">สต็อก <b>"+stk+"</b></span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">เหลือ <b>"+d+"</b> วัน</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">ขาย30วัน <b>"+s30+"</b></span><span style=\"font-size:10px;color:var(--a);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px;font-weight:600\">แนะนำสั่ง <b>"+rec+"</b></span></div></div>"});
+  _s.forEach(function(s,i){var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});var stk=fi?fi.stock:"-";var d=fi?fi.days:"-";var s30=fi?fi.s30:"-";var rec=fi?fi.rec:"-";var st=fi?gi(fi):{d:"",l:""};var vn=VN[s.sku]||"";var _sd=fi?(typeof fi.days==="number"?fi.days:parseInt(fi.days)):NaN;var _stag=fi?(!isNaN(_sd)&&_sd>=20?"<span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(59,130,246,.12);color:#3b82f6;font-weight:600\">🚢 เรือ</span>":"<span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(249,115,22,.12);color:#f97316;font-weight:600\">🚛 รถ</span>"):"";h+="<div style=\"background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px\"><div style=\"display:flex;align-items:center;gap:8px\">"+(_s.length>1?"<input type=\"checkbox\" class=\"skl-cb\" data-i=\""+i+"\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0\">":"")+(im?"<img src=\""+im+"\" class=\"sku-img\" onclick=\"_zoomImg(event)\" style=\"cursor:zoom-in\" onerror=\"this.style.display='none'\">":"")+"<div style=\"flex:1;min-width:0\"><strong>"+s.sku+"</strong>"+(fi&&fi.name?"<div class=\"sku-nm-wrap\"><div class=\"sku-nm-cp\" data-nm=\""+_escAttr(fi.name)+"\" onclick=\"cpNmToOrd(event,this.getAttribute('data-nm'))\" title=\"คลิกเพื่อใส่ชื่อนี้ในช่อง 'ชื่อรายการ'\">"+_escAttr(fi.name.length>30?fi.name.slice(0,30)+"…":fi.name)+"</div>"+(fi.name.length>30?"<button type=\"button\" class=\"sku-nm-tg\" onclick=\"tgSkuNm(event)\" title=\"ดูชื่อเต็ม\">&#9660;</button>":"")+"</div>":"")+(vn?"<div style=\"font-size:10px;color:var(--t2);margin-top:1px\">"+vn+"</div>":"")+"</div><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div><div style=\"display:flex;gap:6px;margin-top:4px;padding-left:"+((_s.length>1)?"26px":"0")+";flex-wrap:wrap\"><span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">สต็อก <b>"+stk+"</b></span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">เหลือ <b>"+d+"</b> วัน</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">ขาย30วัน <b>"+s30+"</b></span><span style=\"font-size:10px;color:var(--a);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px;font-weight:600\">แนะนำสั่ง <b>"+rec+"</b></span>"+_stag+"</div></div>"});
   // Same-store suggestions
   if(_orderBase){
     var sugs=_buildStoreSuggestions(_orderBase);
@@ -2923,7 +2932,7 @@ function rsk(){var h="";
         var im0=gimg(firstItem.sku);
         var skuList=sg.items.map(function(it){return it.sku}).join(", ");
         h+="<div style=\"background:var(--c1);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px\">";
-        if(im0)h+="<img src=\""+im0+"\" style=\"width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0\" onerror=\"this.style.display='none'\">";
+        if(im0)h+="<img src=\""+im0+"\" onclick=\"_zoomImg(event)\" style=\"width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;cursor:zoom-in\" onerror=\"this.style.display='none'\">";
         h+="<div style=\"flex:1;min-width:0\">";
         h+="<div style=\"font-size:12px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">"+_escAttr(grpName.length>35?grpName.slice(0,35)+"…":grpName)+"</div>";
         h+="<div style=\"font-size:10px;color:var(--t2);margin-top:1px\">"+sg.items.length+" SKU: "+_escAttr(skuList.length>40?skuList.slice(0,40)+"…":skuList)+"</div>";
@@ -4113,7 +4122,7 @@ function doImgImp(){
   _imgFileType="";
 }
 
-function cp(){document.getElementById("po").style.display="none";document.getElementById("pp").style.display="none"}
+function cp(){document.getElementById("po").style.display="none";document.getElementById("pp").style.display="none";document.getElementById("pp").classList.remove("pn-full")}
 
 // ===== RECEIVING =====
 var rcvMode="count";
