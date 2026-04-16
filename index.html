@@ -3225,6 +3225,27 @@ function _ordResetPg(){_ordPage=1;_ordSel={};_ordSaveState();ro()}
 function tgOrdSel(id,ev){if(ev){ev.stopPropagation()}if(_ordSel[id])delete _ordSel[id];else _ordSel[id]=true;ro()}
 function _ordSelCount(){return Object.keys(_ordSel).length}
 function clrOrdSel(){_ordSel={};ro()}
+function bulkUpdateStatus(){
+  var sel=document.getElementById("bulkStsSel");
+  if(!sel||!sel.value){alert("กรุณาเลือกสถานะก่อน");return}
+  var newSt=sel.value;
+  var cnt=_ordSelCount();if(cnt===0)return;
+  var stLabel=(STS[newSt]||{}).l||newSt;
+  if(!confirm("อัปเดตสถานะ "+cnt+" รายการ → "+stLabel+"?"))return;
+  var d=new Date().toISOString().slice(0,10);
+  var updated=0;
+  O.forEach(function(o){
+    if(_ordSel[o.id]&&o.status!==newSt){
+      o.status=newSt;
+      o.statusChangedAt=d;
+      o._lm=Date.now();
+      updated++;
+    }
+  });
+  _ordSel={};
+  sv();uk();rmt();ro();rt();
+  _autoTrkToast("✅ อัปเดตสถานะ "+updated+" รายการ → "+stLabel);
+}
 function selAllOrdPage(checked){if(!window._ordPageIds)return;if(checked){window._ordPageIds.forEach(function(id){_ordSel[id]=true})}else{window._ordPageIds.forEach(function(id){delete _ordSel[id]})}ro()}
 function delOrdSel(){
   var cnt=_ordSelCount();if(cnt===0)return;
@@ -3284,7 +3305,9 @@ function ro(){
       "<span style=\"font-weight:700;font-size:14px\">&#9989; เลือก "+selCnt+" รายการ</span>"+
       "<label style=\"display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.15);padding:4px 10px;border-radius:6px\"><input type=\"checkbox\" "+(allPageSel?"checked":"")+" onchange=\"selAllOrdPage(this.checked)\" style=\"width:16px;height:16px;accent-color:#fff;cursor:pointer\">เลือกทั้งหน้า</label>"+
       "<div style=\"flex:1\"></div>"+
-      "<button onclick=\"delOrdSel()\" style=\"background:#fff;color:var(--r);border:none;padding:7px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px\">&#128465; ลบที่เลือก</button>"+
+      "<select id=\"bulkStsSel\" style=\"background:#fff;color:#333;border:none;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer\"><option value=''>-- เลือกสถานะ --</option><option value='pending'>&#9203; สั่งแล้ว-รอจัดส่ง</option><option value='shipped'>&#128666; จัดส่งแล้ว</option><option value='arrived_th'>&#128747; ถึงไทย-รอตรวจ</option><option value='received'>&#9989; ได้รับครบ</option><option value='partial'>&#9888;&#65039; ได้รับ-ขาด</option><option value='negotiate'>&#128172; รอเจรจา</option><option value='refunded'>&#128176; ร้านคืนเงินแล้ว</option><option value='resolved'>&#9989; เคลียร์แล้ว</option></select>"+
+      "<button onclick=\"bulkUpdateStatus()\" style=\"background:#fff;color:var(--g);border:none;padding:7px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px\">&#9989; อัปเดตสถานะ</button>"+
+      "<button onclick=\"delOrdSel()\" style=\"background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:7px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px\">&#128465; ลบที่เลือก</button>"+
       "<button onclick=\"clrOrdSel()\" style=\"background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px\">&times; ยกเลิก</button>"+
       "</div>";
   }
