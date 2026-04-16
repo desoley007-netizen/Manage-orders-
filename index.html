@@ -1021,7 +1021,7 @@ function renderDiscBar(){
     +"</div>";
 }
 function svDisc(){_lastLocalEdit=Date.now();localStorage.setItem("ts_disc",JSON.stringify(DISC));if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_disc",JSON.stringify(DISC));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
-function sv(){_lastLocalEdit=Date.now();localStorage.setItem("ts_o",JSON.stringify(O));localStorage.setItem("ts_l",JSON.stringify(L));localStorage.setItem("ts_rc",JSON.stringify(RC));localStorage.setItem("ts_si",JSON.stringify(SI));localStorage.setItem("ts_np",JSON.stringify(NP));cloudSave()}
+function sv(){var _now=Date.now();_lastLocalEdit=_now;_ds_o_lm=_now;_ds_np_lm=_now;_ds_rc_lm=_now;_ds_si_lm=_now;localStorage.setItem("_ds_o_lm",_now);localStorage.setItem("_ds_np_lm",_now);localStorage.setItem("_ds_rc_lm",_now);localStorage.setItem("_ds_si_lm",_now);localStorage.setItem("ts_o",JSON.stringify(O));localStorage.setItem("ts_l",JSON.stringify(L));localStorage.setItem("ts_rc",JSON.stringify(RC));localStorage.setItem("ts_si",JSON.stringify(SI));localStorage.setItem("ts_np",JSON.stringify(NP));cloudSave()}
 
 // ===== LINE MESSAGING API =====
 var _lineConf=JSON.parse(localStorage.getItem("ts_line_conf")||"{}");
@@ -1148,6 +1148,13 @@ var _retryTimer = null;
 var _retryCount = 0;
 var _retryDelays = [5000, 15000, 30000, 60000, 120000]; // backoff 5s, 15s, 30s, 1m, 2m
 
+// === Dataset-level timestamps — ใช้ตัดสินว่า cloud หรือ local ใหม่กว่า (แก้ปัญหาลบข้อมูลไม่ sync) ===
+var _ds_o_lm  = parseInt(localStorage.getItem("_ds_o_lm"))  || 0; // Orders
+var _ds_np_lm = parseInt(localStorage.getItem("_ds_np_lm")) || 0; // Non-PO orders
+var _ds_rc_lm = parseInt(localStorage.getItem("_ds_rc_lm")) || 0; // Receiving
+var _ds_si_lm = parseInt(localStorage.getItem("_ds_si_lm")) || 0; // Stock Import (export)
+var _ds_users_lm = parseInt(localStorage.getItem("_ds_users_lm")) || 0; // Users
+
 // Format เวลาแบบ "x วิ/นาที/ชม. ที่แล้ว"
 function _fmtAgo(ts) {
   if (!ts) return "";
@@ -1269,6 +1276,12 @@ function _buildCloudPayload() {
   payload.ts_thc = String(TH_C);
   payload.ts_thl = String(TH_L);
   payload.ts_del_users = JSON.stringify(_delIds);
+  // Dataset-level timestamps สำหรับตัดสินว่าใช้ cloud หรือ local
+  payload._ds_o_lm = String(_ds_o_lm);
+  payload._ds_np_lm = String(_ds_np_lm);
+  payload._ds_rc_lm = String(_ds_rc_lm);
+  payload._ds_si_lm = String(_ds_si_lm);
+  payload._ds_users_lm = String(_ds_users_lm);
   // บันทึกข้อความแจ้งเตือน LINE + timestamp สำหรับ auto notify
   try{var _lm=_lineBuildMsg();payload.ts_line_msg=_lm||"";payload.ts_line_msg_ts=String(Date.now())}catch(e){}
   return payload;
@@ -1516,11 +1529,39 @@ function cloudLoad(manual) {
       var raw_pnotes = _chunkJoin("ts_pnotes", d.data);
       var raw_stags = _chunkJoin("ts_stags", d.data);
 
-      if (raw_o && raw_o !== JSON.stringify(O)) { O = _mergeById(O, JSON.parse(raw_o), "id"); localStorage.setItem("ts_o", JSON.stringify(O)); changed = true; }
+      // === Dataset timestamps จาก cloud ===
+      var _c_o_lm  = parseInt(d.data._ds_o_lm)  || 0;
+      var _c_np_lm = parseInt(d.data._ds_np_lm) || 0;
+      var _c_rc_lm = parseInt(d.data._ds_rc_lm) || 0;
+      var _c_si_lm = parseInt(d.data._ds_si_lm) || 0;
+      var _c_users_lm = parseInt(d.data._ds_users_lm) || 0;
+
+      // O (Orders): ถ้า cloud ใหม่กว่า → full replace (ให้ลบ/เคลียร์ sync ข้ามเครื่อง), ถ้า local ใหม่กว่า → เก็บ local
+      if (raw_o && raw_o !== JSON.stringify(O)) {
+        if (_c_o_lm > _ds_o_lm) { O = JSON.parse(raw_o); _ds_o_lm = _c_o_lm; localStorage.setItem("_ds_o_lm", _c_o_lm); }
+        else if (_c_o_lm === _ds_o_lm || _c_o_lm === 0) { O = _mergeById(O, JSON.parse(raw_o), "id"); }
+        // else: local ใหม่กว่า → เก็บ local ไม่ merge
+        localStorage.setItem("ts_o", JSON.stringify(O)); changed = true;
+      }
       if (raw_l && raw_l !== JSON.stringify(L)) { L = JSON.parse(raw_l); localStorage.setItem("ts_l", raw_l); changed = true; }
-      if (raw_rc && raw_rc !== JSON.stringify(RC)) { RC = _mergeRC(RC, JSON.parse(raw_rc)); localStorage.setItem("ts_rc", JSON.stringify(RC)); changed = true; }
-      if (raw_si && raw_si !== JSON.stringify(SI)) { SI = _mergeSI(SI, JSON.parse(raw_si)); localStorage.setItem("ts_si", JSON.stringify(SI)); changed = true; }
-      if (raw_np && raw_np !== JSON.stringify(NP)) { NP = _mergeById(NP, JSON.parse(raw_np), "id"); localStorage.setItem("ts_np", JSON.stringify(NP)); changed = true; }
+      // RC (Receiving): เหมือนกัน
+      if (raw_rc && raw_rc !== JSON.stringify(RC)) {
+        if (_c_rc_lm > _ds_rc_lm) { RC = JSON.parse(raw_rc); _ds_rc_lm = _c_rc_lm; localStorage.setItem("_ds_rc_lm", _c_rc_lm); }
+        else if (_c_rc_lm === _ds_rc_lm || _c_rc_lm === 0) { RC = _mergeRC(RC, JSON.parse(raw_rc)); }
+        localStorage.setItem("ts_rc", JSON.stringify(RC)); changed = true;
+      }
+      // SI (Stock Import): เหมือนกัน
+      if (raw_si && raw_si !== JSON.stringify(SI)) {
+        if (_c_si_lm > _ds_si_lm) { SI = JSON.parse(raw_si); _ds_si_lm = _c_si_lm; localStorage.setItem("_ds_si_lm", _c_si_lm); }
+        else if (_c_si_lm === _ds_si_lm || _c_si_lm === 0) { SI = _mergeSI(SI, JSON.parse(raw_si)); }
+        localStorage.setItem("ts_si", JSON.stringify(SI)); changed = true;
+      }
+      // NP (Non-PO orders): เหมือนกัน
+      if (raw_np && raw_np !== JSON.stringify(NP)) {
+        if (_c_np_lm > _ds_np_lm) { NP = JSON.parse(raw_np); _ds_np_lm = _c_np_lm; localStorage.setItem("_ds_np_lm", _c_np_lm); }
+        else if (_c_np_lm === _ds_np_lm || _c_np_lm === 0) { NP = _mergeById(NP, JSON.parse(raw_np), "id"); }
+        localStorage.setItem("ts_np", JSON.stringify(NP)); changed = true;
+      }
       if (d.data.ts_thc) { TH_C = parseInt(d.data.ts_thc) || 7; localStorage.setItem("ts_thc", TH_C); }
       if (d.data.ts_thl) { TH_L = parseInt(d.data.ts_thl) || 14; localStorage.setItem("ts_thl", TH_L); }
       // อัปเดต R array (ข้อมูล SKU หลัก + รูปภาพ) จาก cloud
@@ -1549,7 +1590,7 @@ function cloudLoad(manual) {
       if(d.data.ts_line_conf){try{var _lc=JSON.parse(d.data.ts_line_conf);if(_lc&&_lc.token&&_lc.userId){_lineConf=_lc;localStorage.setItem("ts_line_conf",JSON.stringify(_lineConf))}}catch(e){}}
       // ดึง deleted user IDs จาก cloud มา merge กับ local
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
-      if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){USERS=_mergeUsers(USERS,cu);localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
+      if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){if(_c_users_lm>_ds_users_lm){USERS=cu;_ds_users_lm=_c_users_lm;localStorage.setItem("_ds_users_lm",_c_users_lm)}else if(_c_users_lm===_ds_users_lm||_c_users_lm===0){USERS=_mergeUsers(USERS,cu)}localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
       if (changed) {
         recalcS(); cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
       }
@@ -5832,7 +5873,7 @@ var CUR_USER=null;
 var _delIds=JSON.parse(localStorage.getItem("ts_del_users")||"[]");
 function _svDelIds(){localStorage.setItem("ts_del_users",JSON.stringify(_delIds))}
 
-function svUsers(){_lastLocalEdit=Date.now();localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
+function svUsers(){var _now=Date.now();_lastLocalEdit=_now;_ds_users_lm=_now;localStorage.setItem("_ds_users_lm",_now);localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
 function cloudSaveUsers(){
   if(!CLOUD_URL)return;
   if(!navigator.onLine){cloudSave();return}
