@@ -64,11 +64,13 @@ tr:hover td{background:var(--glow)}
 .ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:none}
 .pn{position:fixed;top:0;right:0;width:520px;height:100vh;background:var(--c1);z-index:201;overflow-y:auto;display:none;border-left:1px solid var(--bd);padding:28px;box-shadow:-8px 0 40px rgba(0,0,0,.3);transition:width .25s ease,left .25s ease}
 .pn.pn-full{width:100%;left:0;border-left:none;padding:28px 5%}
-.pn-full #pb{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
-.pn-full #pb>.fg:first-child,.pn-full #pb>.fg:nth-child(2){grid-column:span 1}
-.pn-full #pb>.fg:last-of-type,.pn-full #pb>button,.pn-full #pb>#skl+.fg,.pn-full #pb>div[style*="margin-top:14px"]{grid-column:1/-1}
-.pn-full #skl{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:6px}
-.pn-full #skl>div:last-child{grid-column:1/-1}
+.pn-full #pb{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.pn-full #pb>div:first-child:not(.ord-left):not(.ord-right){flex:0 0 100%}
+.pn-full #pb>.ord-left{flex:0 0 340px;display:flex;flex-direction:column;gap:0;position:sticky;top:80px}
+.pn-full #pb>.ord-right{flex:1;min-width:320px}
+.pn-full #pb .ord-left .fg{margin-bottom:12px}
+.pn-full #skl{display:flex;flex-direction:column;gap:6px}
+@media(max-width:768px){.pn-full #pb{flex-direction:column}.pn-full #pb>.ord-left{flex:none;width:100%;position:static}.pn-full #pb>.ord-right{min-width:0}}
 .pn h2{font-size:18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;font-weight:700}
 .cb{background:none;border:none;color:var(--t2);font-size:24px;cursor:pointer;transition:color .2s}.cb:hover{color:var(--t)}
 .fg{margin-bottom:14px}
@@ -915,14 +917,28 @@ var HOLD=(function(r){
 })(_rawHold);
 function _holdKeys(){return Object.keys(HOLD)}
 function _holdLen(){return _holdKeys().length}
-function isHold(sku){var b=gb(sku);return !!HOLD[b]||!!HOLD[sku]}
-function getHoldInfo(sku){var b=gb(sku);return HOLD[b]||HOLD[sku]||null}
+function isHold(sku){return !!HOLD[gb(sku)]||!!HOLD[sku]}
+function getHoldInfo(sku){return HOLD[gb(sku)]||HOLD[sku]||null}
+function _cleanupHold(){
+  // Remove orphan HOLD keys that don't match any actual group base in I
+  var validBases={};
+  I.forEach(function(it){validBases[gb(it.sku)]=1});
+  var removed=[];
+  Object.keys(HOLD).forEach(function(k){
+    if(!validBases[k]){removed.push(k);delete HOLD[k]}
+  });
+  if(removed.length>0){
+    localStorage.setItem("ts_hold",JSON.stringify(HOLD));
+    if(typeof svHold==="function")svHold();
+    console.log("[HOLD cleanup] Removed orphan keys:",removed.join(", "));
+  }
+}
 function holdDaysLeft(sku){var h=getHoldInfo(sku);if(!h||!h.expire)return null;var now=new Date();now.setHours(0,0,0,0);var exp=new Date(h.expire);exp.setHours(0,0,0,0);return Math.ceil((exp-now)/(86400000))}
 function _countHoldExpired(){var n=0;_holdKeys().forEach(function(k){var d=holdDaysLeft(k);if(d!==null&&d<=0)n++});return n}
 function holdBadgeHtml(sku){
-  var b=gb(sku);var dl=holdDaysLeft(sku);var h=getHoldInfo(sku);var rs=(h&&h.reason)?h.reason:"";
+  var dl=holdDaysLeft(sku);var h=getHoldInfo(sku);var rs=(h&&h.reason)?h.reason:"";
   var rsPart=rs?" — "+rs:"";
-  var click=" onclick=\"event.stopPropagation();_editHold('"+b+"')\" style=\"cursor:pointer;";
+  var click=" onclick=\"event.stopPropagation();_editHold('"+_escAttr(sku)+"')\" style=\"cursor:pointer;";
   if(dl===null)return"<span class=\"grp-badge\""+click+"background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700\">⏳ เฝ้ารอ"+rsPart+"</span>";
   if(dl<=0)return"<span class=\"grp-badge hold-expired\""+click+"background:rgba(239,68,68,.15);color:#ef4444;font-weight:700\">⚠️ หมดเวลา!"+rsPart+"</span>";
   return"<span class=\"grp-badge\""+click+"background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700\">⏳ เฝ้ารอ ("+dl+" วัน)"+rsPart+"</span>";
@@ -1689,6 +1705,7 @@ function cloudLoad(manual) {
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
       if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){if(_c_users_lm>_ds_users_lm){USERS=cu;_ds_users_lm=_c_users_lm;localStorage.setItem("_ds_users_lm",_c_users_lm)}else if(_c_users_lm===_ds_users_lm||_c_users_lm===0){USERS=_mergeUsers(USERS,cu)}localStorage.setItem("ts_users",JSON.stringify(USERS))}}catch(e){} }
       if (changed) {
+        if(typeof _cleanupHold==="function")_cleanupHold();
         recalcS(); cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
       }
       var t = new Date().toLocaleTimeString("th-TH", {hour:"2-digit",minute:"2-digit"});
@@ -2345,9 +2362,10 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
 
   if(viewMode==="group"){renderGrouped(items)}else{renderFlat(items)}
   // Update filter bar
-  var co=0,cc=0,cl=0,cs=0,cAct=0,cDone=0,cReord=0,cNone=0;
+  var co=0,cc=0,cl=0,cs=0,cAct=0,cDone=0,cReord=0,cNone=0,cAll=0;
   I.forEach(function(it){
-    if(isDisc(it.sku)||it.src==="shopee")return;
+    if(isDisc(it.sku)||it.src==="shopee"||isHold(it.sku))return;
+    cAll++;
     if(it.stock<=0)co++;
     else if(it.days<=TH_C)cc++;
     else if(it.days<=TH_L)cl++;
@@ -2359,7 +2377,7 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
     else cNone++;
   });
   var fbs=[
-    {f:"a",l:"ทั้งหมด",n:I.length-DISC.length},
+    {f:"a",l:"ทั้งหมด",n:cAll},
     {f:"nord",l:"ยังไม่สั่ง",n:cNone},
     {f:"reord",l:"ควรสั่งอีก 🚢🚛",n:cReord},
     {f:"hold",l:"⏳ เฝ้ารอ",n:_holdLen(),ex:_countHoldExpired()},
@@ -2661,6 +2679,7 @@ function _buildStoreSuggestions(base){
   sameLinks.forEach(function(b){
     var items=I.filter(function(it){return gb(it.sku)===b});
     var noneItems=items.filter(function(it){
+      if(it.src==="shopee"||isDisc(it.sku)||isHold(it.sku))return false;
       var io=ioSmart(it.sku);
       return io.st==="none"&&!currentSkus[it.sku];
     });
@@ -2688,6 +2707,7 @@ function _addStoreSug(base){
   _s.forEach(function(s){currentSkus[s.sku]=1});
   var added=0;
   items.forEach(function(it){
+    if(it.src==="shopee"||isDisc(it.sku)||isHold(it.sku))return;
     var io=ioSmart(it.sku);
     if(io.st==="none"&&!currentSkus[it.sku]){
       _s.push({sku:it.sku,qty:it.rec>0?it.rec:1});
@@ -2989,15 +3009,22 @@ function no(){
   _s=[];
   document.getElementById("pb").innerHTML=
     (_orderBase?_build1688Btns():"")+
+    "<div class=\"ord-left\">"+
     "<div class=\"fg\"><label>ชื่อรายการ</label><input type=\"text\" id=\"onm\" placeholder=\"เช่น ซองกันน้ำ, สายรัด ฯลฯ\"></div>"+
     "<div class=\"fg\"><label>หมายเลขคำสั่งซื้อ <span style=\"color:var(--r)\">*บังคับ</span></label><input type=\"text\" id=\"oidIn\" placeholder=\"เช่น 51057314660... หรือ PO-001\" style=\"border:2px solid var(--p)\"></div>"+
     "<div class=\"fg\"><label>มูลค่ารวม (฿)</label><input type=\"number\" id=\"oAmt\" step=\"0.01\" min=\"0\" placeholder=\"0.00\"></div>"+
     "<div class=\"fg\"><label>วันที่สั่ง</label><input type=\"date\" id=\"od\" value=\""+new Date().toISOString().slice(0,10)+"\"></div>"+
-    "<div class=\"fg\"><div id=\"skl\" style=\"margin-top:4px\"></div><button type=\"button\" class=\"btn bs b2\" onclick=\"document.getElementById('skiWrap').style.display=document.getElementById('skiWrap').style.display==='none'?'':'none'\" style=\"margin-top:6px;font-size:12px\">+ เพิ่ม SKU อื่น</button><div id=\"skiWrap\" style=\"display:none;margin-top:6px\"><input type=\"text\" id=\"ski\" placeholder=\"พิมพ์ SKU แล้วกด Enter\" onkeydown=\"if(event.key==='Enter')addS()\" style=\"width:100%\"></div></div>"+
     "<div class=\"fg\"><label>เลขพัสดุ (ถ้ามี)</label><input type=\"text\" id=\"otr\" placeholder=\"กรอกทีหลังได้\"></div>"+
     "<div class=\"fg\"><label>&#128279; ลิงค์ 1688 (ถ้ามี)</label><input type=\"text\" id=\"ol1688\" placeholder=\"https://air.1688.com/app/ctf-page/trade-order-list/...\"></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"onn\" rows=\"2\"></textarea></div>"+
-    "<button class=\"btn bp\" onclick=\"sno()\" style=\"width:100%\">&#128190; บันทึก</button>";
+    "<button class=\"btn bp\" onclick=\"sno()\" style=\"width:100%\">&#128190; บันทึก</button>"+
+    "</div>"+
+    "<div class=\"ord-right\">"+
+    "<div style=\"font-size:14px;font-weight:700;color:var(--t);margin-bottom:10px\">&#128230; รายการ SKU</div>"+
+    "<div id=\"skl\" style=\"margin-top:4px\"></div>"+
+    "<button type=\"button\" class=\"btn bs b2\" onclick=\"document.getElementById('skiWrap').style.display=document.getElementById('skiWrap').style.display==='none'?'':'none'\" style=\"margin-top:6px;font-size:12px\">+ เพิ่ม SKU อื่น</button>"+
+    "<div id=\"skiWrap\" style=\"display:none;margin-top:6px\"><input type=\"text\" id=\"ski\" placeholder=\"พิมพ์ SKU แล้วกด Enter\" onkeydown=\"if(event.key==='Enter')addS()\" style=\"width:100%\"></div>"+
+    "</div>";
 }
 
 function _openWin(ev,url){ev.preventDefault();ev.stopPropagation();var sw=screen.availWidth;var sh=screen.availHeight;var hw=Math.floor(sw/2);window.moveTo(0,0);window.resizeTo(hw,sh);window.open(url,"_blank","width="+hw+",height="+sh+",left="+hw+",top=0,scrollbars=yes,resizable=yes")}
@@ -3104,18 +3131,30 @@ function sno(){
 function eo(idx){
   var o=O[idx];if(!o)return;
   document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
+  document.getElementById("pp").classList.remove("pn-full");
   document.getElementById("ptt").innerHTML="แก้ไข #"+o.id+" <button class=\"cb\" onclick=\"cp()\">&times;</button>";
   _s=o.items.map(function(i){return{sku:i.sku,qty:i.qty}});
+  // Set _orderBase from order's first item
+  _orderBase=(_s.length>0?gb(_s[0].sku):null);
+  // If many SKUs, use full-width layout
+  if(_s.length>=3){document.getElementById("pp").classList.add("pn-full")}
   document.getElementById("pb").innerHTML=
+    "<div class=\"ord-left\">"+
     "<div class=\"fg\"><label>ชื่อรายการ</label><input type=\"text\" id=\"enm\" value=\""+(o.name||"")+"\" placeholder=\"เช่น ซองกันน้ำ, สายรัด ฯลฯ\"></div>"+
     "<div class=\"fg\"><label>หมายเลขคำสั่งซื้อ <span style=\"color:var(--r)\">*บังคับ</span> <span style=\"font-size:11px;color:var(--p);cursor:pointer\" onclick=\"navigator.clipboard.writeText(document.getElementById('eidIn').value);this.textContent='Copied!';var el=this;setTimeout(function(){el.textContent='คัดลอก'},1500)\">คัดลอก</span></label><input type=\"text\" id=\"eidIn\" value=\""+o.id+"\" style=\"border:2px solid var(--p);font-weight:700\"></div>"+
     "<div class=\"fg\"><label>มูลค่ารวม (฿)</label><input type=\"number\" id=\"eAmt\" step=\"0.01\" min=\"0\" value=\""+(o.amount||"")+"\" placeholder=\"0.00\"></div>"+
     "<div class=\"fg\"><label>วันที่สั่ง</label><input type=\"date\" id=\"edt\" value=\""+(o.date||"")+"\"></div>"+
     "<div class=\"fg\"><label>เลขพัสดุ</label><input type=\"text\" id=\"etr\" value=\""+(o.tracking||"")+"\"></div>"+
     "<div class=\"fg\"><label>&#128279; ลิงค์ 1688</label><input type=\"text\" id=\"el1688\" value=\""+_escAttr(o.link1688||"")+"\" placeholder=\"https://air.1688.com/...\"></div>"+
-    "<div class=\"fg\"><label>SKU</label><div id=\"skl\"></div><button type=\"button\" class=\"btn bs b2\" onclick=\"document.getElementById('skiWrap').style.display=document.getElementById('skiWrap').style.display==='none'?'':'none'\" style=\"margin-top:6px;font-size:12px\">+ เพิ่ม SKU อื่น</button><div id=\"skiWrap\" style=\"display:none;margin-top:6px\"><input type=\"text\" id=\"ski\" placeholder=\"พิมพ์ SKU แล้วกด Enter\" onkeydown=\"if(event.key==='Enter')addS()\" style=\"width:100%\"></div></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"enn\" rows=\"2\">"+(o.note||"")+"</textarea></div>"+
-    "<div style=\"display:flex;gap:8px\"><button class=\"btn bp\" onclick=\"se("+idx+")\" style=\"flex:1\">&#128190; บันทึก</button><button class=\"btn brd bs\" onclick=\"deo("+idx+")\">&#128465; ลบ</button></div>";
+    "<div style=\"display:flex;gap:8px\"><button class=\"btn bp\" onclick=\"se("+idx+")\" style=\"flex:1\">&#128190; บันทึก</button><button class=\"btn brd bs\" onclick=\"deo("+idx+")\">&#128465; ลบ</button></div>"+
+    "</div>"+
+    "<div class=\"ord-right\">"+
+    "<div style=\"font-size:14px;font-weight:700;color:var(--t);margin-bottom:10px\">&#128230; รายการ SKU</div>"+
+    "<div id=\"skl\"></div>"+
+    "<button type=\"button\" class=\"btn bs b2\" onclick=\"document.getElementById('skiWrap').style.display=document.getElementById('skiWrap').style.display==='none'?'':'none'\" style=\"margin-top:6px;font-size:12px\">+ เพิ่ม SKU อื่น</button>"+
+    "<div id=\"skiWrap\" style=\"display:none;margin-top:6px\"><input type=\"text\" id=\"ski\" placeholder=\"พิมพ์ SKU แล้วกด Enter\" onkeydown=\"if(event.key==='Enter')addS()\" style=\"width:100%\"></div>"+
+    "</div>";
   rsk();
 }
 function se(i){
@@ -6485,6 +6524,7 @@ function initApp(){
   try{applyPerms()}catch(e){console.error("applyPerms error:",e)}
   // แสดง sync status ทันที
   try{syncUI("loading")}catch(e){}
+  try{if(typeof _cleanupHold==="function")_cleanupHold()}catch(e){}
   try{recalcS();uk();rt();rmt();ro();rnp();rl();rrcv();renderSI();updateKPILabels()}catch(e){console.error("initApp error:",e)}
   try{_initTabScroll()}catch(e){}
   try{_updateNetBadge()}catch(e){}
@@ -6561,7 +6601,7 @@ document.addEventListener("click",function(e){var dd=document.getElementById("im
 function updateFm(){
   // Inventory stats
   var cAct=0,cDone=0,cReord=0,cNone=0;
-  I.forEach(function(it){var sm=ioSmart(it.sku);if(sm.st==="active")cAct++;else if(sm.st==="done")cDone++;else if(sm.st==="reorder")cReord++;else cNone++});
+  I.forEach(function(it){if(isDisc(it.sku)||it.src==="shopee"||isHold(it.sku))return;var sm=ioSmart(it.sku);if(sm.st==="active")cAct++;else if(sm.st==="done")cDone++;else if(sm.st==="reorder")cReord++;else cNone++});
   // Order stats
   var op=0,os2=0,orc=0,opr=0,ong=0,orf=0,ors=0;
   O.forEach(function(o){
