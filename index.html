@@ -1000,7 +1000,7 @@ function _editHold(base){
     if(h.expire){var di=document.getElementById("holdCustomDate");if(di)di.value=h.expire}
   },50);
 }
-function svHold(){if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_hold",JSON.stringify(HOLD));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
+function svHold(){_lastLocalEdit=Date.now();localStorage.setItem("ts_hold",JSON.stringify(HOLD));if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_hold",JSON.stringify(HOLD));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
 var _discSel={};
 var _mgrMode=false;
 function toggleMgrMode(){_mgrMode=!_mgrMode;_discSel={};_grpKeep=true;rt();renderDiscBar();var b=document.getElementById("mgrBtn");if(b)b.innerHTML=_mgrMode?"&#9989; ปิดโหมดจัดการ":"&#9881; โหมดจัดการ";var hcb=document.getElementById("discSelAllCb");if(hcb)hcb.style.display=_mgrMode?"inline-block":"none"}
@@ -1020,7 +1020,7 @@ function renderDiscBar(){
     +"<button onclick='discSelNone()' style='background:var(--c2);color:var(--t);border:1px solid var(--bd);border-radius:8px;padding:10px 16px;font-size:13px;cursor:pointer'>ยกเลิก</button>"
     +"</div>";
 }
-function svDisc(){if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_disc",JSON.stringify(DISC));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
+function svDisc(){_lastLocalEdit=Date.now();localStorage.setItem("ts_disc",JSON.stringify(DISC));if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_disc",JSON.stringify(DISC));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
 function sv(){_lastLocalEdit=Date.now();localStorage.setItem("ts_o",JSON.stringify(O));localStorage.setItem("ts_l",JSON.stringify(L));localStorage.setItem("ts_rc",JSON.stringify(RC));localStorage.setItem("ts_si",JSON.stringify(SI));localStorage.setItem("ts_np",JSON.stringify(NP));cloudSave()}
 
 // ===== LINE MESSAGING API =====
@@ -1141,7 +1141,7 @@ var CLOUD_URL = "https://script.google.com/macros/s/AKfycbztoejb5TvK5mTd63ZwSLyi
 var _cloudSaveTimer = null;
 var _cloudBusy = false;
 var _lastLocalEdit = 0;            // timestamp ของ edit ล่าสุด (ป้องกัน cloudLoad เขียนทับ)
-var EDIT_PROTECTION_MS = 15000;    // ระยะเวลาปกป้องหลัง edit (15 วิ)
+var EDIT_PROTECTION_MS = 90000;    // ระยะเวลาปกป้องหลัง edit (90 วิ — ให้ cloudSave เสร็จก่อนค่อยให้ cloudLoad ทำงาน)
 var _lastSyncOk = 0;               // timestamp ของ sync สำเร็จล่าสุด
 var _pendingRetry = false;         // มี save ที่ค้างรอ retry อยู่ไหม
 var _retryTimer = null;
@@ -1348,6 +1348,7 @@ function cloudSave() {
         syncUI("ok");
       } else {
         var emsg = (d && d.msg) ? d.msg : "Save failed";
+        _lastLocalEdit = Date.now();  // กัน cloudLoad ทับขณะ retry
         syncUI("err", emsg);
         _pendingRetry = true;
         _schedulePendingRetry();
@@ -1355,6 +1356,7 @@ function cloudSave() {
     })
     .catch(function(e) {
       _cloudBusy = false;
+      _lastLocalEdit = Date.now();  // รีเซ็ต protection เพื่อกัน cloudLoad ทับข้อมูลที่ยังไม่ได้ save
       syncUI("offline");
       _pendingRetry = true;
       _schedulePendingRetry();
@@ -1489,6 +1491,8 @@ function cloudLoad(manual) {
   // Edit Protection: ถ้าเพิ่งแก้ข้อมูล local ภายใน 15 วินาที → ข้ามการ auto-load
   // (manual refresh ข้ามการปกป้องนี้ได้)
   if (!manual && _lastLocalEdit && (Date.now() - _lastLocalEdit) < EDIT_PROTECTION_MS) return;
+  // ถ้ามี save ค้างอยู่ (pending retry หรือ debounce timer) → ห้าม cloudLoad ทับ
+  if (!manual && (_pendingRetry || _cloudSaveTimer)) return;
   _cloudBusy = true;
   syncUI("loading");
   fetch(CLOUD_URL + "?t=" + Date.now())
@@ -5575,7 +5579,7 @@ var ALOG=JSON.parse(localStorage.getItem("ts_alog")||"[]");
 // ===== PRODUCT NOTES (โน้ตภายในสินค้า) =====
 var PNOTES=JSON.parse(localStorage.getItem("ts_pnotes")||"{}");
 // PNOTES = { "H462": [{ts:"ISO",user:"name",uid:"id",avatar:"emoji",msg:"text"},...], ... }
-function svPnotes(){localStorage.setItem("ts_pnotes",JSON.stringify(PNOTES));_syncPnotes()}
+function svPnotes(){_lastLocalEdit=Date.now();localStorage.setItem("ts_pnotes",JSON.stringify(PNOTES));_syncPnotes()}
 function _syncPnotes(){if(!CLOUD_URL)return;var payload=_chunkSplit("ts_pnotes",JSON.stringify(PNOTES));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
 function _pnoteCount(base){return PNOTES[base]?PNOTES[base].length:0}
 function openPnotes(base){
@@ -5629,7 +5633,7 @@ function delPnote(base,idx){
 // ===== STORE TAGS =====
 var STAGS=JSON.parse(localStorage.getItem("ts_stags")||"{}");
 // STAGS = { "H462": "ร้านถุงซิป", "H329": "ร้านถุงซิป", ... }
-function svStags(){localStorage.setItem("ts_stags",JSON.stringify(STAGS));_syncStags()}
+function svStags(){_lastLocalEdit=Date.now();localStorage.setItem("ts_stags",JSON.stringify(STAGS));_syncStags()}
 function _syncStags(){if(!CLOUD_URL)return;var payload=_chunkSplit("ts_stags",JSON.stringify(STAGS));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
 function _allStoreNames(){
   var names={};
@@ -5828,7 +5832,7 @@ var CUR_USER=null;
 var _delIds=JSON.parse(localStorage.getItem("ts_del_users")||"[]");
 function _svDelIds(){localStorage.setItem("ts_del_users",JSON.stringify(_delIds))}
 
-function svUsers(){localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
+function svUsers(){_lastLocalEdit=Date.now();localStorage.setItem("ts_users",JSON.stringify(USERS));cloudSaveUsers()}
 function cloudSaveUsers(){
   if(!CLOUD_URL)return;
   if(!navigator.onLine){cloudSave();return}
