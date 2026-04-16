@@ -1611,6 +1611,10 @@ function _buildCloudPayload() {
   payload._ds_users_lm = String(_ds_users_lm);
   // บันทึกข้อความแจ้งเตือน LINE + timestamp สำหรับ auto notify
   try{var _lm=_lineBuildMsg();payload.ts_line_msg=_lm||"";payload.ts_line_msg_ts=String(Date.now())}catch(e){}
+  // Sync imported SKU set, archive, aging config ข้ามเครื่อง
+  try{var _isRaw=_tsGet("ts_imported_skus");if(_isRaw)payload.ts_imported_skus=_isRaw}catch(e){}
+  try{var _arRaw=_tsGet("ts_o_archive");if(_arRaw){var _arChunks=_chunkSplit("ts_o_archive",_arRaw);for(var ck in _arChunks){payload[ck]=_arChunks[ck]}}}catch(e){}
+  try{var _agRaw=_tsGet("ts_aging_cfg");if(_agRaw)payload.ts_aging_cfg=_agRaw}catch(e){}
   return payload;
 }
 
@@ -1917,6 +1921,12 @@ function cloudLoad(manual) {
       if(raw_stags){try{var _st=JSON.parse(raw_stags);if(_st&&typeof _st==="object"){STAGS=_st;_tsSet("ts_stags",JSON.stringify(STAGS))}}catch(e){}}
       // ดึง LINE config จาก cloud
       if(d.data.ts_line_conf){try{var _lc=JSON.parse(d.data.ts_line_conf);if(_lc&&_lc.token&&_lc.userId){_lineConf=_lc;_tsSet("ts_line_conf",JSON.stringify(_lineConf))}}catch(e){}}
+      // ดึง imported SKU set จาก cloud
+      if(d.data.ts_imported_skus){try{var _cis=JSON.parse(d.data.ts_imported_skus);if(Array.isArray(_cis)&&_cis.length>0){_importedSkuSet={};_cis.forEach(function(s){_importedSkuSet[s]=true});_hasImportSet=true;_tsSet("ts_imported_skus",d.data.ts_imported_skus);changed=true}}catch(e){}}
+      // ดึง archive จาก cloud
+      var raw_archive=_chunkJoin("ts_o_archive",d.data);if(raw_archive){try{var _ca=JSON.parse(raw_archive);var _la=JSON.parse(_tsGet("ts_o_archive")||"[]");if(JSON.stringify(_ca)!==JSON.stringify(_la)){var _merged={};_la.forEach(function(a){_merged[a.id||a.sku+a.date]=a});_ca.forEach(function(a){_merged[a.id||a.sku+a.date]=a});var _fArch=[];for(var mk in _merged)_fArch.push(_merged[mk]);_tsSet("ts_o_archive",JSON.stringify(_fArch))}}catch(e){}}
+      // ดึง aging config จาก cloud
+      if(d.data.ts_aging_cfg){try{var _cag=JSON.parse(d.data.ts_aging_cfg);if(_cag&&typeof _cag==="object"){AGING_CFG=_cag;_tsSet("ts_aging_cfg",d.data.ts_aging_cfg)}}catch(e){}}
       // ดึง deleted user IDs จาก cloud มา merge กับ local
       if(d.data.ts_del_users){try{var cd=JSON.parse(d.data.ts_del_users);if(Array.isArray(cd)){cd.forEach(function(id){if(_delIds.indexOf(id)===-1)_delIds.push(id)});_svDelIds()}}catch(e){}}
       if (raw_users) { try{var cu=JSON.parse(raw_users);if(Array.isArray(cu)&&cu.length>0){if(_c_users_lm>_ds_users_lm){USERS=cu;_ds_users_lm=_c_users_lm;_tsSet("_ds_users_lm",_c_users_lm)}else if(_c_users_lm===_ds_users_lm||_c_users_lm===0){USERS=_mergeUsers(USERS,cu)}_tsSet("ts_users",JSON.stringify(USERS))}}catch(e){} }
