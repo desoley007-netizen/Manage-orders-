@@ -801,6 +801,7 @@ html,body{overflow-x:hidden!important}
 <input type="file" id="trk1688Inp" accept=".xlsx,.xls" multiple style="display:none" onchange="impTrk1688(this)">
 <button class="vt-btn" id="ordSubCNS" onclick="document.getElementById('cnsInp').click()" style="background:#06b6d4;color:#fff;flex:0 0 auto;padding:10px 14px" title="อัพเดทเลขพัสดุและข้อมูลขนส่งจากไฟล์ CNS">&#128747; อัพเดทเลขพัสดุ CNS</button>
 <input type="file" id="cnsInp" accept=".xlsx,.xls" multiple style="display:none" onchange="importCNS(this)">
+<button class="vt-btn" id="ordSubBatch" onclick="batchTrkOpen()" style="background:#8b5cf6;color:#fff;flex:0 0 auto;padding:10px 14px" title="กรอกเลขพัสดุหลายรายการพร้อมกัน">✏️ กรอกเลขพัสดุ (Manual)</button>
 </div>
 <!-- Sub: Normal Orders -->
 <div id="ordSub-normal">
@@ -839,7 +840,12 @@ html,body{overflow-x:hidden!important}
 </div>
 <button onclick="var w=document.getElementById('rcvOrdWrap');var s=w.style.display==='none';w.style.display=s?'flex':'none';this.textContent=s?'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25b2':'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25bc'" style="width:100%;background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--t2);cursor:pointer;text-align:center">&#128230; เลือกคำสั่งซื้อ &#9660;</button>
 <div id="rcvOrdWrap" style="display:none;flex:1;gap:6px">
-<select class="sel" id="rcvOrd" onchange="document.getElementById('rcvOrdNP').value='';rrcv()" style="flex:1"><option value="">-- เลือกคำสั่งซื้อ --</option></select>
+<div style="position:relative;flex:1">
+<input type="text" id="rcvOrdSearch" class="sb" placeholder="🔍 ค้นหาคำสั่งซื้อ..." oninput="filterRcvOrd()" onfocus="document.getElementById('rcvOrdDrop').style.display='block'" style="width:100%;font-size:14px;padding:12px 14px;border-radius:12px">
+<div id="rcvOrdSelected" style="display:none;font-size:12px;color:var(--g);padding:4px 8px;font-weight:600"></div>
+<div id="rcvOrdDrop" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--bd);border-radius:10px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.3);margin-top:4px"></div>
+</div>
+<select class="sel" id="rcvOrd" onchange="document.getElementById('rcvOrdNP').value='';rrcv()" style="display:none"><option value="">-- เลือกคำสั่งซื้อ --</option></select>
 <select class="sel" id="rcvOrdNP" onchange="document.getElementById('rcvOrd').value='';rrcv()" style="flex:0 0 auto;min-width:180px;background:var(--y);color:#000;font-weight:600;display:none"><option value="">-- สินค้าใหม่ 1688 --</option></select>
 </div>
 </div>
@@ -1206,6 +1212,42 @@ function renderDiscBar(){
     +"</div>";
 }
 function svDisc(){_lastLocalEdit=Date.now();_tsSet("ts_disc",JSON.stringify(DISC));if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_disc",JSON.stringify(DISC));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
+// === BUG-010: INV Management mode inline editing ===
+function mgrEditItem(sku){
+  var idx=-1;R.forEach(function(r,i){if(r[0]===sku)idx=i});
+  if(idx<0){alert("ไม่พบ SKU: "+sku);return}
+  var r=R[idx];
+  document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
+  document.getElementById("ptt").innerHTML="✏️ แก้ไข SKU: "+sku+" <button class=\"cb\" onclick=\"cp()\">&times;</button>";
+  var curName=r[1]||"";
+  var curStock=r[2]||0;
+  var curImg=r[9]||"";
+  var h="<div style=\"padding:4px\">";
+  if(curImg)h+="<div style=\"text-align:center;margin-bottom:12px\"><img src=\""+curImg+"\" style=\"max-width:120px;max-height:120px;border-radius:10px;object-fit:cover\" onerror=\"this.style.display='none'\"></div>";
+  h+="<div class=\"fg\"><label>SKU</label><input type=\"text\" value=\""+sku+"\" disabled style=\"opacity:.6\"></div>";
+  h+="<div class=\"fg\"><label>ชื่อสินค้า</label><input type=\"text\" id=\"mgrEdName\" value=\""+_escAttr(curName)+"\"></div>";
+  h+="<div class=\"fg\"><label>สต็อก (ชิ้น)</label><input type=\"number\" id=\"mgrEdStock\" value=\""+curStock+"\" min=\"0\"></div>";
+  h+="<div class=\"fg\"><label>URL รูปภาพ</label><input type=\"text\" id=\"mgrEdImg\" value=\""+_escAttr(curImg)+"\" placeholder=\"https://...\"></div>";
+  h+="<div style=\"display:flex;gap:8px;margin-top:12px\">";
+  h+="<button class=\"btn bp\" onclick=\"mgrSaveItem("+idx+')\" style=\"flex:1\">💾 บันทึก</button>';
+  h+="<button class=\"btn bs b2\" onclick=\"cp()\">ยกเลิก</button>";
+  h+="</div></div>";
+  document.getElementById("pb").innerHTML=h;
+}
+function mgrSaveItem(idx){
+  var r=R[idx];if(!r)return;
+  r[1]=document.getElementById("mgrEdName").value;
+  r[2]=parseInt(document.getElementById("mgrEdStock").value)||0;
+  r[9]=document.getElementById("mgrEdImg").value||"";
+  // Update I array to match
+  if(I[idx]){I[idx].name=r[1];I[idx].stock=r[2];I[idx].img=r[9]}
+  // Also find in I by sku match (safer)
+  var sku=r[0];
+  I.forEach(function(it,ii){if(it.sku===sku){it.name=r[1];it.stock=r[2];it.img=r[9]}});
+  _tsSet("ts_r",JSON.stringify(R));
+  sv();recalcS();rt();cp();
+  _autoTrkToast("✅ บันทึก "+sku+" สำเร็จ");
+}
 function sv(){var _now=Date.now();_lastLocalEdit=_now;_ds_o_lm=_now;_ds_np_lm=_now;_ds_rc_lm=_now;_ds_si_lm=_now;_tsSet("_ds_o_lm",_now);_tsSet("_ds_np_lm",_now);_tsSet("_ds_rc_lm",_now);_tsSet("_ds_si_lm",_now);try{_tsSet("ts_o",JSON.stringify(O));_tsSet("ts_l",JSON.stringify(L));_tsSet("ts_rc",JSON.stringify(RC));_tsSet("ts_si",JSON.stringify(SI));_tsSet("ts_np",JSON.stringify(NP))}catch(e){if(e.name==="QuotaExceededError"||e.code===22){_lsOverflowWarning();_autoArchiveOldOrders();try{_tsSet("ts_o",JSON.stringify(O));_tsSet("ts_l",JSON.stringify(L));_tsSet("ts_rc",JSON.stringify(RC));_tsSet("ts_si",JSON.stringify(SI));_tsSet("ts_np",JSON.stringify(NP))}catch(e2){alert("พื้นที่เก็บข้อมูลเต็ม! กรุณาลบออเดอร์เก่าออก")}}}cloudSave();_lsCheckUsage()}
 // === localStorage Monitor ===
 var _lsWarnShown=false;
@@ -1790,9 +1832,11 @@ function cloudLoad(manual) {
   if (!manual && (_pendingRetry || _cloudSaveTimer)) return;
   _cloudBusy = true;
   syncUI("loading");
+  var _clTimeout=setTimeout(function(){_cloudBusy=false;syncUI("err","⏱ โหลดนานเกิน 15 วินาที — กดเพื่อลองใหม่")},15000);
   fetch(CLOUD_URL + "?t=" + Date.now())
   .then(function(r) { return r.json(); })
   .then(function(d) {
+    clearTimeout(_clTimeout);
     _cloudBusy = false;
     if (d.status === "ok" && d.data) {
       var changed = false;
@@ -1884,6 +1928,7 @@ function cloudLoad(manual) {
     } else { syncUI("err"); }
   })
   .catch(function(e) {
+    clearTimeout(_clTimeout);
     _cloudBusy = false;
     syncUI("offline");
   });
@@ -2296,6 +2341,80 @@ function _cnsApply(){
   if(p.unmatched.length)msg+="\n\u26a0\ufe0f \u0e44\u0e21\u0e48\u0e40\u0e08\u0e2d tracking "+p.unmatched.length+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23";
   _cnsPending=null;
   alert(msg);
+}
+
+// === BUG-009: Batch manual tracking number update ===
+function batchTrkOpen(){
+  document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
+  document.getElementById("pp").classList.remove("pn-full");document.getElementById("pp").classList.add("pn-full");
+  document.getElementById("ptt").innerHTML="✏️ กรอกเลขพัสดุหลายรายการ <button class=\"cb\" onclick=\"cp()\">&times;</button>";
+  var h="<div style=\"padding:4px\">";
+  h+="<div style=\"font-size:13px;color:var(--t2);margin-bottom:10px\">วางข้อมูลในรูปแบบ: <b>หมายเลขคำสั่งซื้อ [Tab/ช่องว่าง] เลขพัสดุ</b><br>บรรทัดละ 1 รายการ</div>";
+  h+="<textarea id=\"batchTrkInput\" rows=\"12\" style=\"width:100%;background:var(--c1);border:1px solid var(--bd);border-radius:8px;padding:12px;color:var(--t);font-size:14px;font-family:monospace;resize:vertical\" placeholder=\"ตัวอย่าง:\n680001234567 SF1234567890TH\n680009876543 TH9876543210\n...\"></textarea>";
+  h+="<div style=\"margin-top:10px;display:flex;gap:8px\">";
+  h+="<button class=\"btn bp\" onclick=\"batchTrkPreview()\" style=\"flex:1\">🔍 ตรวจสอบ</button>";
+  h+="<button class=\"btn bs b2\" onclick=\"cp()\">ยกเลิก</button>";
+  h+="</div>";
+  h+="<div id=\"batchTrkResult\" style=\"margin-top:12px\"></div>";
+  h+="</div>";
+  document.getElementById("pb").innerHTML=h;
+  setTimeout(function(){var ta=document.getElementById("batchTrkInput");if(ta)ta.focus()},100);
+}
+var _batchTrkPending=null;
+function batchTrkPreview(){
+  var raw=document.getElementById("batchTrkInput").value.trim();
+  if(!raw){alert("กรุณาวางข้อมูลก่อน");return}
+  var lines=raw.split(/\n/).filter(function(l){return l.trim()});
+  var oidSet={};O.forEach(function(o,i){oidSet[String(o.id).trim()]=i});
+  var keepStatus={received:1,partial:1,refunded:1,resolved:1};
+  var full=[],keep=[],notfound=[],invalid=[];
+  lines.forEach(function(line){
+    var parts=line.trim().split(/[\t\s]+/);
+    if(parts.length<2){invalid.push(line.trim());return}
+    var oid=parts[0].trim();
+    var trk=parts.slice(1).join(" ").trim();
+    if(!oid||!trk){invalid.push(line.trim());return}
+    if(!(oid in oidSet)){notfound.push(oid);return}
+    var idx=oidSet[oid];var o=O[idx];
+    var oldTrk=String(o.tracking||"").trim();var oldSt=o.status;
+    if(oldTrk===trk){return}
+    var newSt=keepStatus[oldSt]?oldSt:(oldTrk?"shipped":"shipped");
+    if(!oldTrk&&(oldSt==="pending"))newSt="shipped";
+    else if(keepStatus[oldSt])newSt=oldSt;
+    else newSt="shipped";
+    var item={oid:oid,idx:idx,oldTrk:oldTrk,newTrk:trk,oldSt:oldSt,newSt:newSt};
+    if(keepStatus[oldSt])keep.push(item);else full.push(item);
+  });
+  _batchTrkPending={full:full,keep:keep,notfound:notfound,invalid:invalid};
+  var total=full.length+keep.length;
+  var rh="<div style=\"background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-top:8px\">";
+  rh+="<div style=\"font-size:15px;font-weight:700;margin-bottom:8px\">📋 ผลการตรวจสอบ</div>";
+  rh+="✅ อัพเดทเต็ม (tracking + → shipped): <b style=\"color:var(--g)\">"+full.length+"</b><br>";
+  rh+="🔄 คงสถานะเดิม (แค่ tracking): <b style=\"color:var(--p)\">"+keep.length+"</b><br>";
+  if(notfound.length)rh+="❌ ไม่เจอในระบบ: <b style=\"color:var(--r)\">"+notfound.length+"</b> ("+notfound.join(", ")+")<br>";
+  if(invalid.length)rh+="⚠️ รูปแบบไม่ถูกต้อง: <b style=\"color:var(--y)\">"+invalid.length+"</b><br>";
+  if(total>0){
+    rh+="<div style=\"margin-top:12px;max-height:200px;overflow-y:auto;font-size:12px\">";
+    rh+="<table style=\"width:100%;font-size:12px\"><tr style=\"background:var(--c2)\"><th style=\"padding:4px 8px;text-align:left\">Order</th><th style=\"padding:4px 8px;text-align:left\">เลขพัสดุเดิม</th><th style=\"padding:4px 8px;text-align:left\">เลขพัสดุใหม่</th><th style=\"padding:4px 8px;text-align:left\">สถานะ</th></tr>";
+    full.concat(keep).forEach(function(x){
+      rh+="<tr><td style=\"padding:4px 8px\">"+x.oid+"</td><td style=\"padding:4px 8px;color:var(--t2)\">"+(x.oldTrk||"-")+"</td><td style=\"padding:4px 8px;color:var(--g);font-weight:600\">"+x.newTrk+"</td><td style=\"padding:4px 8px\">"+x.oldSt+" → "+x.newSt+"</td></tr>";
+    });
+    rh+="</table></div>";
+    rh+="<button class=\"btn bp\" onclick=\"batchTrkApply()\" style=\"width:100%;margin-top:12px;font-size:15px;padding:12px\">✅ ยืนยันอัพเดท "+total+" รายการ</button>";
+  }else{
+    rh+="<div style=\"padding:16px;text-align:center;color:var(--t2)\">ไม่มีรายการที่ต้องอัพเดท</div>";
+  }
+  rh+="</div>";
+  document.getElementById("batchTrkResult").innerHTML=rh;
+}
+function batchTrkApply(){
+  if(!_batchTrkPending)return;
+  var p=_batchTrkPending;var n=0;
+  p.full.forEach(function(x){O[x.idx].tracking=x.newTrk;O[x.idx].status=x.newSt;O[x.idx].statusChangedAt=new Date().toISOString().slice(0,10);O[x.idx]._lm=Date.now();n++});
+  p.keep.forEach(function(x){O[x.idx].tracking=x.newTrk;O[x.idx]._lm=Date.now();n++});
+  _batchTrkPending=null;
+  sv();cp();ro();rt();rmt();
+  alert("✅ อัพเดทเลขพัสดุสำเร็จ "+n+" รายการ");
 }
 
 // === Import ชื่อตัวเลือกสินค้า (จาก mass_update_sales_info.xlsx) ===
@@ -2816,7 +2935,7 @@ function _buildChildRows(base){
       "<td style=\"color:var(--a)\">"+it.rec+"</td>"+
       "<td>฿"+it.pr+"</td>"+
       "<td><span style=\"color:"+sm.c+";font-size:11px;white-space:nowrap\">"+sm.l+(sm.date?" <span style=\"font-size:10px;opacity:.7\">"+sm.date+"</span>":"")+"</span></td>"+
-      "<td><button class=\"btn bp bs\" onclick=\"os('"+it.sku+"',"+it.rec+","+it.pr+")\">สั่ง</button>"+(_mgrMode?"<button class=\"btn bs\" style=\"background:var(--c2);color:var(--t2);font-size:10px\" onclick=\"event.stopPropagation();toggleDisc('"+it.sku+"')\">&#128683;</button>":"")+"</td></tr>";
+      "<td><button class=\"btn bp bs\" onclick=\"os('"+it.sku+"',"+it.rec+","+it.pr+")\">สั่ง</button>"+(_mgrMode?"<button class=\"btn bs\" style=\"background:var(--c2);color:var(--t2);font-size:10px\" onclick=\"event.stopPropagation();toggleDisc('"+it.sku+"')\">&#128683;</button><button class=\"btn bs\" style=\"background:var(--a);color:#fff;font-size:10px;margin-left:2px\" onclick=\"event.stopPropagation();mgrEditItem('"+it.sku+"')\">&#9998;</button>":"")+"</td></tr>";
   });
   return h;
 }
@@ -4533,6 +4652,7 @@ function rrcv(){
     }
   });
   dd.innerHTML=h;
+  _rcvOrdOptions=[];
   if(cv&&cv.indexOf("NP_")<0)dd.value=cv;
   // Populate NP dropdown separately
   var dd2=document.getElementById("rcvOrdNP");
@@ -4559,6 +4679,53 @@ function rrcv(){
   if(rcvMode==="count")renderRcvCount();
   else renderRcvCheck();
 }
+
+// === BUG-006: Searchable PO dropdown for RCV tab ===
+var _rcvOrdOptions=[];
+function buildRcvOrdOptions(){
+  _rcvOrdOptions=[];
+  O.forEach(function(o,i){
+    if(o.status==="pending"||o.status==="shipped"||o.status==="arrived_th"||o.status==="partial"){
+      var tq=o.items.reduce(function(s,x){return s+x.qty},0);
+      var hasCount=RC[o.id]?"✅ นับแล้ว":"";
+      var label=(o.name||o.id)+" | "+o.date+" | "+o.items.length+" SKU | "+tq+" ชิ้น "+hasCount;
+      _rcvOrdOptions.push({idx:i,label:label,id:o.id,name:o.name||"",date:o.date||"",tracking:o.tracking||""});
+    }
+  });
+}
+function filterRcvOrd(){
+  var q=(document.getElementById("rcvOrdSearch").value||"").toLowerCase().trim();
+  var drop=document.getElementById("rcvOrdDrop");
+  if(!_rcvOrdOptions.length)buildRcvOrdOptions();
+  var filtered=q?_rcvOrdOptions.filter(function(o){return o.label.toLowerCase().indexOf(q)>=0||o.id.toLowerCase().indexOf(q)>=0||o.name.toLowerCase().indexOf(q)>=0||o.tracking.toLowerCase().indexOf(q)>=0}):_rcvOrdOptions;
+  var h="";
+  if(filtered.length===0){h="<div style=\"padding:14px;text-align:center;color:var(--t2)\">ไม่พบคำสั่งซื้อ</div>"}
+  else{
+    filtered.slice(0,50).forEach(function(o){
+      h+="<div onclick=\"selectRcvOrd("+o.idx+")\" style=\"padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--bd);font-size:13px;transition:background .15s\" onmouseover=\"this.style.background='var(--c2)'\" onmouseout=\"this.style.background=''\">"+o.label+"</div>";
+    });
+    if(filtered.length>50)h+="<div style=\"padding:8px 14px;text-align:center;color:var(--t2);font-size:12px\">...แสดง 50 จาก "+filtered.length+" รายการ — พิมพ์เพิ่มเพื่อกรอง</div>";
+  }
+  drop.innerHTML=h;
+  drop.style.display="block";
+}
+function selectRcvOrd(idx){
+  document.getElementById("rcvOrd").value=idx;
+  var o=O[idx];
+  document.getElementById("rcvOrdSearch").value=(o.name||o.id)+" | "+o.date;
+  document.getElementById("rcvOrdDrop").style.display="none";
+  document.getElementById("rcvOrdSelected").style.display="block";
+  document.getElementById("rcvOrdSelected").textContent="✅ เลือก: "+(o.name||o.id);
+  document.getElementById("rcvOrdNP").value="";
+  _rcvOrdOptions=[];
+  rrcv();
+}
+// Close dropdown when clicking outside
+document.addEventListener("click",function(e){
+  var drop=document.getElementById("rcvOrdDrop");
+  var search=document.getElementById("rcvOrdSearch");
+  if(drop&&search&&!drop.contains(e.target)&&e.target!==search){drop.style.display="none"}
+});
 
 var _rcvVarOpen=-1;
 var _rcvSelected=-1;
