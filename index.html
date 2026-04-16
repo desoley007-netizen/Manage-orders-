@@ -1021,7 +1021,103 @@ function renderDiscBar(){
     +"</div>";
 }
 function svDisc(){_lastLocalEdit=Date.now();localStorage.setItem("ts_disc",JSON.stringify(DISC));if(!CLOUD_URL)return;if(!navigator.onLine){cloudSave();return}var payload=_chunkSplit("ts_disc",JSON.stringify(DISC));fetch(CLOUD_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)}).catch(function(){})}
-function sv(){var _now=Date.now();_lastLocalEdit=_now;_ds_o_lm=_now;_ds_np_lm=_now;_ds_rc_lm=_now;_ds_si_lm=_now;localStorage.setItem("_ds_o_lm",_now);localStorage.setItem("_ds_np_lm",_now);localStorage.setItem("_ds_rc_lm",_now);localStorage.setItem("_ds_si_lm",_now);localStorage.setItem("ts_o",JSON.stringify(O));localStorage.setItem("ts_l",JSON.stringify(L));localStorage.setItem("ts_rc",JSON.stringify(RC));localStorage.setItem("ts_si",JSON.stringify(SI));localStorage.setItem("ts_np",JSON.stringify(NP));cloudSave()}
+function sv(){var _now=Date.now();_lastLocalEdit=_now;_ds_o_lm=_now;_ds_np_lm=_now;_ds_rc_lm=_now;_ds_si_lm=_now;localStorage.setItem("_ds_o_lm",_now);localStorage.setItem("_ds_np_lm",_now);localStorage.setItem("_ds_rc_lm",_now);localStorage.setItem("_ds_si_lm",_now);try{localStorage.setItem("ts_o",JSON.stringify(O));localStorage.setItem("ts_l",JSON.stringify(L));localStorage.setItem("ts_rc",JSON.stringify(RC));localStorage.setItem("ts_si",JSON.stringify(SI));localStorage.setItem("ts_np",JSON.stringify(NP))}catch(e){if(e.name==="QuotaExceededError"||e.code===22){_lsOverflowWarning();_autoArchiveOldOrders();try{localStorage.setItem("ts_o",JSON.stringify(O));localStorage.setItem("ts_l",JSON.stringify(L));localStorage.setItem("ts_rc",JSON.stringify(RC));localStorage.setItem("ts_si",JSON.stringify(SI));localStorage.setItem("ts_np",JSON.stringify(NP))}catch(e2){alert("พื้นที่เก็บข้อมูลเต็ม! กรุณาลบออเดอร์เก่าออก")}}}cloudSave();_lsCheckUsage()}
+// === localStorage Monitor ===
+var _lsWarnShown=false;
+function _lsGetUsageMB(){var t=0;for(var k in localStorage){if(localStorage.hasOwnProperty(k))t+=k.length+(localStorage[k]||"").length}return(t*2/1024/1024)}
+function _lsCheckUsage(){var mb=_lsGetUsageMB();var pct=Math.round(mb/5*100);var el=document.getElementById("lsMonitor");if(!el){el=document.createElement("div");el.id="lsMonitor";el.style.cssText="position:fixed;bottom:8px;left:8px;z-index:9999;font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;display:none";el.onclick=function(){if(confirm("พื้นที่เก็บข้อมูลใช้ไป "+pct+"% ("+mb.toFixed(1)+"MB/5MB)\n\nต้องการ Archive ออเดอร์เก่าเพื่อเพิ่มพื้นที่ไหม?")){_autoArchiveOldOrders();sv()}}; document.body.appendChild(el)}if(pct>=80){el.style.display="block";el.style.background=pct>=95?"rgba(239,68,68,.9)":pct>=90?"rgba(234,179,8,.9)":"rgba(59,130,246,.8)";el.style.color="#fff";el.textContent="\uD83D\uDCBE "+pct+"% ("+mb.toFixed(1)+"MB)";if(pct>=90&&!_lsWarnShown){_lsWarnShown=true;_lsOverflowWarning()}}else{el.style.display="none"}}
+function _lsOverflowWarning(){var el=document.getElementById("lsWarnBanner");if(el)el.remove();el=document.createElement("div");el.id="lsWarnBanner";el.style.cssText="position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:10px 16px;font-size:13px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.3)";var mb=_lsGetUsageMB();var pct=Math.round(mb/5*100);el.innerHTML="\u26A0 <b>พื้นที่เก็บข้อมูลใกล้เต็ม! ("+pct+"%)</b> \u2014 กรุณา Archive ออเดอร์เก่า <button onclick='_autoArchiveOldOrders();sv();this.parentElement.remove()' style='background:#fff;color:#ef4444;border:none;border-radius:6px;padding:4px 14px;font-size:12px;font-weight:700;cursor:pointer;margin-left:8px'>Archive เลย</button> <button onclick='this.parentElement.remove()' style='background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:4px'>\u2715</button>";document.body.appendChild(el)}
+// === Data Archiving — ย้ายออเดอร์เก่าที่เสร็จแล้วออก ===
+function _autoArchiveOldOrders(){var now=Date.now();var cutoff=90*24*60*60*1000;var doneStatuses={received:1,verified:1,resolved:1,refunded:1,cancelled:1};var archived=[];var kept=[];O.forEach(function(o){var orderDate=o.date?new Date(o.date).getTime():0;var isDone=doneStatuses[o.status];var isOld=(now-orderDate)>cutoff;if(isDone&&isOld){archived.push(o)}else{kept.push(o)}});if(archived.length>0){var existArch=JSON.parse(localStorage.getItem("ts_o_archive")||"[]");existArch=existArch.concat(archived);try{localStorage.setItem("ts_o_archive",JSON.stringify(existArch))}catch(e){}O=kept;logActivity("ระบบ","Archive ออเดอร์เก่า "+archived.length+" รายการ (เสร็จสิ้น > 90 วัน)");}return archived.length}
+
+// === Data Archive Manager UI ===
+function showArchiveManager(){
+  var old=document.getElementById("archiveModal");if(old)old.remove();
+  var mb=_lsGetUsageMB();var pct=Math.round(mb/5*100);
+  var archData=JSON.parse(localStorage.getItem("ts_o_archive")||"[]");
+  var doneStatuses={received:1,verified:1,resolved:1,refunded:1,cancelled:1};
+  var now=Date.now();
+  // Count archivable orders by age
+  var arch30=[],arch60=[],arch90=[];
+  O.forEach(function(o){
+    if(!doneStatuses[o.status])return;
+    var age=o.date?(now-new Date(o.date).getTime()):0;
+    if(age>30*86400000)arch30.push(o);
+    if(age>60*86400000)arch60.push(o);
+    if(age>90*86400000)arch90.push(o);
+  });
+  var m=document.createElement("div");m.id="archiveModal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px";
+  m.onclick=function(e){if(e.target===m)m.remove()};
+  var h="<div style='background:var(--bg);border-radius:14px;padding:24px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto'>";
+  h+="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:16px'><div style='font-weight:700;font-size:16px'>🗄️ จัดการข้อมูล & Archive</div><button onclick='this.closest(\"#archiveModal\").remove()' style='background:none;border:none;font-size:20px;cursor:pointer;color:var(--t2)'>&times;</button></div>";
+  // Storage usage
+  h+="<div style='background:"+(pct>=90?"rgba(239,68,68,.1)":pct>=80?"rgba(234,179,8,.1)":"rgba(59,130,246,.1)")+";border:1px solid "+(pct>=90?"rgba(239,68,68,.3)":pct>=80?"rgba(234,179,8,.3)":"rgba(59,130,246,.3)")+";border-radius:10px;padding:14px;margin-bottom:16px'>";
+  h+="<div style='font-size:12px;color:var(--t2);margin-bottom:6px'>พื้นที่เก็บข้อมูล</div>";
+  h+="<div style='display:flex;align-items:baseline;gap:8px;margin-bottom:8px'><span style='font-size:28px;font-weight:700;color:"+(pct>=90?"#ef4444":pct>=80?"#eab308":"var(--a)")+"'>"+pct+"%</span><span style='font-size:12px;color:var(--t2)'>"+mb.toFixed(2)+" / 5 MB</span></div>";
+  h+="<div style='height:8px;background:rgba(0,0,0,.1);border-radius:4px;overflow:hidden'><div style='height:100%;width:"+pct+"%;background:"+(pct>=90?"#ef4444":pct>=80?"#eab308":"var(--a)")+";border-radius:4px'></div></div></div>";
+  // Current data stats
+  h+="<div style='background:var(--c1);border-radius:10px;padding:14px;margin-bottom:16px'>";
+  h+="<div style='font-size:13px;font-weight:600;margin-bottom:8px'>📊 ข้อมูลปัจจุบัน</div>";
+  h+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px'>";
+  h+="<div>ออเดอร์: <b>"+O.length+"</b></div>";
+  h+="<div>สินค้า: <b>"+I.length+"</b></div>";
+  h+="<div>Archive แล้ว: <b>"+archData.length+"</b></div>";
+  h+="<div>สินค้าใหม่: <b>"+NP.length+"</b></div>";
+  h+="</div></div>";
+  // Archive options
+  h+="<div style='font-size:13px;font-weight:600;margin-bottom:10px'>🗂️ Archive ออเดอร์เสร็จแล้ว</div>";
+  h+="<div style='display:flex;flex-direction:column;gap:8px;margin-bottom:16px'>";
+  h+="<button onclick='_archiveByDays(30)' style='display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--bd);border-radius:8px;background:var(--c1);cursor:pointer;font-size:13px'><span>เก่ากว่า 30 วัน</span><span style='color:var(--a);font-weight:600'>"+arch30.length+" รายการ</span></button>";
+  h+="<button onclick='_archiveByDays(60)' style='display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--bd);border-radius:8px;background:var(--c1);cursor:pointer;font-size:13px'><span>เก่ากว่า 60 วัน</span><span style='color:var(--a);font-weight:600'>"+arch60.length+" รายการ</span></button>";
+  h+="<button onclick='_archiveByDays(90)' style='display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--bd);border-radius:8px;background:var(--c1);cursor:pointer;font-size:13px'><span>เก่ากว่า 90 วัน</span><span style='color:var(--a);font-weight:600'>"+arch90.length+" รายการ</span></button>";
+  h+="</div>";
+  // Danger zone
+  h+="<div style='border-top:1px solid var(--bd);padding-top:14px;margin-top:8px'>";
+  h+="<div style='font-size:13px;font-weight:600;color:#ef4444;margin-bottom:10px'>⚠️ ลบข้อมูลถาวร</div>";
+  h+="<div style='display:flex;flex-direction:column;gap:8px'>";
+  h+="<button onclick='_deleteArchived()' style='padding:10px;border:1px solid rgba(239,68,68,.3);border-radius:8px;background:rgba(239,68,68,.05);cursor:pointer;font-size:12px;color:#ef4444'>🗑️ ลบ Archive ทั้งหมด ("+archData.length+" รายการ) — เพิ่มพื้นที่</button>";
+  h+="<button onclick='_exportArchive()' style='padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--c1);cursor:pointer;font-size:12px;color:var(--t)'>📥 Export Archive เป็น JSON (backup ก่อนลบ)</button>";
+  h+="</div></div>";
+  h+="</div>";
+  m.innerHTML=h;document.body.appendChild(m);
+}
+function _archiveByDays(days){
+  var cutoff=days*24*60*60*1000;var now=Date.now();
+  var doneStatuses={received:1,verified:1,resolved:1,refunded:1,cancelled:1};
+  var toArch=[];var kept=[];
+  O.forEach(function(o){
+    var age=o.date?(now-new Date(o.date).getTime()):0;
+    if(doneStatuses[o.status]&&age>cutoff){toArch.push(o)}else{kept.push(o)}
+  });
+  if(toArch.length===0){alert("ไม่มีออเดอร์ที่ตรงเงื่อนไข");return}
+  if(!confirm("Archive "+toArch.length+" ออเดอร์ (เสร็จแล้ว เก่ากว่า "+days+" วัน)?\n\nข้อมูลจะถูกย้ายไป Archive และยังกู้คืนได้"))return;
+  var existArch=JSON.parse(localStorage.getItem("ts_o_archive")||"[]");
+  existArch=existArch.concat(toArch);
+  try{localStorage.setItem("ts_o_archive",JSON.stringify(existArch))}catch(e){alert("ไม่สามารถ Archive ได้ — พื้นที่เต็ม กรุณาลบ Archive เก่าก่อน");return}
+  O=kept;sv();
+  logActivity("Archive","ย้าย "+toArch.length+" ออเดอร์ (>"+days+" วัน)");
+  alert("✅ Archive สำเร็จ "+toArch.length+" รายการ");
+  showArchiveManager();
+}
+function _deleteArchived(){
+  var archData=JSON.parse(localStorage.getItem("ts_o_archive")||"[]");
+  if(archData.length===0){alert("ไม่มีข้อมูล Archive");return}
+  if(!confirm("⚠️ ลบ Archive "+archData.length+" รายการถาวร?\n\nข้อมูลนี้จะหายไปและไม่สามารถกู้คืนได้\n\nแนะนำ: Export backup ก่อนลบ"))return;
+  localStorage.removeItem("ts_o_archive");
+  logActivity("ลบ Archive","ลบถาวร "+archData.length+" รายการ");
+  alert("✅ ลบ Archive แล้ว — เพิ่มพื้นที่ ~"+(_lsGetUsageMB()).toFixed(1)+"MB");
+  showArchiveManager();
+}
+function _exportArchive(){
+  var archData=JSON.parse(localStorage.getItem("ts_o_archive")||"[]");
+  if(archData.length===0){alert("ไม่มีข้อมูล Archive");return}
+  var blob=new Blob([JSON.stringify(archData,null,2)],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");a.href=url;
+  a.download="THAISURE-Archive-"+new Date().toISOString().slice(0,10)+".json";
+  a.click();URL.revokeObjectURL(url);
+}
 
 // ===== LINE MESSAGING API =====
 var _lineConf=JSON.parse(localStorage.getItem("ts_line_conf")||"{}");
@@ -4574,11 +4670,30 @@ function rcvAdd(){
   if(!sku)return;
   var qty=parseInt(document.getElementById("rcvQty").value)||1;
   var skuUp=sku.toUpperCase();
+  // --- Cross-PO warning (Fix #2) ---
+  var prevPOIdx=parseInt(document.getElementById("rcvOrd").value);
+  var hadPO=(!isNaN(prevPOIdx)&&O[prevPOIdx]);
+  var hadItems=_rcvItems.length>0;
   // Find existing
   var ex=_rcvItems.find(function(r){return r.sku.toLowerCase()===sku.toLowerCase()});
   var addedIdx;
   if(ex){ex.qty+=qty;addedIdx=_rcvItems.indexOf(ex)}
   else{_rcvItems.push({sku:skuUp,qty:qty});addedIdx=_rcvItems.length-1}
+  // Check if new SKU causes PO switch
+  if(hadPO&&hadItems){
+    var newMatches=_rcvFindMatchingPOs(_rcvItems);
+    if(newMatches.length>0&&newMatches[0].idx!==prevPOIdx){
+      var oldName=O[prevPOIdx].name||O[prevPOIdx].id;
+      var newName=newMatches[0].o.name||newMatches[0].o.id;
+      if(!confirm("⚠️ SKU \""+skuUp+"\" อยู่คนละ PO!\n\nPO ปัจจุบัน: "+oldName+"\nPO ใหม่ที่ตรง: "+newName+"\n\nต้องการเปลี่ยน PO ไหม?\n\n[ตกลง] = เปลี่ยนไป PO ใหม่\n[ยกเลิก] = เก็บ PO เดิม แต่ยังเพิ่ม SKU")){
+        // User chose to keep old PO — don't let auto-pick change it
+        // We still add the SKU but keep the PO selection
+      }else{
+        // User chose to switch PO — let auto-pick handle it
+        document.getElementById("rcvOrd").value=newMatches[0].idx;
+      }
+    }
+  }
   document.getElementById("rcvSku").value="";
   document.getElementById("rcvQty").value="1";
   document.getElementById("rcvSug").innerHTML="";
@@ -5899,11 +6014,36 @@ function _mergeUsers(local,cloud){
   });
   return merged;
 }
+// === Session Timeout & Security ===
+var SESSION_TIMEOUT_MS=30*60*1000; // 30 นาที
+var _sessionTimer=null;
+var _loginAttempts=0;
+var _loginLockUntil=0;
+var MAX_LOGIN_ATTEMPTS=5;
+var LOGIN_LOCK_MS=60*1000; // ล็อค 1 นาทีหลังพยายามเกิน
+
+function _resetSessionTimer(){
+  if(_sessionTimer)clearTimeout(_sessionTimer);
+  if(!CUR_USER)return;
+  localStorage.setItem("ts_lastActivity",Date.now());
+  _sessionTimer=setTimeout(function(){
+    if(!CUR_USER)return;
+    alert("หมดเวลาใช้งาน (ไม่มีการใช้งาน 30 นาที)\nกรุณาเข้าสู่ระบบใหม่");
+    _doLogoutReal();
+  },SESSION_TIMEOUT_MS);
+}
+// Track user activity for session timeout
+["click","keydown","touchstart","scroll"].forEach(function(ev){
+  document.addEventListener(ev,function(){if(CUR_USER)_resetSessionTimer()},{passive:true});
+});
+
 function _loginOK(u){
   CUR_USER=u;
-  localStorage.setItem("ts_login",JSON.stringify({id:u.id}));
+  _loginAttempts=0;
+  localStorage.setItem("ts_login",JSON.stringify({id:u.id,ts:Date.now()}));
   document.getElementById("loginScreen").style.display="none";
   document.getElementById("loginErr").textContent="";
+  _resetSessionTimer();
   logActivity("\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a","\u0e25\u0e47\u0e2d\u0e01\u0e2d\u0e34\u0e19\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08");
   initApp();
 }
@@ -5930,6 +6070,10 @@ function doLogin(){
   var uid=document.getElementById("loginUser").value.trim().toLowerCase();
   var pw=document.getElementById("loginPass").value;
   if(!uid||!pw){document.getElementById("loginErr").textContent="\u0e01\u0e23\u0e38\u0e13\u0e32\u0e01\u0e23\u0e2d\u0e01\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e41\u0e25\u0e30\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19";return}
+  // Login attempt limiting
+  if(Date.now()<_loginLockUntil){
+    var secLeft=Math.ceil((_loginLockUntil-Date.now())/1000);
+    document.getElementById("loginErr").textContent="ล็อคชั่วคราว! รอ "+secLeft+" วินาที แล้วลองใหม่";return}
   // ลองหาจาก local ก่อน
   var u=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
   if(u){_loginOK(u);return}
@@ -5939,11 +6083,11 @@ function doLogin(){
     _fetchCloudUsers().then(function(){
       var u2=USERS.find(function(x){return x.id.toLowerCase()===uid&&x.pass===pw});
       if(u2){_loginOK(u2)}
-      else{document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07"}
+      else{_loginAttempts++;if(_loginAttempts>=MAX_LOGIN_ATTEMPTS){_loginLockUntil=Date.now()+LOGIN_LOCK_MS;document.getElementById("loginErr").textContent="พยายามเข้าสู่ระบบเกิน "+MAX_LOGIN_ATTEMPTS+" ครั้ง! ล็อค 1 นาที"}else{document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07 ("+_loginAttempts+"/"+MAX_LOGIN_ATTEMPTS+")"}}
     });
     return;
   }
-  document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07";
+  _loginAttempts++;if(_loginAttempts>=MAX_LOGIN_ATTEMPTS){_loginLockUntil=Date.now()+LOGIN_LOCK_MS;document.getElementById("loginErr").textContent="พยายามเข้าสู่ระบบเกิน "+MAX_LOGIN_ATTEMPTS+" ครั้ง! ล็อค 1 นาที"}else{document.getElementById("loginErr").textContent="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e2b\u0e23\u0e37\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e44\u0e21\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07 ("+_loginAttempts+"/"+MAX_LOGIN_ATTEMPTS+")"}
 }
 
 function _buildDailySummary(uid,uname,avatar){
@@ -6031,6 +6175,9 @@ function _doLogoutReal(){
 function checkSession(){
   var s=JSON.parse(localStorage.getItem("ts_login")||"null");
   if(!s)return false;
+  // Check session timeout based on last activity
+  var lastAct=parseInt(localStorage.getItem("ts_lastActivity")||"0");
+  if(lastAct&&(Date.now()-lastAct>SESSION_TIMEOUT_MS)){localStorage.removeItem("ts_login");return false}
   var u=USERS.find(function(x){return x.id===s.id});
   if(!u)return false;
   CUR_USER=u;
@@ -6451,6 +6598,9 @@ function updateFm(){
     "<div class=\"fm-sec\"><div class=\"fm-h\">&#128279; ลิงค์ 1688</div>"+
     "<div class=\"fm-row\" onclick=\"sw('lnk');toggleFab()\"><span class=\"fm-lbl\">&#9989; จับคู่แล้ว</span><span class=\"fm-val fm-g\">"+lmc+"</span></div>"+
     "<div class=\"fm-row\" onclick=\"sw('lnk');toggleFab()\"><span class=\"fm-lbl\">&#10060; ยังไม่มีลิงก์</span><span class=\"fm-val fm-r\">"+lumc+"</span></div>"+
+    "</div>"+
+    "<div class=\"fm-sec\"><div class=\"fm-h\">&#128451; จัดการข้อมูล</div>"+
+    "<div class=\"fm-row\" onclick=\"showArchiveManager();toggleFab()\"><span class=\"fm-lbl\">&#128451; Archive & พื้นที่</span><span class=\"fm-val\" style='font-size:11px'>"+Math.round(_lsGetUsageMB()/5*100)+"%</span></div>"+
     "</div>";
 }
 </script>
