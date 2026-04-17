@@ -6261,6 +6261,9 @@ function _rcvSkuEq(a,b){
   }
   return false;
 }
+// Track last swap for one-click undo (Worker 2 convenience)
+var _rcvLastSwap=null; // {fromId, toId, ts}
+
 // Match score for a specific order vs counted items (0-100).
 // Used by worker 2 review screen to detect wrong-order selections.
 function _rcvScoreFor(o,items){
@@ -6745,6 +6748,17 @@ function renderRcvCheckNormal(idx){
   var extraQty=extraItems.reduce(function(s,x){return s+x.qty},0);
   totalCnt+=extraQty;
   var h="<div style='font-weight:700;font-size:15px;margin-bottom:10px'>&#128270; "+(o.name||o.id)+"</div>";
+  // Undo swap banner (Worker 2: one-click reverse of the most recent move; expires after 10 min)
+  if(_rcvLastSwap&&_rcvLastSwap.toId===o.id&&(Date.now()-_rcvLastSwap.ts)<600000){
+    var _agoSec=Math.round((Date.now()-_rcvLastSwap.ts)/1000);
+    var _agoTxt=_agoSec<60?(_agoSec+" \u0e27\u0e34\u0e19\u0e32\u0e17\u0e35\u0e17\u0e35\u0e48\u0e41\u0e25\u0e49\u0e27"):(Math.round(_agoSec/60)+" \u0e19\u0e32\u0e17\u0e35\u0e17\u0e35\u0e48\u0e41\u0e25\u0e49\u0e27");
+    h+="<div style='margin-bottom:12px;padding:12px 14px;background:linear-gradient(135deg,rgba(234,179,8,.18),rgba(234,179,8,.06));border:2px solid #eab308;border-radius:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap'>";
+    h+="<div style='font-size:22px'>&#8617;&#65039;</div>";
+    h+="<div style='flex:1;min-width:160px'><div style='font-weight:800;font-size:13px;color:#b45309'>\u0e40\u0e1e\u0e34\u0e48\u0e07\u0e22\u0e49\u0e32\u0e22\u0e21\u0e32\u0e08\u0e32\u0e01 #"+_rcvLastSwap.fromId+"</div>";
+    h+="<div style='font-size:11px;color:var(--t2);margin-top:2px'>"+_agoTxt+" \u2014 \u0e01\u0e14\u0e1b\u0e38\u0e48\u0e21\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e01\u0e25\u0e31\u0e1a\u0e44\u0e1b\u0e17\u0e35\u0e48\u0e40\u0e14\u0e34\u0e21</div></div>";
+    h+="<button onclick='event.stopPropagation();rcvUndoSwap()' style='background:#eab308;color:#000;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap'>&#8617;&#65039; \u0e22\u0e49\u0e32\u0e22\u0e01\u0e25\u0e31\u0e1a</button>";
+    h+="</div>";
+  }
   h+="<div style='display:flex;gap:12px;margin-bottom:14px'>";
   h+="<div class='st'><div style='font-size:24px;font-weight:800;color:var(--g)'>"+ok+"</div><div style='font-size:11px;color:var(--t2)'>\u0e15\u0e23\u0e07\u0e01\u0e31\u0e19</div></div>";
   h+="<div class='st'><div style='font-size:24px;font-weight:800;color:var(--r)'>"+bad+"</div><div style='font-size:11px;color:var(--t2)'>\u0e44\u0e21\u0e48\u0e15\u0e23\u0e07</div></div>";
@@ -6769,8 +6783,11 @@ function renderRcvCheckNormal(idx){
       var _ms=_rcvScoreFor(c.o,rc.items);
       var col=_ms.score>=80?"var(--g)":_ms.score>=60?"#eab308":"#6b7280";
       h+="<div style='background:var(--c1);border:1px solid var(--bd);border-left:4px solid "+col+";border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap'>";
-      h+="<div style='flex:1;min-width:150px'><div style='font-weight:700;font-size:13px'>#"+c.o.id+"</div>";
-      h+="<div style='font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px'>"+((c.o.name||"-").substring(0,60))+" | "+c.total+" SKU | "+(c.o.date||"")+"</div></div>";
+      h+="<div style='flex:1;min-width:150px'>";
+      h+="<div style='font-weight:700;font-size:13px'>#"+c.o.id+"</div>";
+      h+="<div style='font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px'>"+((c.o.name||"-").substring(0,60))+"</div>";
+      h+="<div style='font-size:10px;color:var(--t2);margin-top:3px;font-weight:600'>&#128197; <b style='color:var(--t)'>"+(c.o.date||"-")+"</b> &middot; "+c.total+" SKU</div>";
+      h+="</div>";
       h+="<div style='text-align:right'><div style='font-weight:800;font-size:16px;color:"+col+"'>"+_ms.score+"%</div><div style='font-size:10px;color:var(--t2)'>\u0e15\u0e23\u0e07 "+_ms.skuHit+"/"+c.total+"</div></div>";
       h+="<button class='btn bp' onclick='event.stopPropagation();rcvSwapOrder("+idx+","+c.idx+")' style='padding:8px 12px;font-size:12px;font-weight:700'>&#128260; \u0e22\u0e49\u0e32\u0e22\u0e44\u0e1b\u0e19\u0e35\u0e48</button>";
       h+="</div>";
@@ -6855,7 +6872,7 @@ function rcvOpenSwap(fromIdx){
       candsHtml+="<div style='display:flex;justify-content:space-between;align-items:center;gap:10px'>";
       candsHtml+="<div style='flex:1;min-width:0'><div style='font-weight:700;font-size:14px'>"+medal+" #"+c.o.id+"</div>";
       candsHtml+="<div style='font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+((c.o.name||"-").substring(0,70))+"</div>";
-      candsHtml+="<div style='font-size:10px;color:var(--t2);margin-top:2px'>"+(c.o.date||"")+" | "+c.total+" SKU</div></div>";
+      candsHtml+="<div style='font-size:10px;color:var(--t2);margin-top:3px;font-weight:600'>&#128197; <b style='color:var(--t)'>"+(c.o.date||"-")+"</b> &middot; "+c.total+" SKU</div></div>";
       candsHtml+="<div style='text-align:right;flex:0 0 auto'><div style='font-weight:800;font-size:18px;color:"+col+"'>"+_ms.score+"%</div><div style='font-size:10px;color:var(--t2)'>\u0e15\u0e23\u0e07 "+_ms.skuHit+"/"+c.total+"</div></div>";
       candsHtml+="</div></div>";
     });
@@ -6885,7 +6902,8 @@ function _rcvSwapSearchPO(fromIdx){
   list.slice(0,15).forEach(function(x){
     h+="<div onclick='rcvSwapOrder("+fromIdx+","+x.idx+")' style='cursor:pointer;padding:10px 12px;background:var(--c1);border:1px solid var(--bd);border-radius:8px;transition:all .15s' onmouseover='this.style.borderColor=\"var(--a)\";this.style.background=\"var(--glow)\"' onmouseout='this.style.borderColor=\"var(--bd)\";this.style.background=\"var(--c1)\"'>";
     h+="<div style='font-weight:600;font-size:13px'>#"+x.o.id+"</div>";
-    h+="<div style='font-size:11px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+((x.o.name||"-").substring(0,70))+" | "+(x.o.items?x.o.items.length:0)+" SKU | "+(x.o.date||"")+"</div></div>";
+    h+="<div style='font-size:11px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+((x.o.name||"-").substring(0,70))+"</div>";
+    h+="<div style='font-size:10px;color:var(--t2);margin-top:2px;font-weight:600'>&#128197; <b style='color:var(--t)'>"+(x.o.date||"-")+"</b> &middot; "+(x.o.items?x.o.items.length:0)+" SKU</div></div>";
   });
   if(list.length>15)h+="<div style='padding:6px;font-size:11px;color:var(--t2);text-align:center'>... \u0e41\u0e25\u0e30\u0e2d\u0e35\u0e01 "+(list.length-15)+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</div>";
   res.innerHTML=h;
@@ -6903,6 +6921,8 @@ function rcvSwapOrder(fromIdx,toIdx){
   // Move RC
   RC[to.id]=rc;
   delete RC[from.id];
+  // Record for one-click undo
+  _rcvLastSwap={fromId:from.id,toId:to.id,ts:Date.now()};
   // Log
   if(typeof logActivity==="function")logActivity("\u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a",from.id+" \u2192 "+to.id+(CUR_USER?" \u0e42\u0e14\u0e22 "+CUR_USER.name:""));
   sv();
@@ -6910,7 +6930,27 @@ function rcvSwapOrder(fromIdx,toIdx){
   // Open the new order's check view
   _chkOpen="N_"+toIdx;
   if(typeof rrcv==="function")rrcv();
-  alert("\u2705 \u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e40\u0e23\u0e35\u0e22\u0e1a\u0e23\u0e49\u0e2d\u0e22 \u2014 \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e43\u0e2b\u0e21\u0e48\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22");
+  alert("\u2705 \u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e40\u0e23\u0e35\u0e22\u0e1a\u0e23\u0e49\u0e2d\u0e22 \u2014 \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e43\u0e2b\u0e21\u0e48\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22\n\n\uD83D\uDCA1 \u0e16\u0e49\u0e32\u0e22\u0e49\u0e32\u0e22\u0e1c\u0e34\u0e14 \u2014 \u0e01\u0e14\u0e1b\u0e38\u0e48\u0e21 \u21A9\ufe0f \"\u0e22\u0e49\u0e32\u0e22\u0e01\u0e25\u0e31\u0e1a\" \u0e14\u0e49\u0e32\u0e19\u0e1a\u0e19\u0e44\u0e14\u0e49");
+}
+
+// One-click undo: reverses the last swap (within 10 minutes)
+function rcvUndoSwap(){
+  if(!_rcvLastSwap){alert("\u0e44\u0e21\u0e48\u0e21\u0e35\u0e01\u0e32\u0e23\u0e22\u0e49\u0e32\u0e22\u0e04\u0e23\u0e31\u0e49\u0e07\u0e25\u0e48\u0e32\u0e2a\u0e38\u0e14");return}
+  var ls=_rcvLastSwap;
+  if(!RC[ls.toId]){alert("\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e2b\u0e32\u0e22\u0e44\u0e1b\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e22\u0e49\u0e32\u0e22\u0e01\u0e25\u0e31\u0e1a\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49");_rcvLastSwap=null;return}
+  var backIdx=O.findIndex(function(o){return o.id===ls.fromId});
+  if(backIdx<0){alert("\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e40\u0e14\u0e34\u0e21");_rcvLastSwap=null;return}
+  if(!confirm("\u21A9\ufe0f \u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e01\u0e25\u0e31\u0e1a\u0e44\u0e1b\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c #"+ls.fromId+"?"))return;
+  if(RC[ls.fromId]&&RC[ls.fromId].items&&RC[ls.fromId].items.length>0){
+    if(!confirm("\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e40\u0e14\u0e34\u0e21\u0e21\u0e35\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27\n\n\u0e17\u0e31\u0e1a\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e40\u0e14\u0e34\u0e21?"))return;
+  }
+  RC[ls.fromId]=RC[ls.toId];
+  delete RC[ls.toId];
+  if(typeof logActivity==="function")logActivity("\u0e22\u0e49\u0e32\u0e22\u0e01\u0e25\u0e31\u0e1a (Undo)",ls.toId+" \u2192 "+ls.fromId+(CUR_USER?" \u0e42\u0e14\u0e22 "+CUR_USER.name:""));
+  _rcvLastSwap=null;
+  sv();
+  _chkOpen="N_"+backIdx;
+  if(typeof rrcv==="function")rrcv();
 }
 
 function rcvEditCount(ordId,sku,newQty,ordIdx){
