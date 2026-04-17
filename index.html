@@ -167,10 +167,28 @@ tr:hover td{background:var(--glow)}
 .usr-modal .fg input,.usr-modal .fg select{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--t);font-size:14px;box-sizing:border-box}
 .usr-modal .fg input:focus,.usr-modal .fg select:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
 /* Permission chips in modal */
-.perm-grid-m{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.perm-grid-m{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .perm-chip{font-size:11px;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--bd);background:var(--c2);color:var(--t2);transition:all .15s;user-select:none}
 .perm-chip.on{background:rgba(99,102,241,.12);color:var(--a);border-color:rgba(99,102,241,.3)}
 .perm-chip:hover{border-color:var(--a)}
+/* Collapsible permission groups */
+.perm-group{border:1px solid var(--bd);border-radius:10px;overflow:hidden;background:var(--c2)}
+.perm-group-hd{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:600;user-select:none;background:rgba(255,255,255,.02)}
+.perm-group-hd:hover{background:rgba(99,102,241,.06)}
+.perm-group-hd .pg-lbl{flex:1}
+.perm-group-hd .pg-cnt{font-size:11px;color:var(--t2);background:var(--bg);padding:2px 8px;border-radius:10px;font-weight:500}
+.perm-group-hd .pg-cnt.on{color:var(--a);background:rgba(99,102,241,.12)}
+.perm-group-hd .pg-arr{font-size:10px;color:var(--t2);transition:transform .15s}
+.perm-group.open .pg-arr{transform:rotate(180deg)}
+.perm-group-body{display:none;padding:4px 12px 10px;border-top:1px solid var(--bd)}
+.perm-group.open .perm-group-body{display:flex;flex-direction:column;gap:4px}
+.perm-sub{display:flex;align-items:center;gap:10px;padding:7px 6px;cursor:pointer;border-radius:6px;font-size:12px;user-select:none}
+.perm-sub:hover{background:rgba(99,102,241,.06)}
+.perm-sub input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--a);flex:0 0 auto}
+.perm-sub .ps-lbl{flex:1;color:var(--t1)}
+.perm-group-actions{display:flex;gap:6px;padding:4px 12px 8px;font-size:11px}
+.perm-group-actions button{background:transparent;border:1px solid var(--bd);color:var(--t2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px}
+.perm-group-actions button:hover{border-color:var(--a);color:var(--a)}
 /* Confirm dialog */
 .confirm-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px}
 .confirm-box{background:var(--c1);border-radius:16px;width:100%;max-width:380px;padding:28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
@@ -725,18 +743,7 @@ html,body{overflow-x:hidden!important}
 <option value="all">&#9989; ทุกสิทธิ์ (ไม่ใช่แอดมิน)</option>
 <option value="custom">&#9881; กำหนดเอง</option>
 </select></div>
-<div class="fg" id="umRcvWrap" style="display:none"><label>&#128230; สิทธิ์หน้ารับสินค้า <span style="color:var(--t2);font-weight:400;font-size:11px">(เลือกได้มากกว่า 1)</span></label>
-<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
-<label style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;cursor:pointer">
-<input type="checkbox" id="umRcvCount" onchange="_umToggleRcv('rcv_count',this.checked)" style="width:16px;height:16px;cursor:pointer">
-<div style="flex:1"><div style="font-weight:600;font-size:13px">&#128221; พนักงาน 1: นับของ</div><div style="font-size:11px;color:var(--t2)">นับสินค้าที่รับเข้าคลัง</div></div>
-</label>
-<label style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;cursor:pointer">
-<input type="checkbox" id="umRcvCheck" onchange="_umToggleRcv('rcv_check',this.checked)" style="width:16px;height:16px;cursor:pointer">
-<div style="flex:1"><div style="font-weight:600;font-size:13px">&#128270; พนักงาน 2: ตรวจสอบ</div><div style="font-size:11px;color:var(--t2)">ตรวจสอบและอนุมัติรับสินค้า</div></div>
-</label>
-</div></div>
-<div class="fg" id="umPermWrap" style="display:none"><label>สิทธิ์การใช้งาน</label><div class="perm-grid-m" id="umPerms"></div></div>
+<div class="fg" id="umPermWrap" style="display:none"><label>&#128272; สิทธิ์การใช้งาน <span style="color:var(--t2);font-weight:400;font-size:11px">(กดแท็บเพื่อขยาย/ย่อ — เลือกสิทธิ์ย่อยได้ตามใจ)</span></label><div class="perm-grid-m" id="umPerms"></div></div>
 </div>
 <div class="usr-modal-ft">
 <button class="btn bs b2" onclick="closeUserModal()">ยกเลิก</button>
@@ -793,9 +800,9 @@ html,body{overflow-x:hidden!important}
 <div class="tb">
 <div class="sb-wrap"><input class="sb" type="text" placeholder="&#128269; ค้นหา SKU หรือชื่อสินค้า..." id="si" oninput="clearTimeout(_searchTimer);if(this.value.trim())cf='a';_searchTimer=setTimeout(rt,300)"><button class="sb-x" type="button" onclick="var i=document.getElementById('si');i.value='';i.focus();clearTimeout(_searchTimer);_searchTimer=setTimeout(rt,300)">&times;</button></div>
 <div class="view-toggle"><button class="vt-btn" id="vFlat" onclick="setView('flat')">ทีละ SKU</button><button class="vt-btn act" id="vGrp" onclick="setView('group')">ตามสินค้า</button></div>
-<button class="btn bp bs" onclick="document.getElementById('impXlsx').click()" style="white-space:nowrap">&#128260; อัพเดทข้อมูลจาก BigSeller</button><input type="file" id="impXlsx" accept=".xlsx,.xls" multiple style="display:none" onchange="importBigSeller(this)">
+<button id="btnImpBS" class="btn bp bs" onclick="document.getElementById('impXlsx').click()" style="white-space:nowrap">&#128260; อัพเดทข้อมูลจาก BigSeller</button><input type="file" id="impXlsx" accept=".xlsx,.xls" multiple style="display:none" onchange="importBigSeller(this)">
 <select class="sel" id="srt" onchange="colSort='';colDir=1;rt()"><option value="u">เรียงตาม: ความเร่งด่วน</option><option value="s">ยอดขาย 30 วัน</option><option value="k">สต็อก น้อย→มาก</option><option value="d">วันคงเหลือ</option><option value="r">จำนวนแนะนำสั่ง</option></select>
-<button class="btn b2 bs" onclick="showShipSettings()" title="ตั้งค่า Lead Time (รถ/เรือ/Safety)" style="white-space:nowrap">&#128674; Lead Time</button>
+<button id="btnLeadTime" class="btn b2 bs" onclick="showShipSettings()" title="ตั้งค่า Lead Time (รถ/เรือ/Safety)" style="white-space:nowrap">&#128674; Lead Time</button>
 </div>
 <div id="fbar" class="fbar"></div>
 <div class="ss" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px"><span>แนะนำสั่งทั้งหมด: <b id="s1">0</b> ชิ้น</span><span>มูลค่าประมาณ: <b id="s2">0</b></span><span>กำลังแสดง: <b id="s3">0</b> รายการ</span></div>
@@ -939,7 +946,7 @@ html,body{overflow-x:hidden!important}
 <div class="tb" id="lnk-tb">
 <div class="sb-wrap" style="flex:1;min-width:0"><input class="sb" type="text" placeholder="&#128269; ค้นหา SKU..." id="ls" oninput="rl()"><button class="sb-x" type="button" onclick="var i=document.getElementById('ls');i.value='';i.focus();rl()">&times;</button></div>
 <div id="lnk-tb-actions">
-<button class="btn bs b2 lnk-act" onclick="oal()" title="เพิ่มสินค้าใหม่">+<span class="m-hide"> เพิ่มสินค้าใหม่</span></button>
+<button id="btnLnkAdd" class="btn bs b2 lnk-act" onclick="oal()" title="เพิ่มสินค้าใหม่">+<span class="m-hide"> เพิ่มสินค้าใหม่</span></button>
 <div style="position:relative" class="lnk-act" id="impDd">
 <button class="btn bp bs" onclick="document.getElementById('impDdM').classList.toggle('open')" style="width:100%">&#128228; Import <span style="font-size:10px">&#9660;</span></button>
 <div id="impDdM" class="imp-dd-menu">
@@ -5192,17 +5199,18 @@ var rcvMode="count";
 var _rcvItems=[];
 
 // Gatekeeper: เปลี่ยนโหมด rcv ตามสิทธิ์ — ถ้าไม่มีสิทธิ์ใดๆ จะไม่เปลี่ยน
+// หมายเหตุ: check tab เปิดได้ถ้ามีสิทธิ์ rcv_check หรือ si (เพราะ siPanel อยู่ใน tab นี้)
 function _rcvSetMode(m){
   if(CUR_USER&&CUR_USER.role!=="admin"){
     if(m==="count"&&!hasPerm("rcv_count"))return;
-    if(m==="check"&&!hasPerm("rcv_check"))return;
+    if(m==="check"&&!hasPerm("rcv_check")&&!hasPerm("si"))return;
   }
   rcvMode=m;rrcv();
 }
 // บังคับให้ rcvMode ตรงกับสิทธิ์ของผู้ใช้ก่อน render
 function _rcvEnforceMode(){
   if(!CUR_USER||CUR_USER.role==="admin")return;
-  var hasC=hasPerm("rcv_count"),hasK=hasPerm("rcv_check");
+  var hasC=hasPerm("rcv_count"),hasK=hasPerm("rcv_check")||hasPerm("si");
   if(rcvMode==="count"&&!hasC&&hasK)rcvMode="check";
   else if(rcvMode==="check"&&!hasK&&hasC)rcvMode="count";
 }
@@ -5215,10 +5223,14 @@ function rrcv(){
   var hideK=btnK&&btnK.classList.contains("perm-hide");
   btnC.className="vt-btn"+(rcvMode==="count"?" act":"")+(hideC?" perm-hide":"");
   btnK.className="vt-btn"+(rcvMode==="check"?" act":"")+(hideK?" perm-hide":"");
-  document.getElementById("rcv-count").style.display=rcvMode==="count"?"block":"none";
-  document.getElementById("rcv-check").style.display=rcvMode==="check"?"block":"none";
-  // siPanel (รอ Export เข้าสต็อก) — แสดงเฉพาะเมื่ออยู่ใน check mode และมีสิทธิ์ rcv_check
-  var canSi=!CUR_USER||CUR_USER.role==="admin"||hasPerm("rcv_check");
+  // rcv-count: แสดงเฉพาะเมื่ออยู่ใน count mode และมีสิทธิ์ rcv_count (หรือ admin)
+  var canCount=!CUR_USER||CUR_USER.role==="admin"||hasPerm("rcv_count");
+  document.getElementById("rcv-count").style.display=(rcvMode==="count"&&canCount)?"block":"none";
+  // rcv-check: เนื้อหา "ตรวจสอบ: สั่ง vs นับ" — แสดงเฉพาะเมื่อมีสิทธิ์ rcv_check
+  var canCheck=!CUR_USER||CUR_USER.role==="admin"||hasPerm("rcv_check");
+  document.getElementById("rcv-check").style.display=(rcvMode==="check"&&canCheck)?"block":"none";
+  // siPanel (รอ Export เข้าสต็อก) — แสดงเฉพาะเมื่ออยู่ใน check mode และมีสิทธิ์ si (แยกอิสระจาก rcv_check)
+  var canSi=!CUR_USER||CUR_USER.role==="admin"||hasPerm("si");
   document.getElementById("siPanel").style.display=(rcvMode==="check"&&canSi)?"block":"none";
   // Hide dropdowns in check mode
   document.getElementById("rcvOrd").style.display=rcvMode==="count"?"":"none";
@@ -7027,23 +7039,81 @@ function renderActivityLog(){
 }
 
 // ===== LOGIN & PERMISSION SYSTEM =====
-var PERMS_LIST=[
-  {key:"inv",label:"\u{1F4CB} \u0e04\u0e33\u0e41\u0e19\u0e30\u0e19\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d",tab:"inv"},
-  {key:"ord",label:"\u{1F4E6} \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d",tab:"ord"},
-  {key:"rcv_count",label:"\u{1F4DD} \u0e23\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32: \u0e19\u0e31\u0e1a",tab:"rcv"},
-  {key:"rcv_check",label:"\u{1F50D} \u0e23\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32: \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a",tab:"rcv"},
-  {key:"si",label:"\u{1F4E6} \u0e40\u0e02\u0e49\u0e32\u0e04\u0e25\u0e31\u0e07 (Stock In)",tab:"rcv"},
-  {key:"np",label:"\u{1F381} \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48",tab:"rcv"},
-  {key:"lnk",label:"\u{1F517} \u0e25\u0e34\u0e07\u0e04\u0e4c 1688",tab:"lnk"},
-  {key:"kpi",label:"\u{1F4CA} KPI Dashboard",tab:"_"},
-  {key:"settings",label:"\u2699\uFE0F \u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32",tab:"_"}
+// === สิทธิ์ย่อยต่อแท็บ (ระดับกลาง) ===
+// โครงสร้าง: แต่ละแท็บหลักมีสิทธิ์ย่อย 3-4 ตัว
+// - inv (คำแนะนำสั่งซื้อ): view/manage/import/config
+// - ord (รายการสั่งซื้อ): view/create/track/edit
+// - rcv (รับสินค้า): rcv_count/rcv_check/si/np (ของเดิม)
+// - lnk (ลิงค์ 1688): view/manage/import
+// - _ (global): kpi/settings
+var PERM_GROUPS=[
+  {key:"inv",label:"\u{1F4CB} \u0e04\u0e33\u0e41\u0e19\u0e30\u0e19\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d"},
+  {key:"ord",label:"\u{1F4E6} \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d"},
+  {key:"rcv",label:"\u{1F4E5} \u0e23\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e40\u0e02\u0e49\u0e32\u0e04\u0e25\u0e31\u0e07"},
+  {key:"lnk",label:"\u{1F517} \u0e25\u0e34\u0e07\u0e04\u0e4c 1688"},
+  {key:"_",  label:"\u2699\uFE0F \u0e2d\u0e37\u0e48\u0e19\u0e46"}
 ];
+var PERMS_LIST=[
+  // Tab 1: คำแนะนำสั่งซื้อ
+  {key:"inv_view",   label:"\u{1F441}\uFE0F \u0e14\u0e39\u0e04\u0e33\u0e41\u0e19\u0e30\u0e19\u0e33/\u0e04\u0e49\u0e19\u0e2b\u0e32/\u0e01\u0e23\u0e2d\u0e07",group:"inv",tab:"inv"},
+  {key:"inv_manage", label:"\u270F\uFE0F \u0e08\u0e31\u0e14\u0e01\u0e32\u0e23 (\u0e40\u0e1d\u0e49\u0e32\u0e23\u0e2d/\u0e40\u0e25\u0e34\u0e01\u0e02\u0e32\u0e22/\u0e2a\u0e31\u0e48\u0e07\u0e17\u0e31\u0e49\u0e07\u0e01\u0e25\u0e38\u0e48\u0e21/\u0e42\u0e19\u0e49\u0e15)",group:"inv",tab:"inv"},
+  {key:"inv_import", label:"\u{1F4E5} \u0e19\u0e33\u0e40\u0e02\u0e49\u0e32 BigSeller",group:"inv",tab:"inv"},
+  {key:"inv_config", label:"\u23F1\uFE0F \u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32 Lead Time / threshold",group:"inv",tab:"inv"},
+  // Tab 2: รายการสั่งซื้อ
+  {key:"ord_view",   label:"\u{1F441}\uFE0F \u0e14\u0e39\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23/\u0e04\u0e49\u0e19\u0e2b\u0e32",group:"ord",tab:"ord"},
+  {key:"ord_create", label:"\u2795 \u0e2a\u0e23\u0e49\u0e32\u0e07/Import \u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d",group:"ord",tab:"ord"},
+  {key:"ord_track",  label:"\u{1F69A} \u0e2d\u0e31\u0e1e\u0e40\u0e14\u0e17\u0e40\u0e25\u0e02\u0e1e\u0e31\u0e2a\u0e14\u0e38 (1688/CNS)",group:"ord",tab:"ord"},
+  {key:"ord_edit",   label:"\u270F\uFE0F \u0e41\u0e01\u0e49\u0e44\u0e02\u0e2a\u0e16\u0e32\u0e19\u0e30/\u0e25\u0e1a\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23",group:"ord",tab:"ord"},
+  // Tab 3: รับสินค้า (ของเดิม)
+  {key:"rcv_count",  label:"\u{1F4DD} \u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1: \u0e19\u0e31\u0e1a\u0e02\u0e2d\u0e07",group:"rcv",tab:"rcv"},
+  {key:"rcv_check",  label:"\u{1F50D} \u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 2: \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a",group:"rcv",tab:"rcv"},
+  {key:"si",         label:"\u{1F4E6} \u0e23\u0e2d Export \u0e40\u0e02\u0e49\u0e32\u0e2a\u0e15\u0e47\u0e2d\u0e01",group:"rcv",tab:"rcv"},
+  {key:"np",         label:"\u{1F381} \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48 1688",group:"rcv",tab:"rcv"},
+  // Tab 4: ลิงค์ 1688
+  {key:"lnk_view",   label:"\u{1F441}\uFE0F \u0e14\u0e39\u0e25\u0e34\u0e07\u0e01\u0e4c/\u0e04\u0e49\u0e19\u0e2b\u0e32",group:"lnk",tab:"lnk"},
+  {key:"lnk_manage", label:"\u270F\uFE0F \u0e40\u0e1e\u0e34\u0e48\u0e21/\u0e41\u0e01\u0e49\u0e44\u0e02/\u0e25\u0e1a\u0e25\u0e34\u0e07\u0e01\u0e4c",group:"lnk",tab:"lnk"},
+  {key:"lnk_import", label:"\u{1F4E5} Import \u0e25\u0e34\u0e07\u0e01\u0e4c/\u0e23\u0e39\u0e1b/\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25",group:"lnk",tab:"lnk"},
+  // Global
+  {key:"kpi",        label:"\u{1F4CA} KPI Dashboard",group:"_",tab:"_"},
+  {key:"settings",   label:"\u2699\uFE0F \u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e23\u0e30\u0e1a\u0e1a",group:"_",tab:"_"}
+];
+
+// === Migration: แปลงสิทธิ์เก่า (inv/ord/lnk) → สิทธิ์ย่อยใหม่ ===
+var PERM_LEGACY_MAP={
+  "inv":["inv_view","inv_manage","inv_import","inv_config"],
+  "ord":["ord_view","ord_create","ord_track","ord_edit"],
+  "lnk":["lnk_view","lnk_manage","lnk_import"]
+};
+function _migrateUserPerms(u){
+  if(!u||!u.perms||u.role==="admin")return false;
+  var changed=false;var p=u.perms.slice();
+  for(var k in PERM_LEGACY_MAP){
+    var i=p.indexOf(k);
+    if(i>=0){
+      // แทนที่ key เก่าด้วย sub-perms ใหม่
+      PERM_LEGACY_MAP[k].forEach(function(sp){if(p.indexOf(sp)<0)p.push(sp)});
+      p=p.filter(function(x){return x!==k});
+      changed=true;
+    }
+  }
+  if(changed)u.perms=p;
+  return changed;
+}
+function _migrateAllUsers(){
+  var any=false;
+  USERS.forEach(function(u){if(_migrateUserPerms(u))any=true});
+  return any;
+}
 
 // Default admin user
 var AVATAR_LIST=["👤","👨‍💼","👩‍💼","🧑‍💻","👷","👨‍🔧","👩‍🔬","🦸","🐱","🐶","🦊","🐼","🐨","🦁","🐯","🐸","🌟","🔥","💎","🎯","🚀","⚡","🎨","🛒"];
 var DEF_USERS=[{id:"admin",name:"\u0e40\u0e08\u0e49\u0e32\u0e02\u0e2d\u0e07",pass:"1234",role:"admin",perms:PERMS_LIST.map(function(p){return p.key}),avatar:"👨‍💼"}];
 var USERS=JSON.parse(_tsGet("ts_users")||"null")||DEF_USERS;
 var CUR_USER=null;
+// Migration ทันทีเมื่อ USERS โหลดจาก localStorage
+try{
+  if(_migrateAllUsers&&_migrateAllUsers()){_tsSet("ts_users",JSON.stringify(USERS))}
+}catch(e){console.error("perm migration error:",e)}
 
 // deleted user IDs — sync ข้ามเครื่อง
 var _delIds=JSON.parse(_tsGet("ts_del_users")||"[]");
@@ -7121,6 +7191,8 @@ function _fetchCloudUsers(){
     if(!cu&&d&&d.value){try{cu=JSON.parse(d.value)}catch(e){}}
     if(Array.isArray(cu)&&cu.length>0){
       USERS=_mergeUsers(USERS,cu);
+      // Migration: แปลงสิทธิ์เก่า → ใหม่ หลังรวม cloud+local
+      try{if(_migrateAllUsers())cloudSaveUsers()}catch(e){}
       _tsSet("ts_users",JSON.stringify(USERS));
     }
     _cloudReady=true;
@@ -7247,7 +7319,16 @@ function checkSession(){
 function hasPerm(key){
   if(!CUR_USER)return false;
   if(CUR_USER.role==="admin")return true;
-  return CUR_USER.perms&&CUR_USER.perms.indexOf(key)>=0;
+  var perms=CUR_USER.perms||[];
+  // Virtual parent keys (inv/ord/lnk) — เป็น true ถ้ามี sub-perm ตัวใดตัวหนึ่ง (backward compat)
+  if(key==="inv"||key==="ord"||key==="lnk"){
+    var pre=key+"_";
+    for(var i=0;i<perms.length;i++){
+      if(perms[i]===key||perms[i].indexOf(pre)===0)return true;
+    }
+    return false;
+  }
+  return perms.indexOf(key)>=0;
 }
 
 function _permVis(el,show){
@@ -7282,12 +7363,21 @@ function applyPerms(){
     if(show&&!firstVisible)firstVisible=tk;
   });
   // RCV sub-modes visibility
+  // rvCheck tab เปิดได้ถ้ามีสิทธิ์ rcv_check หรือ si (เพราะ siPanel อยู่ใน tab นี้)
   _permVis(document.getElementById("rvCount"),hasPerm("rcv_count"));
-  _permVis(document.getElementById("rvCheck"),hasPerm("rcv_check"));
+  _permVis(document.getElementById("rvCheck"),hasPerm("rcv_check")||hasPerm("si"));
   // NP button visibility
   _permVis(document.querySelector("[onclick='rcvNewProducts()']"),hasPerm("np"));
-  // Settings: BigSeller import, threshold edit
-  _permVis(document.querySelector("[onclick*='impXlsx']"),hasPerm("settings"));
+  // === Tab-specific action buttons ===
+  // คำแนะนำสั่งซื้อ (inv)
+  _permVis(document.getElementById("btnImpBS"),hasPerm("inv_import"));   // BigSeller import
+  _permVis(document.getElementById("btnLeadTime"),hasPerm("inv_config")); // Lead Time
+  // รายการสั่งซื้อ (ord)
+  _permVis(document.getElementById("ordTrkBtns"),hasPerm("ord_track"));  // Tracking buttons group
+  _permVis(document.getElementById("ordTrkDD"),hasPerm("ord_track"));    // Tracking dropdown (mobile)
+  // ลิงค์ 1688 (lnk)
+  _permVis(document.getElementById("btnLnkAdd"),hasPerm("lnk_manage"));  // + เพิ่มสินค้าใหม่
+  _permVis(document.getElementById("impDd"),hasPerm("lnk_import"));      // Import lnk/รูป dropdown
   // Switch to first visible tab
   if(firstVisible)sw(firstVisible);
 }
@@ -7384,14 +7474,16 @@ function _renderAdminHTML(){
     else h+="<span class='sep'>\u00B7</span><span>\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e40\u0e04\u0e22\u0e40\u0e02\u0e49\u0e32\u0e43\u0e0a\u0e49</span>";
     if(taKeys.length>0)h+="<span class='sep'>\u00B7</span><span style='color:var(--g);cursor:pointer' onclick='event.stopPropagation();_showUserDailySummary(\""+u.id+"\",\""+u.name.replace(/"/g,"&quot;")+"\",\""+(u.avatar||"")+"\")' title='\u0e01\u0e14\u0e14\u0e39\u0e2a\u0e23\u0e38\u0e1b\u0e40\u0e15\u0e47\u0e21'>\u0e27\u0e31\u0e19\u0e19\u0e35\u0e49 "+taKeys.map(function(t){return t+" "+ta[t]}).join(", ")+"</span>";
     h+="</div>";
-    // Permission pills (non-admin only, max 4 shown)
+    // Permission pills (non-admin only) — แสดง group summary: "คำแนะนำ 2/4" เพื่อกระชับ
     if(u.role!=="admin"&&u.perms&&u.perms.length>0){
       h+="<div class='usr-perms'>";
-      var shown=0;
-      PERMS_LIST.forEach(function(p){
-        if(u.perms.indexOf(p.key)>=0&&shown<4){h+="<span class='pp'>"+p.label.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]/gu,"").trim()+"</span>";shown++}
+      PERM_GROUPS.forEach(function(g){
+        var subs=PERMS_LIST.filter(function(p){return p.group===g.key});
+        var on=subs.filter(function(p){return u.perms.indexOf(p.key)>=0}).length;
+        if(on===0)return;
+        var shortLbl=g.label.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]/gu,"").trim();
+        h+="<span class='pp'>"+shortLbl+" "+on+"/"+subs.length+"</span>";
       });
-      if(u.perms.length>4)h+="<span class='pp'>+"+( u.perms.length-4)+"</span>";
       h+="</div>";
     }
     h+="</div>";
@@ -7444,8 +7536,11 @@ var _umIdx=-1;// -1=new user
 var _umAvatar="";
 var _umPerms=[];
 var PERM_TEMPLATES={
-  warehouse:["rcv_count","si","np","inv"],
-  checker:["rcv_check","kpi","ord","inv"],
+  // พนักงานคลัง: นับของ + stock-in + สินค้าใหม่ + ดูคำแนะนำ
+  warehouse:["rcv_count","si","np","inv_view"],
+  // พนักงานตรวจสอบ: ตรวจรับ + KPI + ดูออเดอร์ + ดูคำแนะนำ
+  checker:["rcv_check","kpi","ord_view","inv_view"],
+  // ทุกสิทธิ์ (ยกเว้น admin-only)
   all:PERMS_LIST.map(function(p){return p.key}),
   none:[]
 };
@@ -7456,6 +7551,7 @@ function openUserModal(idx){
   var u=isNew?{id:"",name:"",pass:"",role:"user",perms:[],avatar:""}:USERS[idx];
   _umAvatar=u.avatar||"";
   _umPerms=(u.perms||[]).slice();
+  _umOpenGroups={}; // รีเซ็ต state การเปิด/ปิดกลุ่ม — ให้ auto-expand กลุ่มที่มีสิทธิ์เลือก
   // Fill fields
   document.getElementById("umUid").value=u.id;
   document.getElementById("umName").value=u.name;
@@ -7488,50 +7584,83 @@ function _umTogglePass(){
   var eye=document.getElementById("umPassEye");
   if(inp.type==="password"){inp.type="text";eye.textContent="\u2716"}else{inp.type="password";eye.textContent="\ud83d\udc41"}
 }
+// === การเปลี่ยน role ใน modal ===
+// ทุก role (ยกเว้น admin) แสดงแบบ collapsible groups — user สามารถ override สิทธิ์ย่อยได้ตามต้องการ
+// - warehouse/checker/all → apply template แล้วเปิดขยายกลุ่ม rcv เป็นค่าเริ่มต้น
+// - custom → ไม่ apply template เลย (ใช้ของเดิมที่มีอยู่)
 function _umRoleChange(fromChange){
   var role=document.getElementById("umRole").value;
   var wrap=document.getElementById("umPermWrap");
-  var rcvWrap=document.getElementById("umRcvWrap");
-  if(role==="admin"){wrap.style.display="none";rcvWrap.style.display="none";return}
-  if(role==="custom"){
-    wrap.style.display="block";
-    rcvWrap.style.display="block";
-  }else if(role==="all"){
-    if(fromChange)_umPerms=(PERM_TEMPLATES.all||[]).slice();
-    wrap.style.display="none";
-    rcvWrap.style.display="block";
-  }else{
-    // warehouse / checker — อนุญาตให้ toggle rcv_count/rcv_check เพิ่มเติมได้
-    if(fromChange)_umPerms=(PERM_TEMPLATES[role]||[]).slice();
-    wrap.style.display="none";
-    rcvWrap.style.display="block";
+  if(role==="admin"){wrap.style.display="none";return}
+  if(role!=="custom"&&fromChange){
+    _umPerms=(PERM_TEMPLATES[role]||[]).slice();
   }
-  _umRenderRcvChecks();
+  wrap.style.display="block";
   _umRenderPerms();
 }
-function _umRenderRcvChecks(){
-  var c=document.getElementById("umRcvCount"),k=document.getElementById("umRcvCheck");
-  if(c)c.checked=_umPerms.indexOf("rcv_count")>=0;
-  if(k)k.checked=_umPerms.indexOf("rcv_check")>=0;
+// State ของกลุ่มที่ขยาย/ยุบ (คงอยู่ระหว่าง render)
+var _umOpenGroups={};
+function _umToggleGroup(gk){
+  _umOpenGroups[gk]=!_umOpenGroups[gk];
+  var el=document.querySelector(".perm-group[data-g='"+gk+"']");
+  if(el)el.classList.toggle("open",_umOpenGroups[gk]);
 }
-function _umToggleRcv(key,on){
+function _umSelectGroup(gk,on){
+  PERMS_LIST.forEach(function(p){
+    if(p.group!==gk)return;
+    var idx=_umPerms.indexOf(p.key);
+    if(on&&idx<0)_umPerms.push(p.key);
+    else if(!on&&idx>=0)_umPerms.splice(idx,1);
+  });
+  _umRenderPerms();
+}
+function _umToggleSubPerm(key,on){
   var idx=_umPerms.indexOf(key);
   if(on&&idx<0)_umPerms.push(key);
   else if(!on&&idx>=0)_umPerms.splice(idx,1);
+  // อัปเดตแค่ header count ไม่ต้อง re-render ทั้งหมด (ไม่ให้กลุ่มปิดหมด)
+  _umUpdateGroupCount(_umFindGroup(key));
+}
+function _umFindGroup(key){
+  for(var i=0;i<PERMS_LIST.length;i++)if(PERMS_LIST[i].key===key)return PERMS_LIST[i].group;
+  return null;
+}
+function _umUpdateGroupCount(gk){
+  if(!gk)return;
+  var total=0,on=0;
+  PERMS_LIST.forEach(function(p){if(p.group===gk){total++;if(_umPerms.indexOf(p.key)>=0)on++}});
+  var el=document.querySelector(".perm-group[data-g='"+gk+"'] .pg-cnt");
+  if(el){el.textContent=on+"/"+total;el.className="pg-cnt"+(on>0?" on":"")}
 }
 function _umRenderPerms(){
   var h="";
-  PERMS_LIST.forEach(function(p){
-    if(p.key==="rcv_count"||p.key==="rcv_check")return; // controlled by checkboxes in umRcvWrap
-    var on=_umPerms.indexOf(p.key)>=0;
-    h+="<span class='perm-chip"+(on?" on":"")+"' onclick='_umTogglePerm(\""+p.key+"\",this)'>"+p.label+"</span>";
+  PERM_GROUPS.forEach(function(g){
+    var subs=PERMS_LIST.filter(function(p){return p.group===g.key});
+    if(subs.length===0)return;
+    var total=subs.length;
+    var on=subs.filter(function(p){return _umPerms.indexOf(p.key)>=0}).length;
+    // เปิดกลุ่มอัตโนมัติถ้ามีสิทธิ์ย่อยถูกเลือก (เฉพาะครั้งแรก)
+    if(_umOpenGroups[g.key]===undefined)_umOpenGroups[g.key]=(on>0);
+    var openCls=_umOpenGroups[g.key]?" open":"";
+    h+="<div class='perm-group"+openCls+"' data-g='"+g.key+"'>";
+    h+="<div class='perm-group-hd' onclick='_umToggleGroup(\""+g.key+"\")'>";
+    h+="<span class='pg-lbl'>"+g.label+"</span>";
+    h+="<span class='pg-cnt"+(on>0?" on":"")+"'>"+on+"/"+total+"</span>";
+    h+="<span class='pg-arr'>\u25BC</span>";
+    h+="</div>";
+    h+="<div class='perm-group-body'>";
+    subs.forEach(function(p){
+      var ck=_umPerms.indexOf(p.key)>=0?" checked":"";
+      h+="<label class='perm-sub'><input type='checkbox'"+ck+" onchange='_umToggleSubPerm(\""+p.key+"\",this.checked)'><span class='ps-lbl'>"+p.label+"</span></label>";
+    });
+    h+="</div>";
+    h+="<div class='perm-group-actions'>";
+    h+="<button onclick='_umSelectGroup(\""+g.key+"\",true)'>\u2714 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";
+    h+="<button onclick='_umSelectGroup(\""+g.key+"\",false)'>\u2715 \u0e25\u0e49\u0e32\u0e07\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";
+    h+="</div>";
+    h+="</div>";
   });
   document.getElementById("umPerms").innerHTML=h;
-}
-function _umTogglePerm(key,el){
-  var idx=_umPerms.indexOf(key);
-  if(idx>=0){_umPerms.splice(idx,1);el.classList.remove("on")}
-  else{_umPerms.push(key);el.classList.add("on")}
 }
 function _umPickAvatar(){
   var h="<div style='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10002;display:flex;align-items:center;justify-content:center;padding:16px' id='avatarPickerOv' onclick='if(event.target===this)this.remove()'>";
