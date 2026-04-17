@@ -1516,7 +1516,35 @@ function mgrSaveItem(idx){
   sv();recalcS();rt();cp();
   _autoTrkToast("✅ บันทึก "+sku+" สำเร็จ");
 }
-function sv(){var _now=Date.now();_lastLocalEdit=_now;_ds_o_lm=_now;_ds_np_lm=_now;_ds_rc_lm=_now;_ds_si_lm=_now;_tsSet("_ds_o_lm",_now);_tsSet("_ds_np_lm",_now);_tsSet("_ds_rc_lm",_now);_tsSet("_ds_si_lm",_now);try{_tsSet("ts_o",JSON.stringify(O));_tsSet("ts_l",JSON.stringify(L));_tsSet("ts_rc",JSON.stringify(RC));_tsSet("ts_si",JSON.stringify(SI));_tsSet("ts_np",JSON.stringify(NP))}catch(e){if(e.name==="QuotaExceededError"||e.code===22){_lsOverflowWarning();_autoArchiveOldOrders();try{_tsSet("ts_o",JSON.stringify(O));_tsSet("ts_l",JSON.stringify(L));_tsSet("ts_rc",JSON.stringify(RC));_tsSet("ts_si",JSON.stringify(SI));_tsSet("ts_np",JSON.stringify(NP))}catch(e2){alert("พื้นที่เก็บข้อมูลเต็ม! กรุณาลบออเดอร์เก่าออก")}}}cloudSave();_lsCheckUsage()}
+// === Snapshot-based change detection (multi-user sync safety) ===
+var _savedSnap={o:"",np:"",rc:"",si:""};
+function _initSavedSnap(){try{_savedSnap.o=JSON.stringify(O||[]);_savedSnap.np=JSON.stringify(NP||[]);_savedSnap.rc=JSON.stringify(RC||{});_savedSnap.si=JSON.stringify(SI||[])}catch(e){}}
+// Stamp _lm on records whose content differs from snapshot (so merge-by-id can pick the newer one)
+function _stampChangedArr(curArr,snapArr,idKey,ts){
+  if(!Array.isArray(curArr))return;
+  var snapMap={};
+  if(Array.isArray(snapArr))snapArr.forEach(function(o){if(o&&o[idKey]!=null){var c={};for(var k in o)if(k!=="_lm")c[k]=o[k];snapMap[o[idKey]]=JSON.stringify(c)}});
+  curArr.forEach(function(o){
+    if(!o||o[idKey]==null)return;
+    var c={};for(var k in o)if(k!=="_lm")c[k]=o[k];
+    var curStr;try{curStr=JSON.stringify(c)}catch(e){return}
+    var snapStr=snapMap[o[idKey]];
+    if(snapStr!==curStr)o._lm=ts;
+  });
+}
+function sv(){
+  var _now=Date.now();_lastLocalEdit=_now;
+  // Only bump dataset timestamps + stamp records for datasets that actually changed
+  var sO,sNP,sRC,sSI;
+  try{sO=JSON.stringify(O||[]);sNP=JSON.stringify(NP||[]);sRC=JSON.stringify(RC||{});sSI=JSON.stringify(SI||[])}catch(e){sO=sNP=sRC=sSI=""}
+  if(sO!==_savedSnap.o){var snO=[];try{snO=JSON.parse(_savedSnap.o||"[]")}catch(e){}_stampChangedArr(O,snO,"id",_now);_ds_o_lm=_now;_tsSet("_ds_o_lm",_now);try{sO=JSON.stringify(O)}catch(e){}}
+  if(sNP!==_savedSnap.np){var snN=[];try{snN=JSON.parse(_savedSnap.np||"[]")}catch(e){}_stampChangedArr(NP,snN,"id",_now);_ds_np_lm=_now;_tsSet("_ds_np_lm",_now);try{sNP=JSON.stringify(NP)}catch(e){}}
+  if(sRC!==_savedSnap.rc){_ds_rc_lm=_now;_tsSet("_ds_rc_lm",_now)}
+  if(sSI!==_savedSnap.si){_ds_si_lm=_now;_tsSet("_ds_si_lm",_now)}
+  try{_tsSet("ts_o",sO);_tsSet("ts_l",JSON.stringify(L));_tsSet("ts_rc",sRC);_tsSet("ts_si",sSI);_tsSet("ts_np",sNP)}
+  catch(e){if(e.name==="QuotaExceededError"||e.code===22){_lsOverflowWarning();_autoArchiveOldOrders();try{_tsSet("ts_o",JSON.stringify(O));_tsSet("ts_l",JSON.stringify(L));_tsSet("ts_rc",JSON.stringify(RC));_tsSet("ts_si",JSON.stringify(SI));_tsSet("ts_np",JSON.stringify(NP))}catch(e2){alert("พื้นที่เก็บข้อมูลเต็ม! กรุณาลบออเดอร์เก่าออก")}}}
+  cloudSave();_lsCheckUsage()
+}
 // === localStorage Monitor ===
 var _lsWarnShown=false;
 function _lsGetUsageMB(){var t=0;for(var k in localStorage){if(localStorage.hasOwnProperty(k))t+=k.length+(localStorage[k]||"").length}Object.keys(_idbCache).forEach(function(k){t+=k.length+(_idbCache[k]||"").length});return(t*2/1024/1024)}
@@ -1733,7 +1761,7 @@ var CLOUD_URL = atob(_cu);
 var _cloudSaveTimer = null;
 var _cloudBusy = false;
 var _lastLocalEdit = 0;            // timestamp ของ edit ล่าสุด (ป้องกัน cloudLoad เขียนทับ)
-var EDIT_PROTECTION_MS = 90000;    // ระยะเวลาปกป้องหลัง edit (90 วิ — ให้ cloudSave เสร็จก่อนค่อยให้ cloudLoad ทำงาน)
+var EDIT_PROTECTION_MS = 15000;    // ระยะเวลาปกป้องหลัง edit (15 วิ — ลดจาก 90 วิ เพื่อให้ข้อมูลจากเพื่อนร่วมงานเห็นเร็วขึ้น; release เร็วขึ้นหลัง save สำเร็จ)
 var _lastSyncOk = 0;               // timestamp ของ sync สำเร็จล่าสุด
 var _pendingRetry = false;         // มี save ที่ค้างรอ retry อยู่ไหม
 var _retryTimer = null;
@@ -1912,7 +1940,9 @@ function _runPendingSave() {
       _tsRemove("ts_pending_save");
       _pendingRetry = false;
       _retryCount = 0;
-      _lastLocalEdit = Date.now() + 5000;
+      // RELEASE edit protection after retry success (3s buffer for propagation)
+      _lastLocalEdit = Date.now() - (EDIT_PROTECTION_MS - 3000);
+      try{_savedSnap.o=JSON.stringify(O);_savedSnap.np=JSON.stringify(NP);_savedSnap.rc=JSON.stringify(RC);_savedSnap.si=JSON.stringify(SI)}catch(e){}
       syncUI("ok");
     } else {
       var emsg = (d && d.msg) ? d.msg : "Save failed";
@@ -1934,26 +1964,33 @@ function cloudSave() {
   clearTimeout(_cloudSaveTimer);
   _cloudBusy = true;            // lock ทันทีเมื่อตั้ง timer (กัน cloudLoad แทรก)
   _cloudSaveTimer = setTimeout(function() {
-    syncUI("saving");
-    var payload = _buildCloudPayload();
-    var body = JSON.stringify(payload);
-    // เก็บไว้ใน localStorage ก่อนส่ง — ถ้า crash/offline จะ retry ได้
-    try { _tsSet("ts_pending_save", body); } catch(e){}
-    fetch(CLOUD_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: body
-    })
+    // === Pre-Save Merge: ดึง cloud ล่าสุดมา merge ก่อนยิง save (กันข้อมูลของเพื่อนโดนทับ) ===
+    var _needsMerge = navigator.onLine && (!_lastSyncOk || (Date.now()-_lastSyncOk)>10000);
+    var _doActualSave = function(){
+      _cloudBusy = true;
+      syncUI("saving");
+      var payload = _buildCloudPayload();
+      var body = JSON.stringify(payload);
+      // เก็บไว้ใน localStorage ก่อนส่ง — ถ้า crash/offline จะ retry ได้
+      try { _tsSet("ts_pending_save", body); } catch(e){}
+      fetch(CLOUD_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: body
+      })
     .then(function(r) { return r.json(); })
     .then(function(d) {
       _cloudBusy = false;
-      // bump edit timestamp อีก 5 วิ เพื่อครอบคลุม Google Sheets propagation delay
-      _lastLocalEdit = Date.now() + 5000;
       if (d && d.status === "ok") {
+        // RELEASE edit protection — save sealed in cloud, safe to cloudLoad
+        // (keep 3s tiny buffer for Google Sheets read-after-write propagation)
+        _lastLocalEdit = Date.now() - (EDIT_PROTECTION_MS - 3000);
         _tsRemove("ts_pending_save");
         _pendingRetry = false;
         _retryCount = 0;
         clearTimeout(_retryTimer);
+        // Update saved snapshot so next sv() diffs correctly
+        try{_savedSnap.o=JSON.stringify(O);_savedSnap.np=JSON.stringify(NP);_savedSnap.rc=JSON.stringify(RC);_savedSnap.si=JSON.stringify(SI)}catch(e){}
         syncUI("ok");
       } else {
         var emsg = (d && d.msg) ? d.msg : "Save failed";
@@ -1963,13 +2000,23 @@ function cloudSave() {
         _schedulePendingRetry();
       }
     })
-    .catch(function(e) {
-      _cloudBusy = false;
-      _lastLocalEdit = Date.now();  // รีเซ็ต protection เพื่อกัน cloudLoad ทับข้อมูลที่ยังไม่ได้ save
-      syncUI("offline");
-      _pendingRetry = true;
-      _schedulePendingRetry();
-    });
+      .catch(function(e) {
+        _cloudBusy = false;
+        _lastLocalEdit = Date.now();  // รีเซ็ต protection เพื่อกัน cloudLoad ทับข้อมูลที่ยังไม่ได้ save
+        syncUI("offline");
+        _pendingRetry = true;
+        _schedulePendingRetry();
+      });
+    };
+    // If we haven't synced recently, pull cloud + merge first (prevents clobbering coworker's changes)
+    if (_needsMerge) {
+      _cloudBusy = false;  // unlock so cloudLoad can run
+      // Use manual=true to bypass edit-protection (we WANT to merge before our save)
+      var _mergeTimeout = setTimeout(function(){_doActualSave()}, 6000); // if merge hangs, save anyway after 6s
+      cloudLoad(true, function(){ clearTimeout(_mergeTimeout); _doActualSave(); });
+    } else {
+      _doActualSave();
+    }
   }, 2000);
 }
 
@@ -2014,7 +2061,10 @@ function cloudForceSave(cb){
       try{NP=JSON.parse(snapRaw.ts_np);_tsSet("ts_np",snapRaw.ts_np)}catch(e){}
       try{L=JSON.parse(snapRaw.ts_l);_tsSet("ts_l",snapRaw.ts_l)}catch(e){}
       try{R=JSON.parse(snapRaw.ts_r);I=R.map(_rowToItem);_tsSet("ts_r",snapRaw.ts_r)}catch(e){}
-      if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);}
+      if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);
+        // Update saved snapshot after successful force save (next sv() diffs correctly)
+        try{_savedSnap.o=JSON.stringify(O);_savedSnap.np=JSON.stringify(NP);_savedSnap.rc=JSON.stringify(RC);_savedSnap.si=JSON.stringify(SI)}catch(e){}
+      }
       else{syncUI("err","Save failed");}
       if(cb)cb();
       setTimeout(function(){startAutoRefresh(true);},5000);
@@ -2094,14 +2144,14 @@ function _mergeAlog(local, cloud) {
   return merged.slice(0, 500);
 }
 
-function cloudLoad(manual) {
-  if (!CLOUD_URL) return;
-  if (_cloudBusy && !manual) return;
+function cloudLoad(manual, cb) {
+  if (!CLOUD_URL) { if(cb)cb(); return; }
+  if (_cloudBusy && !manual) { if(cb)cb(); return; }
   // Edit Protection: ถ้าเพิ่งแก้ข้อมูล local ภายใน 15 วินาที → ข้ามการ auto-load
   // (manual refresh ข้ามการปกป้องนี้ได้)
-  if (!manual && _lastLocalEdit && (Date.now() - _lastLocalEdit) < EDIT_PROTECTION_MS) return;
+  if (!manual && _lastLocalEdit && (Date.now() - _lastLocalEdit) < EDIT_PROTECTION_MS) { if(cb)cb(); return; }
   // ถ้ามี save ค้างอยู่ (pending retry หรือ debounce timer) → ห้าม cloudLoad ทับ
-  if (!manual && (_pendingRetry || _cloudSaveTimer)) return;
+  if (!manual && (_pendingRetry || _cloudSaveTimer)) { if(cb)cb(); return; }
   _cloudBusy = true;
   syncUI("loading");
   var _clTimeout=setTimeout(function(){_cloudBusy=false;syncUI("err","⏱ โหลดนานเกิน 15 วินาที — กดเพื่อลองใหม่")},15000);
@@ -2201,23 +2251,27 @@ function cloudLoad(manual) {
         recalcS(); var _panelOpen=document.getElementById("po")&&document.getElementById("po").style.display==="block";if(!_panelOpen)cp(); uk(); rt(); rmt(); ro(); rnp(); rl(); rrcv(); renderSI(); updateKPILabels();
         if(_prevTab&&_prevTab!=="inv")sw(_prevTab);
       }
+      // Refresh saved snapshot — next sv() diff compares against this fresh cloud state
+      try{_savedSnap.o=JSON.stringify(O);_savedSnap.np=JSON.stringify(NP);_savedSnap.rc=JSON.stringify(RC);_savedSnap.si=JSON.stringify(SI)}catch(e){}
       var t = new Date().toLocaleTimeString("th-TH", {hour:"2-digit",minute:"2-digit"});
       syncUI("ok", "Synced " + t);
     } else { syncUI("err"); }
+    if(cb)try{cb()}catch(e){}
   })
   .catch(function(e) {
     clearTimeout(_clTimeout);
     _cloudBusy = false;
     syncUI("offline");
+    if(cb)try{cb()}catch(e){}
   });
 }
 
-// Auto-refresh ทุก 30 วินาที
+// Auto-refresh ทุก 25 วินาที (ปรับจาก 60s ให้เห็นการเปลี่ยนแปลงของเพื่อนร่วมงานเร็วขึ้น)
 var _autoRefresh = null;
 function startAutoRefresh(skipFirstLoad) {
   if (!CLOUD_URL) return;
   stopAutoRefresh();
-  _autoRefresh = setInterval(function() { cloudLoad(false); }, 60000); // 60s (ลดจาก 30s เพื่อลด conflict)
+  _autoRefresh = setInterval(function() { cloudLoad(false); }, 25000); // 25s — เร็วพอให้เห็นการแก้ของเพื่อน, ไม่เร็วเกินจน conflict
   // โหลดครั้งแรก (ยกเว้นหลัง force save เพื่อป้องกัน overwrite)
   if(!skipFirstLoad) cloudLoad(true);
 }
@@ -3739,7 +3793,7 @@ function no(){
     "<div class=\"fg\"><label>มูลค่ารวม (฿)</label><input type=\"number\" id=\"oAmt\" step=\"0.01\" min=\"0\" placeholder=\"0.00\"></div>"+
     "<div class=\"fg\"><label>วันที่สั่ง</label><input type=\"date\" id=\"od\" value=\""+new Date().toISOString().slice(0,10)+"\"></div>"+
     "<div class=\"fg\"><label>เลขพัสดุ (ถ้ามี)</label><input type=\"text\" id=\"otr\" placeholder=\"กรอกทีหลังได้\"></div>"+
-    "<div class=\"fg\"><label>&#128279; ลิงค์ 1688 (ถ้ามี)</label><input type=\"text\" id=\"ol1688\" placeholder=\"https://air.1688.com/app/ctf-page/trade-order-list/...\"></div>"+
+    "<div class=\"fg\"><label>&#128279; ลิงค์ 1688 (ถ้ามี) <span style=\"font-size:11px;color:var(--t2);font-weight:400\">\u2014 ถ้า BASE ยังไม่มีลิงก์หลัก ระบบเติมให้อัตโนมัติ</span></label><div style=\"display:flex;gap:6px\"><input type=\"text\" id=\"ol1688\" placeholder=\"https://air.1688.com/app/ctf-page/trade-order-list/...\" style=\"flex:1\"><button type=\"button\" class=\"btn bs b2\" onclick=\"_copyOrderLinkToMain('create')\" title=\"บังคับอัพเดทลิงก์หลักของ BASE ทุกตัวในออเดอร์นี้ (ทับของเดิม)\" style=\"white-space:nowrap;padding:8px 10px;font-size:12px\">&#128257; อัพลิงก์หลัก</button></div></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"onn\" rows=\"2\"></textarea></div>"+
     "<button class=\"btn bp\" onclick=\"sno()\" style=\"width:100%\">&#128190; บันทึก</button>"+
     "</div>"+
@@ -3882,6 +3936,65 @@ function rsk(){var h="";
   }
   document.getElementById("skl").innerHTML=h}
 
+// ===== Sync order's 1688 link into main link (L[base].link1) =====
+// force=false (Plan B): fill only if empty, don't overwrite existing
+// force=true  (Plan E): overwrite existing — used by manual button
+// Returns {filled:N, skipped:N, bases:[...]}
+function _syncOrderLinkToMain(link,items,force){
+  var result={filled:0,skipped:0,bases:[],updated:[]};
+  if(!link||!link.trim())return result;
+  link=link.trim();
+  if(!items||!items.length)return result;
+  var baseSet={};
+  items.forEach(function(s){var b=gb(s.sku);if(b)baseSet[b]=1});
+  var bases=Object.keys(baseSet);
+  result.bases=bases;
+  bases.forEach(function(b){
+    if(!L[b])L[b]={name:"",link1:"",link2:"",link3:""};
+    if(typeof L[b]==="string")L[b]={link1:L[b]};
+    var hadLink=!!L[b].link1;
+    if(force||!L[b].link1){
+      if(L[b].link1!==link){
+        L[b].link1=link;
+        result.filled++;
+        result.updated.push(b);
+      }else{
+        result.skipped++;
+      }
+    }else{
+      result.skipped++;
+    }
+  });
+  return result;
+}
+
+// Manual override button handler — called from order form
+function _copyOrderLinkToMain(mode){
+  var inputId=mode==="edit"?"el1688":"ol1688";
+  var inp=document.getElementById(inputId);
+  if(!inp||!inp.value.trim()){alert("\u0e01\u0e23\u0e2d\u0e01\u0e25\u0e34\u0e07\u0e01\u0e4c 1688 \u0e01\u0e48\u0e2d\u0e19");return}
+  if(!_s||!_s.length){alert("\u0e15\u0e49\u0e2d\u0e07\u0e21\u0e35 SKU \u0e01\u0e48\u0e2d\u0e19");return}
+  var link=inp.value.trim();
+  var baseSet={};
+  _s.forEach(function(s){var b=gb(s.sku);if(b)baseSet[b]=1});
+  var bases=Object.keys(baseSet);
+  if(bases.length===0){alert("\u0e44\u0e21\u0e48\u0e1e\u0e1a BASE \u0e02\u0e2d\u0e07 SKU");return}
+  // Count bases that will be overwritten vs filled
+  var willOverwrite=0,willFill=0;
+  bases.forEach(function(b){
+    if(L[b]&&L[b].link1&&L[b].link1!==link)willOverwrite++;
+    else if(!L[b]||!L[b].link1)willFill++;
+  });
+  var msg="\u0e2d\u0e31\u0e1e\u0e40\u0e14\u0e17\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e2b\u0e25\u0e31\u0e01\u0e02\u0e2d\u0e07 "+bases.length+" BASE: "+bases.join(", ")+"\n\n";
+  if(willOverwrite>0)msg+="\u26A0 \u0e08\u0e30\u0e17\u0e31\u0e1a\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e40\u0e14\u0e34\u0e21 "+willOverwrite+" BASE\n";
+  if(willFill>0)msg+="\u2795 \u0e40\u0e15\u0e34\u0e21\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e43\u0e2b\u0e21\u0e48 "+willFill+" BASE\n";
+  msg+="\n\u0e22\u0e37\u0e19\u0e22\u0e31\u0e19?";
+  if(!confirm(msg))return;
+  var r=_syncOrderLinkToMain(link,_s,true);
+  sv();
+  alert("\u2705 \u0e2d\u0e31\u0e1e\u0e40\u0e14\u0e17\u0e41\u0e25\u0e49\u0e27 "+r.filled+" BASE"+(r.skipped>0?" ("+r.skipped+" BASE \u0e44\u0e21\u0e48\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19 - \u0e25\u0e34\u0e07\u0e01\u0e4c\u0e40\u0e14\u0e34\u0e21\u0e15\u0e23\u0e07\u0e01\u0e31\u0e19)":""));
+}
+
 function sno(){
   if(_s.length===0){alert("เพิ่ม SKU ก่อน");return}
   var oid=(document.getElementById("oidIn")?document.getElementById("oidIn").value:"").trim();
@@ -3892,6 +4005,8 @@ function sno(){
   var _trk=(document.getElementById("otr").value||"").trim();
   var _initSt=_trk?"shipped":"pending";
   O.unshift({id:oid,name:document.getElementById("onm").value,date:d,month:d.slice(0,7),items:_s.map(function(s){return{sku:s.sku,qty:s.qty}}),tracking:_trk,note:document.getElementById("onn").value,amount:_amtv,link1688:_l1688,status:_initSt,statusChangedAt:d,_lm:Date.now()});
+  // Plan B: Auto-fill L[base].link1 if empty (doesn't overwrite existing)
+  if(_l1688)_syncOrderLinkToMain(_l1688,_s,false);
   sv();cp();uk();rt();cm=d.slice(0,7);rmt();ro();
   if(_trk)_autoTrkToast("&#9989; \u0e21\u0e35\u0e40\u0e25\u0e02\u0e1e\u0e31\u0e2a\u0e14\u0e38 \u2192 \u0e15\u0e31\u0e49\u0e07\u0e2a\u0e16\u0e32\u0e19\u0e30 '\u0e08\u0e31\u0e14\u0e2a\u0e48\u0e07\u0e41\u0e25\u0e49\u0e27' \u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34");
 }
@@ -3913,7 +4028,7 @@ function eo(idx){
     "<div class=\"fg\"><label>มูลค่ารวม (฿)</label><input type=\"number\" id=\"eAmt\" step=\"0.01\" min=\"0\" value=\""+(o.amount||"")+"\" placeholder=\"0.00\"></div>"+
     "<div class=\"fg\"><label>วันที่สั่ง</label><input type=\"date\" id=\"edt\" value=\""+(o.date||"")+"\"></div>"+
     "<div class=\"fg\"><label>เลขพัสดุ</label><input type=\"text\" id=\"etr\" value=\""+(o.tracking||"")+"\"></div>"+
-    "<div class=\"fg\"><label>&#128279; ลิงค์ 1688</label><input type=\"text\" id=\"el1688\" value=\""+_escAttr(o.link1688||"")+"\" placeholder=\"https://air.1688.com/...\"></div>"+
+    "<div class=\"fg\"><label>&#128279; ลิงค์ 1688 <span style=\"font-size:11px;color:var(--t2);font-weight:400\">\u2014 บันทึกแล้วจะเติมลิงก์หลักให้ BASE ที่ยังว่าง</span></label><div style=\"display:flex;gap:6px\"><input type=\"text\" id=\"el1688\" value=\""+_escAttr(o.link1688||"")+"\" placeholder=\"https://air.1688.com/...\" style=\"flex:1\"><button type=\"button\" class=\"btn bs b2\" onclick=\"_copyOrderLinkToMain('edit')\" title=\"บังคับอัพเดทลิงก์หลักของ BASE ทุกตัวในออเดอร์นี้ (ทับของเดิม)\" style=\"white-space:nowrap;padding:8px 10px;font-size:12px\">&#128257; อัพลิงก์หลัก</button></div></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"enn\" rows=\"2\">"+(o.note||"")+"</textarea></div>"+
     "<div style=\"display:flex;gap:8px\"><button class=\"btn bp\" onclick=\"se("+idx+")\" style=\"flex:1\">&#128190; บันทึก</button><button class=\"btn brd bs\" onclick=\"deo("+idx+")\">&#128465; ลบ</button></div>"+
     "</div>"+
@@ -3932,6 +4047,8 @@ function se(i){
   var newTrk=(document.getElementById("etr").value||"").trim();
   O[i].tracking=newTrk;
   O[i].note=document.getElementById("enn").value;var _eamt=document.getElementById("eAmt");O[i].amount=_eamt?(parseFloat(_eamt.value)||0):(O[i].amount||0);var _el1=document.getElementById("el1688");if(_el1)O[i].link1688=_el1.value||"";
+  // Plan B: Auto-fill L[base].link1 if empty (doesn't overwrite existing)
+  if(O[i].link1688)_syncOrderLinkToMain(O[i].link1688,O[i].items,false);
   O[i]._lm=Date.now();
   // Auto-change status ตามเลขพัสดุ
   var autoMsg="";
@@ -5813,13 +5930,24 @@ function _rcvUpdateBanner(){
       b.style.background="linear-gradient(135deg,rgba(234,179,8,.18),rgba(234,179,8,.05))";
       b.style.borderColor="rgba(234,179,8,.5)";
       b.style.display="block";
-      var resumeHtml="<div style='font-size:13px;color:#eab308;font-weight:700;margin-bottom:6px'>\u23F8 \u0e04\u0e38\u0e13\u0e21\u0e35\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e04\u0e49\u0e32\u0e07\u0e44\u0e27\u0e49 "+partials.length+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23:</div><div style='display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;padding-right:4px'>";
-      partials.forEach(function(p){
-        var reasonHtml=p.reason?"<div style='margin-top:4px;padding:6px 8px;background:rgba(239,68,68,.1);border-left:3px solid var(--r);border-radius:4px;font-size:11px;color:var(--r);font-weight:600'>&#8617;&#65039; \u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 2 \u0e15\u0e35\u0e01\u0e25\u0e31\u0e1a: "+p.reason.replace(/</g,"&lt;")+(p.recountBy?" <span style=\"opacity:.7;font-weight:400\">(\u0e42\u0e14\u0e22 "+p.recountBy+")</span>":"")+"</div>":"";
-        resumeHtml+="<div style='background:rgba(0,0,0,.08);padding:8px 10px;border-radius:8px'><div style='display:flex;justify-content:space-between;align-items:center;gap:8px'><div style='flex:1;min-width:0;font-size:12px'><b>"+(p.o.name||p.o.id)+"</b> <span style='color:var(--t2)'>\u2022 "+p.skus+" SKU \u2022 "+p.qty+" \u0e0a\u0e34\u0e49\u0e19</span></div><button onclick='_rcvResumePartial("+p.idx+")' style='background:#eab308;color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>\u25B6 \u0e19\u0e31\u0e1a\u0e15\u0e48\u0e2d</button></div>"+reasonHtml+"</div>";
-      });
-      resumeHtml+="</div>";
+      var showSearch=partials.length>=3;
+      var qEsc=(_rcvPartialQ||"").replace(/"/g,"&quot;");
+      // Use flex column layout so search always stacks below title (works on all screen sizes)
+      var header="<div style='display:flex;flex-direction:column;gap:6px;margin-bottom:8px'>"+
+        "<div style='font-size:13px;color:#eab308;font-weight:700;line-height:1.3'>\u23F8 \u0e04\u0e38\u0e13\u0e21\u0e35\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e04\u0e49\u0e32\u0e07\u0e44\u0e27\u0e49 <span id='rcvPartialCnt'>"+partials.length+"</span> \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</div>";
+      if(showSearch){
+        header+="<div style='position:relative;width:100%'><input type='text' id='rcvPartialSearch' value=\""+qEsc+"\" oninput='_rcvFilterPartials(this.value)' onkeydown='if(event.key===\"Escape\"){_rcvFilterPartials(\"\")}' placeholder='\ud83d\udd0d \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e0a\u0e37\u0e48\u0e2d\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32 / SKU / \u0e40\u0e25\u0e02\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c' style='padding:8px 32px 8px 12px;font-size:13px;border:1.5px solid rgba(234,179,8,.5);border-radius:10px;background:#fff;width:100%;box-sizing:border-box;outline:none'>"+
+          (_rcvPartialQ?"<button type='button' onclick='_rcvFilterPartials(\"\")' style='position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.08);border:none;cursor:pointer;font-size:14px;color:#555;padding:2px 8px;border-radius:50%;line-height:1;width:22px;height:22px'>\u2715</button>":"")+
+        "</div>";
+      }
+      header+="</div>";
+      var resumeHtml=header+"<div id='rcvPartialInner' style='display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;padding-right:4px'>"+_rcvRenderPartialItems(partials)+"</div>";
       b.innerHTML=resumeHtml;
+      // Restore focus to search input if we were typing
+      if(showSearch&&_rcvPartialQ){
+        var si=document.getElementById("rcvPartialSearch");
+        if(si){si.focus();si.setSelectionRange(si.value.length,si.value.length)}
+      }
       return;
     }
     b.style.background="linear-gradient(135deg,rgba(59,130,246,.15),rgba(59,130,246,.05))";
@@ -6642,6 +6770,7 @@ function _rcvUndoNow(){
 }
 
 // ---- Resume partial counts ----
+var _rcvPartialQ=""; // search query for partial resume list
 function _rcvListPartials(){
   var out=[];
   O.forEach(function(o,idx){
@@ -6652,11 +6781,51 @@ function _rcvListPartials(){
   });
   return out;
 }
+// Render filtered partial items as HTML (used by both banner and search updates)
+function _rcvRenderPartialItems(partials){
+  var q=(_rcvPartialQ||"").toLowerCase().trim();
+  var filtered=partials;
+  if(q){
+    filtered=partials.filter(function(p){
+      var hay=((p.o.name||"")+" "+(p.o.id||"")+" "+(p.rc&&p.rc.items?p.rc.items.map(function(x){return x.sku}).join(" "):"")).toLowerCase();
+      return hay.indexOf(q)>-1;
+    });
+  }
+  if(filtered.length===0){
+    return "<div style='padding:20px 10px;text-align:center;color:var(--t2);font-size:12px'>\ud83d\udd0d \u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e15\u0e23\u0e07\u0e01\u0e31\u0e1a \""+q.replace(/</g,"&lt;")+"\"</div>";
+  }
+  var html="";
+  if(q){
+    html+="<div style='font-size:11px;color:var(--t2);padding:2px 2px 6px'>\u0e1e\u0e1a "+filtered.length+"/"+partials.length+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</div>";
+  }
+  filtered.forEach(function(p){
+    var reasonHtml=p.reason?"<div style='margin-top:4px;padding:6px 8px;background:rgba(239,68,68,.1);border-left:3px solid var(--r);border-radius:4px;font-size:11px;color:var(--r);font-weight:600'>&#8617;&#65039; \u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 2 \u0e15\u0e35\u0e01\u0e25\u0e31\u0e1a: "+p.reason.replace(/</g,"&lt;")+(p.recountBy?" <span style=\"opacity:.7;font-weight:400\">(\u0e42\u0e14\u0e22 "+p.recountBy+")</span>":"")+"</div>":"";
+    html+="<div style='background:rgba(0,0,0,.08);padding:8px 10px;border-radius:8px'><div style='display:flex;justify-content:space-between;align-items:center;gap:8px'><div style='flex:1;min-width:0;font-size:12px'><b>"+(p.o.name||p.o.id)+"</b> <span style='color:var(--t2)'>\u2022 "+p.skus+" SKU \u2022 "+p.qty+" \u0e0a\u0e34\u0e49\u0e19</span></div><button onclick='_rcvResumePartial("+p.idx+")' style='background:#eab308;color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>\u25B6 \u0e19\u0e31\u0e1a\u0e15\u0e48\u0e2d</button></div>"+reasonHtml+"</div>";
+  });
+  return html;
+}
+// Update search query and re-render only the inner list (keeps input focus)
+function _rcvFilterPartials(q){
+  _rcvPartialQ=q||"";
+  var inner=document.getElementById("rcvPartialInner");
+  if(!inner){_rcvUpdateBanner();return}
+  var partials=typeof _rcvListPartials==="function"?_rcvListPartials():[];
+  inner.innerHTML=_rcvRenderPartialItems(partials);
+  // Handle the clear (×) button visibility by toggling input container
+  var si=document.getElementById("rcvPartialSearch");
+  if(si){
+    // Sync input value with state if called externally (e.g. Esc press or clear)
+    if(si.value!==_rcvPartialQ)si.value=_rcvPartialQ;
+    // Toggle × button — simpler to let full rerender handle it when clearing
+    if(!_rcvPartialQ)_rcvUpdateBanner();
+  }
+}
 function _rcvResumePartial(idx){
   var o=O[idx];if(!o||!RC[o.id])return;
   _rcvItems=RC[o.id].items.map(function(r){return{sku:r.sku,qty:r.qty}});
   document.getElementById("rcvOrd").value=idx;
   rcvMode="count";
+  _rcvPartialQ=""; // reset search when resuming
   rrcv();
 }
 
@@ -6689,20 +6858,24 @@ function renderRcvCheck(){
   var searchEl=document.getElementById("chkSearch");
   var q=searchEl?searchEl.value.trim().toLowerCase():"";
   // Collect normal orders with counts
+  // NOTE: กรอง partial ออก — พนักงาน 2 จะเห็นเฉพาะรายการที่พนักงาน 1 บันทึกเสร็จสมบูรณ์แล้วเท่านั้น
   var normals=[];
+  var partialSkipN=0;
   O.forEach(function(o,i){
     if(o.status!=="pending"&&o.status!=="shipped"&&o.status!=="arrived_th"&&o.status!=="partial")return;
     if(!RC[o.id])return;
+    if(RC[o.id].partial){partialSkipN++;return}
     var rc=RC[o.id];
     var tq=o.items.reduce(function(s,x){return s+x.qty},0);
     var cq=rc.items.reduce(function(s,x){return s+x.qty},0);
     normals.push({idx:i,o:o,rc:rc,totalOrd:tq,totalCnt:cq,skus:o.items.length,match:tq===cq});
   });
-  // Collect NP with counts
+  // Collect NP with counts (กรอง partial ออกเช่นกัน)
   var nps=[];
   NP.forEach(function(p,i){
     var rcKey="NP_"+p.id;
     if(!RC[rcKey])return;
+    if(RC[rcKey].partial){partialSkipN++;return}
     var rc=RC[rcKey];
     var cq=rc.items.reduce(function(s,x){return s+x.qty},0);
     var tq=p.qty||0;
@@ -6741,19 +6914,27 @@ function renderRcvCheck(){
     var hay=(n.p.name||"")+" "+(n.p.id||"")+" "+n.rc.items.map(function(x){return x.sku}).join(" ");
     return matchSearch(hay);
   });
+  // Banner notifying about partial counts (Worker 1 ยังนับไม่เสร็จ)
+  var partialBanner="";
+  if(partialSkipN>0){
+    partialBanner="<div style='background:linear-gradient(135deg,rgba(234,179,8,.15),rgba(234,179,8,.05));border:1px solid rgba(234,179,8,.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:8px'>"+
+      "<span style='font-size:18px'>\u23F3</span>"+
+      "<div style='flex:1'><b style='color:#b45309'>\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1 \u0e01\u0e33\u0e25\u0e31\u0e07\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19 "+partialSkipN+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</b> \u2014 \u0e22\u0e31\u0e07\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49 \u0e23\u0e2d\u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1 \u0e01\u0e14\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e2a\u0e23\u0e47\u0e08\u0e2a\u0e21\u0e1a\u0e39\u0e23\u0e13\u0e4c\u0e01\u0e48\u0e2d\u0e19</div>"+
+    "</div>";
+  }
   if(totalN===0){
-    listEl.innerHTML="<div class='emp'><div style='font-size:36px;margin-bottom:8px'>&#9203;</div>\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1 \u0e19\u0e31\u0e1a\u0e41\u0e25\u0e49\u0e27</div>";
+    listEl.innerHTML=partialBanner+"<div class='emp'><div style='font-size:36px;margin-bottom:8px'>&#9203;</div>"+(partialSkipN>0?"\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a":"\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1 \u0e19\u0e31\u0e1a\u0e41\u0e25\u0e49\u0e27")+"</div>";
     _chkNavList=[];
     return;
   }
   if(fNormals.length===0&&fNps.length===0){
-    listEl.innerHTML="<div class='emp' style='padding:20px'><div style='font-size:28px;margin-bottom:6px'>&#128269;</div>\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e15\u0e32\u0e21\u0e40\u0e07\u0e37\u0e48\u0e2d\u0e19\u0e44\u0e02</div>";
+    listEl.innerHTML=partialBanner+"<div class='emp' style='padding:20px'><div style='font-size:28px;margin-bottom:6px'>&#128269;</div>\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e15\u0e32\u0e21\u0e40\u0e07\u0e37\u0e48\u0e2d\u0e19\u0e44\u0e02</div>";
     _chkNavList=[];
     return;
   }
   // Build nav list in render order (normals first, then NP)
   _chkNavList=[];
-  var h="";
+  var h=partialBanner;
   if(fNormals.length>0){
     h+="<div style='font-size:13px;font-weight:700;margin:6px 0 8px;display:flex;align-items:center;gap:6px;color:var(--t2)'>&#128230; \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e1b\u0e01\u0e15\u0e34 \u0e23\u0e2d\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a <span style='background:var(--a);color:#fff;border-radius:10px;padding:1px 8px;font-size:10px'>"+fNormals.length+"</span></div>";
     fNormals.forEach(function(n){
@@ -8403,6 +8584,7 @@ function initApp(){
   try{_initHashTab()}catch(e){}
   try{_initTabScroll()}catch(e){}
   try{_updateNetBadge()}catch(e){}
+  try{_initSavedSnap()}catch(e){} // baseline for change-detection diff
   try{startAutoRefresh()}catch(e){console.error("startAutoRefresh error:",e)}
   // Fetch cloud users → merge → push กลับ (ไม่เขียนทับข้อมูลเครื่องอื่น)
   try{if(CLOUD_URL){_fetchCloudUsers().then(function(){cloudSaveUsers()}).catch(function(){})}}catch(e){}
