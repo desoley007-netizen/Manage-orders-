@@ -6407,20 +6407,39 @@ function renderRcvCheckNormal(idx){
   var rc=RC[o.id];
   if(!rc){el.innerHTML="<div class='emp'>&#9203; \u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e19\u0e31\u0e1a</div>";act.style.display="none";return}
   // Build comparison — match by _rcvSkuEq so parent/variant SKUs align
+  // 2-pass: exact matches first (priority), then fuzzy, prevent double-claiming PO rows
   var allSkus={};
   var extraItems=[]; // counted but not in PO (truly unexpected)
   o.items.forEach(function(x){allSkus[x.sku]={ordered:x.qty,counted:0}});
+  var claimed={}; // allSkus keys already matched
+  var unmatched=[];
+  // Pass 1: exact matches
   rc.items.forEach(function(x){
-    if(allSkus[x.sku]!==undefined){allSkus[x.sku].counted=x.qty;return}
-    // Try fuzzy match via _rcvSkuEq
+    if(allSkus[x.sku]!==undefined&&!claimed[x.sku]){
+      allSkus[x.sku].counted+=x.qty;
+      claimed[x.sku]=true;
+    }else{
+      unmatched.push(x);
+    }
+  });
+  // Pass 2: fuzzy matches on remaining items (only to unclaimed PO keys)
+  unmatched.forEach(function(x){
     var matchedKey=null;
     if(typeof _rcvSkuEq==="function"){
-      for(var k in allSkus){if(allSkus.hasOwnProperty(k)&&_rcvSkuEq(k,x.sku)){matchedKey=k;break}}
+      for(var k in allSkus){
+        if(allSkus.hasOwnProperty(k)&&!claimed[k]&&_rcvSkuEq(k,x.sku)){matchedKey=k;break}
+      }
     }
     if(matchedKey){
-      // Swap key to the counted SKU so it displays as actually scanned (variant precision)
-      if(matchedKey!==x.sku){allSkus[x.sku]={ordered:allSkus[matchedKey].ordered,counted:x.qty};delete allSkus[matchedKey]}
-      else{allSkus[x.sku].counted=x.qty}
+      if(matchedKey!==x.sku){
+        // Swap key to the counted SKU so it displays as actually scanned
+        allSkus[x.sku]={ordered:allSkus[matchedKey].ordered,counted:x.qty};
+        delete allSkus[matchedKey];
+        claimed[x.sku]=true;
+      }else{
+        allSkus[x.sku].counted+=x.qty;
+        claimed[x.sku]=true;
+      }
     }else{
       extraItems.push({sku:x.sku,qty:x.qty});
     }
