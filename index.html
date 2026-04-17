@@ -934,10 +934,11 @@ html,body{overflow-x:hidden!important}
 <div id="impDdM" class="imp-dd-menu">
 <button onclick="oim();document.getElementById('impDdM').classList.remove('open')">&#128279; Import ลิงก์ (Sheets)</button>
 <button onclick="oimgExcel();document.getElementById('impDdM').classList.remove('open')">&#128247; Import รูป</button>
-<button onclick="document.getElementById('vnFileInp').click();document.getElementById('impDdM').classList.remove('open')">&#127991; Import ชื่อตัวเลือก</button>
+<button onclick="importProductData();document.getElementById('impDdM').classList.remove('open')">&#128202; Import ข้อมูลสินค้า</button>
 </div>
 </div>
 <input type="file" id="vnFileInp" accept=".xlsx,.xls" style="display:none" onchange="importVariantNames(this)">
+<input type="file" id="prodDataInp" accept=".xlsx,.xls" style="display:none" onchange="processProductData(this)">
 <button class="btn bs bg lnk-act" onclick="am()" title="Auto-Match">&#9889;<span class="m-hide"> Auto-Match</span></button>
 </div>
 </div>
@@ -949,7 +950,7 @@ html,body{overflow-x:hidden!important}
 <span style="color:var(--t2);font-size:12px">&#128161; SKU ตัด 2 ตัวท้าย เช่น W69609 → W696</span>
 </div>
 <div class="tw"><div class="ts" style="max-height:60vh">
-<table><thead><tr><th>SKU</th><th>Base</th><th>ชื่อสินค้า</th><th>ลิงก์หลัก</th><th>ลิงก์เสริม</th><th>จัดการ</th></tr></thead>
+<table><thead><tr><th>SKU</th><th>Base</th><th>ชื่อสินค้า</th><th class="th-sort" onclick="lnkSort('price')">ราคา <span id="lnkI_price"></span></th><th class="th-sort" onclick="lnkSort('platformStock')">สต็อก <span id="lnkI_platformStock"></span></th><th class="th-sort" onclick="lnkSort('sales')">ยอดขาย <span id="lnkI_sales"></span></th><th>ลิงก์หลัก</th><th>จัดการ</th></tr></thead>
 <tbody id="ltb"></tbody></table>
 </div></div>
 </div>
@@ -1079,8 +1080,94 @@ var R=[["Waterproof bag04","ของแท้ ส่งเร็ว 7฿ ซอ
 
 // Load saved inventory from localStorage if available (persists BigSeller imports)
 try{var _savedR=_tsGet("ts_r");if(_savedR){var _parsedR=JSON.parse(_savedR);if(_parsedR.length>0)R=_parsedR}}catch(e){}
-// Unpack compressed data: [sku, name, stock, days, avgDaily, s7, s30, recQty, price]
-var I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});
+
+// ============================================================
+// Lead time / Safety days config (for smart rec calculation)
+// รถ (truck) = 15 วัน, เรือ (ship) = 35 วัน, safety = 7 วัน
+// ============================================================
+var SHIP_CFG={truck:parseInt(_tsGet("ts_lt_truck"))||15,ship:parseInt(_tsGet("ts_lt_ship"))||35,safety:parseInt(_tsGet("ts_lt_safety"))||7};
+
+// ============================================================
+// Centralized R row → item mapping (backward compatible)
+// Old R schema (9 fields): [sku, name, stock, days, avg, s7, s30, rec, pr]
+// Extended R schema (19 fields):
+//   [0-10] เดิม: sku, name, stock, days, avg, s7, s30, rec, pr, img, src
+//   [11-14] ใหม่: s3, s15, s60, s90
+//   [15-16] ใหม่: inTransit (ระหว่างทาง), locked (ล็อคแล้ว)
+//   [17-18] ใหม่: outDate (วันที่ของขาด), saleStatus (สถานะการขาย)
+// ============================================================
+function _rowToItem(r){
+  return{
+    sku:r[0],name:r[1],stock:r[2]||0,days:r[3]||0,avg:r[4]||0,
+    s7:r[5]||0,s30:r[6]||0,rec:r[7]||0,pr:r[8]||0,
+    img:r[9]||"",src:r[10]||"",
+    s3:r[11]||0,s15:r[12]||0,s60:r[13]||0,s90:r[14]||0,
+    inTransit:r[15]||0,locked:r[16]||0,
+    outDate:r[17]||"",saleStatus:r[18]||""
+  };
+}
+
+// ============================================================
+// Vitality classification — แบ่งสินค้าเป็น 4 กลุ่มตามความร้อน
+//   HOT    — ขาย 7 วันล่าสุดมี → ร้อนที่สุด
+//   ACTIVE — ขาย 7 วันไม่มี แต่ 30 วันมี → ยังเคลื่อน
+//   SLOW   — 30 วันไม่มี แต่ 60 หรือ 90 วันเคยขาย → ช้าแต่ยังมีชีพ
+//   DEAD   — 90 วันไม่มีเลย → ตายสนิท
+// ============================================================
+function _getVitality(it){
+  if((it.s7||0)>0)return"hot";
+  if((it.s30||0)>0)return"active";
+  if((it.s60||0)>0||(it.s90||0)>0)return"slow";
+  return"dead";
+}
+
+// ============================================================
+// "ลืมสั่ง?" detector — สต็อกหมด + 30 วันไม่ขาย + 60/90 วันเคยขาย
+// → กลุ่มที่น่ากลัวที่สุดเพราะมองข้ามได้ง่าย
+// ============================================================
+function _isForgotten(it){
+  if((it.stock||0)>0)return false;              // ยังมีของอยู่ → ไม่ลืม
+  if((it.s30||0)>0)return false;                // ยังขายอยู่ 30 วัน → ไม่ลืม
+  if((it.s60||0)===0&&(it.s90||0)===0)return false; // ไม่เคยขายใน 90 วัน → ไม่ใช่ลืม = ตาย
+  return true;
+}
+
+// ============================================================
+// Weighted velocity — เฉลี่ยยอดขายต่อวันแบบถ่วงน้ำหนัก
+// ให้น้ำหนักข้อมูลใกล้ตัวมากกว่า (7 วันสำคัญกว่า 90 วัน)
+//   0.35 × (s7/7) + 0.25 × (s15/15) + 0.20 × (s30/30)
+// + 0.12 × (s60/60) + 0.08 × (s90/90)
+// ============================================================
+function _getVelocity(it){
+  var a7=(it.s7||0)/7,a15=(it.s15||0)/15,a30=(it.s30||0)/30,
+      a60=(it.s60||0)/60,a90=(it.s90||0)/90;
+  return 0.35*a7+0.25*a15+0.20*a30+0.12*a60+0.08*a90;
+}
+
+// ============================================================
+// Lead time picker — ดูจากจำนวนวัน stock เหลือ
+//   days ≥ 20 → ของยังเยอะ รอเรือได้ (35 วัน)
+//   days < 20 → ของจะหมด ใช้รถ (15 วัน)
+// ============================================================
+function _getLeadTime(it){
+  return (it.days||0)>=20?SHIP_CFG.ship:SHIP_CFG.truck;
+}
+
+// ============================================================
+// Smart reorder quantity — ปริมาณสั่งที่ควร
+//   needed = velocity × (leadTime + safetyDays)
+//   rec    = ceil(needed − stock − inTransit)
+// ============================================================
+function _getRecSmart(it){
+  var v=_getVelocity(it);
+  var lt=_getLeadTime(it);
+  var needed=v*(lt+SHIP_CFG.safety);
+  var available=(it.stock||0)+(it.inTransit||0);
+  return Math.max(0,Math.ceil(needed-available));
+}
+
+// Unpack compressed data → item objects (ใช้ _rowToItem เพื่อ backward-compat)
+var I=R.map(_rowToItem);
 var _importedSkuSet={};
 try{var _isRaw=_tsGet("ts_imported_skus");if(_isRaw){JSON.parse(_isRaw).forEach(function(s){_importedSkuSet[s]=true})}}catch(e){}
 function isImported(sku){return !!_importedSkuSet[sku]}
@@ -1090,6 +1177,13 @@ var VN=JSON.parse(_tsGet("ts_vn")||"{}");
 var cf="a",cm=new Date().toISOString().slice(0,7),_s=[],_orderBase=null;
 var colSort="",colDir=1;
 function thSort(key){if(colSort===key){colDir*=-1}else{colSort=key;colDir=1}rt()}
+var _niSub="all"; // sub-filter for notimported: all | zero | has
+var _vfSub="all"; // sub-filter for "ยังไม่สั่ง" by vitality: all | hot | active | slow | dead
+function _getSales(sku){var b=gb(sku),d=L[b];if(!d)return 0;if(typeof d==="string")return 0;return d.sales||0}
+function _getPStock(sku){var b=gb(sku),d=L[b];if(!d)return 0;if(typeof d==="string")return 0;return d.platformStock||0}
+function _getPrice(sku){var b=gb(sku),d=L[b];if(!d)return 0;if(typeof d==="string")return 0;return d.price||0}
+var _lnkSort="",_lnkDir=1;
+function lnkSort(key){if(_lnkSort===key){_lnkDir*=-1}else{_lnkSort=key;_lnkDir=1}rl()}
 
 var RC=JSON.parse(_tsGet("ts_rc")||"{}");
 var SI=JSON.parse(_tsGet("ts_si")||"[]");
@@ -1762,7 +1856,7 @@ function cloudForceSave(cb){
       try{O=JSON.parse(snapRaw.ts_o);_tsSet("ts_o",snapRaw.ts_o)}catch(e){}
       try{NP=JSON.parse(snapRaw.ts_np);_tsSet("ts_np",snapRaw.ts_np)}catch(e){}
       try{L=JSON.parse(snapRaw.ts_l);_tsSet("ts_l",snapRaw.ts_l)}catch(e){}
-      try{R=JSON.parse(snapRaw.ts_r);I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});_tsSet("ts_r",snapRaw.ts_r)}catch(e){}
+      try{R=JSON.parse(snapRaw.ts_r);I=R.map(_rowToItem);_tsSet("ts_r",snapRaw.ts_r)}catch(e){}
       if(d.status==="ok"){var t=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});syncUI("ok","Saved "+t);}
       else{syncUI("err","Save failed");}
       if(cb)cb();
@@ -1917,7 +2011,7 @@ function cloudLoad(manual) {
           var cloudR=JSON.parse(raw_r);
           if(Array.isArray(cloudR)&&cloudR.length>0){
             R=cloudR;
-            I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});
+            I=R.map(_rowToItem);
             try{_tsSet("ts_r",raw_r)}catch(ex){console.warn("localStorage full for ts_r")}
             _gimgCache={};
             changed=true;
@@ -2077,6 +2171,8 @@ function importBigSeller(inp){
 }
 function _processBigSellerRows(rows,fileCount){
   if(!rows.length){alert("\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e43\u0e19\u0e44\u0e1f\u0e25\u0e4c");return}
+  // Helper: get column value with fallback between multiple possible names
+  function _col(r,names){for(var i=0;i<names.length;i++){if(r[names[i]]!==undefined&&r[names[i]]!=="")return r[names[i]]}return ""}
   var skuMap={},newR=[];
   rows.forEach(function(r){
     var sku=String(r["\u0e0a\u0e37\u0e48\u0e2dSKU"]||"").trim();
@@ -2085,18 +2181,42 @@ function _processBigSellerRows(rows,fileCount){
     var stock=parseInt(r["\u0e2a\u0e15\u0e47\u0e2d\u0e01\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e02\u0e32\u0e22"])||0;
     var days=parseFloat(r["\u0e08\u0e33\u0e19\u0e27\u0e19\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e02\u0e32\u0e22\u0e42\u0e14\u0e22\u0e1b\u0e23\u0e30\u0e21\u0e32\u0e13"])||0;
     var avg=parseFloat(r["\u0e01\u0e32\u0e23\u0e04\u0e32\u0e14\u0e01\u0e32\u0e23\u0e13\u0e4c\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e23\u0e32\u0e22\u0e27\u0e31\u0e19"])||0;
-    var s7=parseInt(r["\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 7 \u0e27\u0e31\u0e19"])||0;
+    var s3=parseInt(r["\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 3 \u0e27\u0e31\u0e19"])||0;
+    var s7=parseInt(r["\u0e22\u0e2d\u0e14\u0e02\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 7 \u0e27\u0e31\u0e19"]||r["\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 7 \u0e27\u0e31\u0e19"])||0;
+    var s15=parseInt(r["\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 15 \u0e27\u0e31\u0e19"])||0;
     var s30=parseInt(r["\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 30 \u0e27\u0e31\u0e19"])||0;
+    var s60=parseInt(r["\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 60 \u0e27\u0e31\u0e19"])||0;
+    var s90=parseInt(r["\u0e22\u0e2d\u0e14\u0e02\u0e32\u0e22\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 90 \u0e27\u0e31\u0e19"])||0;
     var rec=parseInt(r["\u0e08\u0e33\u0e19\u0e27\u0e19\u0e17\u0e35\u0e48\u0e41\u0e19\u0e30\u0e19\u0e33"])||0;
     var pr=parseFloat(r["\u0e23\u0e32\u0e04\u0e32\u0e2d\u0e49\u0e32\u0e07\u0e2d\u0e34\u0e07"])||0;
     var img=String(r["\u0e25\u0e34\u0e07\u0e01\u0e4c\u0e23\u0e39\u0e1b\u0e20\u0e32\u0e1e"]||"");
-    if(skuMap[sku]){skuMap[sku].stock+=stock;skuMap[sku].s7+=s7;skuMap[sku].s30+=s30;if(rec>skuMap[sku].rec)skuMap[sku].rec=rec;if(avg>skuMap[sku].avg)skuMap[sku].avg=avg;if(days>skuMap[sku].days)skuMap[sku].days=days;if(pr>skuMap[sku].pr)skuMap[sku].pr=pr;return}
-    skuMap[sku]={name:name,stock:stock,days:days,avg:avg,s7:s7,s30:s30,rec:rec,pr:pr,img:img};
+    var inTransit=parseInt(r["\u0e23\u0e30\u0e2b\u0e27\u0e48\u0e32\u0e07\u0e17\u0e32\u0e07"])||0;
+    var locked=parseInt(r["\u0e25\u0e47\u0e2d\u0e04\u0e41\u0e25\u0e49\u0e27"])||0;
+    var outDate=String(r["\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48\u0e02\u0e2d\u0e07\u0e02\u0e32\u0e14"]||"");
+    var saleStatus=String(r["\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e01\u0e32\u0e23\u0e02\u0e32\u0e22"]||"");
+    if(skuMap[sku]){
+      skuMap[sku].stock+=stock;
+      skuMap[sku].s3+=s3;skuMap[sku].s7+=s7;skuMap[sku].s15+=s15;
+      skuMap[sku].s30+=s30;skuMap[sku].s60+=s60;skuMap[sku].s90+=s90;
+      skuMap[sku].inTransit+=inTransit;skuMap[sku].locked+=locked;
+      if(rec>skuMap[sku].rec)skuMap[sku].rec=rec;
+      if(avg>skuMap[sku].avg)skuMap[sku].avg=avg;
+      if(days>skuMap[sku].days)skuMap[sku].days=days;
+      if(pr>skuMap[sku].pr)skuMap[sku].pr=pr;
+      if(outDate&&!skuMap[sku].outDate)skuMap[sku].outDate=outDate;
+      if(saleStatus&&!skuMap[sku].saleStatus)skuMap[sku].saleStatus=saleStatus;
+      return;
+    }
+    skuMap[sku]={name:name,stock:stock,days:days,avg:avg,
+      s3:s3,s7:s7,s15:s15,s30:s30,s60:s60,s90:s90,
+      rec:rec,pr:pr,img:img,inTransit:inTransit,locked:locked,
+      outDate:outDate,saleStatus:saleStatus};
   });
   var co=0,cc=0,cl=0,cs=0,tr=0,tst=0,totalStock=0;
   Object.keys(skuMap).forEach(function(sku){
     var d=skuMap[sku];
-    newR.push([sku,d.name,d.stock,d.days,d.avg,d.s7,d.s30,d.rec,d.pr,d.img]);
+    // Extended R row (19 fields): [sku,name,stock,days,avg,s7,s30,rec,pr,img,src, s3,s15,s60,s90, inTransit,locked, outDate,saleStatus]
+    newR.push([sku,d.name,d.stock,d.days,d.avg,d.s7,d.s30,d.rec,d.pr,d.img,"",d.s3,d.s15,d.s60,d.s90,d.inTransit,d.locked,d.outDate,d.saleStatus]);
     if(d.stock<=0)co++;
     else if(d.days<=TH_C)cc++;
     else if(d.days<=TH_L)cl++;
@@ -2108,7 +2228,7 @@ function _processBigSellerRows(rows,fileCount){
   var bsSet={};newR.forEach(function(r){bsSet[r[0].toLowerCase()]=true});
   R.forEach(function(r){if(r[10]==="shopee"&&!bsSet[r[0].toLowerCase()]){newR.push(r)}});
   R=newR;
-  I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}});
+  I=R.map(_rowToItem);
   S={t:newR.length,o:co,c:cc,l:cl,k:Math.round(cs/2),s:cs-Math.round(cs/2),r:tr,st:totalStock,cost:tst};
   // Persist imported data to localStorage
   _gimgCache={};
@@ -2649,7 +2769,7 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
   var items=I.filter(function(it){
     if(cf==='disc')return isDisc(it.sku);
     if(cf==='hold')return isHold(it.sku);
-    if(cf==='notimported')return _hasImportSet&&!isImported(it.sku)&&!isDisc(it.sku);
+    if(cf==='notimported'){if(!_hasImportSet||isImported(it.sku)||isDisc(it.sku))return false;if(_niSub==="zero")return _getSales(it.sku)===0;if(_niSub==="has")return _getSales(it.sku)>0;return true;}
     if(isDisc(it.sku)||it.src==="shopee")return false;
     if(isHold(it.sku))return false;
     if(_hasImportSet&&!isImported(it.sku))return false;
@@ -2661,7 +2781,12 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
     if(cf==="ord")return ioSmart(it.sku).st==="active";
     if(cf==="done")return ioSmart(it.sku).st==="done";
     if(cf==="reord")return ioSmart(it.sku).st==="reorder";
-    if(cf==="nord")return ioSmart(it.sku).st==="none";
+    if(cf==="nord"){
+      if(ioSmart(it.sku).st!=="none")return false;
+      if(_vfSub==="all")return true;
+      return _getVitality(it)===_vfSub;
+    }
+    if(cf==="forgot")return ioSmart(it.sku).st!=="active"&&_isForgotten(it);
     return true;
   });
   var so=document.getElementById("srt").value;
@@ -2687,6 +2812,8 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
   if(viewMode==="group"){renderGrouped(items)}else{renderFlat(items)}
   // Update filter bar
   var co=0,cc=0,cl=0,cs=0,cAct=0,cDone=0,cReord=0,cNone=0,cAll=0;
+  var cHotN=0,cActiveN=0,cSlowN=0,cDeadN=0; // vitality breakdown within "ยังไม่สั่ง"
+  var cForgot=0; // 🔔 ลืมสั่ง? — stock=0, no 30d sales, but sold in 60/90d
   I.forEach(function(it){
     if(isDisc(it.sku)||it.src==="shopee"||isHold(it.sku))return;
     if(_hasImportSet&&!isImported(it.sku))return;
@@ -2700,18 +2827,63 @@ function rt(){_discSel={};renderDiscBar();_buildIoCache();if(!_grpKeep)_grpPage=
     else if(sm.st==="done")cDone++;
     else if(sm.st==="reorder")cReord++;
     else cNone++;
+    // Vitality breakdown — only for "ยังไม่สั่ง" items
+    if(sm.st==="none"){
+      var v=_getVitality(it);
+      if(v==="hot")cHotN++;
+      else if(v==="active")cActiveN++;
+      else if(v==="slow")cSlowN++;
+      else cDeadN++;
+    }
+    // Forgotten — not already on order, stock=0, no recent sales but had 60/90d sales
+    if(sm.st!=="active"&&_isForgotten(it))cForgot++;
   });
   var fbs=[
     {f:"a",l:"ทั้งหมด",n:cAll},
-    {f:"nord",l:"ยังไม่สั่ง",n:cNone},
+    {f:"forgot",l:"🔔 ลืมสั่ง?",n:cForgot,forgot:true},
+    {f:"nord",l:"ยังไม่สั่ง",n:cNone,vHot:cHotN,vActive:cActiveN,vSlow:cSlowN,vDead:cDeadN},
     {f:"reord",l:"ควรสั่งอีก 🚢🚛",n:cReord},
     {f:"hold",l:"⏳ เฝ้ารอ",n:_holdLen(),ex:_countHoldExpired()},
     {f:"ord",l:"สั่งแล้ว ✔",n:cAct},
     {f:"done",l:"ของถึงแล้ว ✔",n:cDone},
     {f:"disc",l:"\u{1F6AB} เลิกขาย",n:DISC.length}
   ];
-  if(_hasImportSet){var _notImpCount=I.filter(function(it){return!isImported(it.sku)&&!isDisc(it.sku)}).length;if(_notImpCount>0)fbs.push({f:"notimported",l:"📁 ไม่พบในไฟล์",n:_notImpCount})}
-  var fh="";fbs.forEach(function(b){var _isNI=b.f==="notimported";var _niStyle=_isNI?" style=\"background:rgba(245,158,11,.15);color:#d97706;border:1px dashed #d97706;font-weight:600\"":"";fh+="<button class=\"fb"+(cf===b.f?" act":"")+"\" data-f=\""+b.f+"\" onclick=\"cf='"+b.f+"';rt()\""+_niStyle+">"+b.l+"<span class=\"fc\""+(b.f==="notimported"?" style=\"background:#d97706;color:#fff\"":"")+">"+b.n+"</span>"+(b.ex?"<span style=\"color:#ef4444;font-weight:700;margin-left:2px\">⚠️"+b.ex+"</span>":"")+"</button>"});
+  if(_hasImportSet){
+    var _niAll=I.filter(function(it){return!isImported(it.sku)&&!isDisc(it.sku)});
+    var _notImpCount=_niAll.length;
+    var _niZero=_niAll.filter(function(it){return _getSales(it.sku)===0}).length;
+    var _niHas=_notImpCount-_niZero;
+    if(_notImpCount>0)fbs.push({f:"notimported",l:"📁 ไม่พบในไฟล์",n:_notImpCount,niZero:_niZero,niHas:_niHas})
+  }
+  var fh="";fbs.forEach(function(b){
+    var _isNI=b.f==="notimported";
+    var _isFG=b.f==="forgot";
+    var _niStyle=_isNI?" style=\"background:rgba(245,158,11,.15);color:#d97706;border:1px dashed #d97706;font-weight:600\"":"";
+    // 🔔 ลืมสั่ง? — ใช้สีส้มแดง (urgent) ถ้ามี > 0, สีเทาจางถ้าไม่มี
+    var _fgStyle=_isFG?(b.n>0?" style=\"background:rgba(239,68,68,.12);color:#dc2626;border:1px solid #f87171;font-weight:700\"":" style=\"background:rgba(0,0,0,.04);color:#94a3b8;border:1px dashed #cbd5e1\""):"";
+    var _style=_niStyle||_fgStyle;
+    fh+="<button class=\"fb"+(cf===b.f?" act":"")+"\" data-f=\""+b.f+"\" onclick=\"cf='"+b.f+"';_niSub='all';_vfSub='all';rt()\""+_style+">"+b.l+"<span class=\"fc\""+(_isNI?" style=\"background:#d97706;color:#fff\"":(_isFG&&b.n>0?" style=\"background:#dc2626;color:#fff\"":""))+">"+b.n+"</span>"+(b.ex?"<span style=\"color:#ef4444;font-weight:700;margin-left:2px\">⚠️"+b.ex+"</span>":"")+"</button>";
+    if(_isNI&&cf==="notimported"){
+      fh+="<div style=\"display:flex;gap:4px;margin:2px 0 2px 4px;flex-wrap:wrap\">";
+      fh+="<button class=\"fb"+(_niSub==="all"?" act":"")+"\" onclick=\"_niSub='all';rt()\" style=\"font-size:11px;padding:3px 10px;min-height:auto\">ทั้งหมด <span class=\"fc\">"+b.n+"</span></button>";
+      fh+="<button class=\"fb"+(_niSub==="zero"?" act":"")+"\" onclick=\"_niSub='zero';rt()\" style=\"font-size:11px;padding:3px 10px;min-height:auto;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.3)\">ยอดขาย 0 <span class=\"fc\" style=\"background:#ef4444;color:#fff\">"+b.niZero+"</span></button>";
+      fh+="<button class=\"fb"+(_niSub==="has"?" act":"")+"\" onclick=\"_niSub='has';rt()\" style=\"font-size:11px;padding:3px 10px;min-height:auto;background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.3)\">มียอดขาย <span class=\"fc\" style=\"background:#10b981;color:#fff\">"+b.niHas+"</span></button>";
+      fh+="</div>";
+    }
+    // Vitality sub-filter row — shown when cf==="nord"
+    if(b.f==="nord"&&cf==="nord"){
+      var _vbtn=function(key,label,n,bg,fg){
+        return "<button class=\"fb"+(_vfSub===key?" act":"")+"\" onclick=\"_vfSub='"+key+"';rt()\" style=\"font-size:11px;padding:3px 10px;min-height:auto;background:"+bg+";color:"+fg+";border:1px solid "+fg+"44\">"+label+" <span class=\"fc\" style=\"background:"+fg+";color:#fff\">"+n+"</span></button>";
+      };
+      fh+="<div style=\"display:flex;gap:4px;margin:2px 0 2px 4px;flex-wrap:wrap\">";
+      fh+="<button class=\"fb"+(_vfSub==="all"?" act":"")+"\" onclick=\"_vfSub='all';rt()\" style=\"font-size:11px;padding:3px 10px;min-height:auto\">ทั้งหมด <span class=\"fc\">"+b.n+"</span></button>";
+      fh+=_vbtn("hot","🔥 HOT (7d)",b.vHot,"rgba(239,68,68,.12)","#dc2626");
+      fh+=_vbtn("active","✅ ACTIVE (30d)",b.vActive,"rgba(16,185,129,.12)","#059669");
+      fh+=_vbtn("slow","🐢 SLOW (60-90d)",b.vSlow,"rgba(234,179,8,.15)","#ca8a04");
+      fh+=_vbtn("dead","💀 DEAD",b.vDead,"rgba(100,116,139,.12)","#64748b");
+      fh+="</div>";
+    }
+  });
   fh+="<button id=\"mgrBtn\" class=\"fb\" onclick=\"toggleMgrMode()\" style=\"margin-left:auto;background:var(--c2);border:1px solid var(--bd);font-size:11px\">"+(_mgrMode?"&#9989; ปิดโหมดจัดการ":"&#9881; โหมดจัดการ")+"</button>";
   document.getElementById("fbar").innerHTML=fh;
 }
@@ -2772,10 +2944,20 @@ function renderGrouped(items){
     var name=g.items[0].name;
     tr+=g.totalRec;tc+=g.items.reduce(function(s,it){return s+it.rec*it.pr},0);
     var anyOrdered=g.items.some(function(it){return io(it.sku)});
+    var _niInfo="";
+    if(cf==="notimported"){
+      var _pSales=_getSales(g.items[0].sku),_pStock=_getPStock(g.items[0].sku),_pPrice=_getPrice(g.items[0].sku);
+      var _salesColor=_pSales===0?"#ef4444":"#10b981";
+      _niInfo="<div style=\"display:flex;gap:6px;margin-top:3px;flex-wrap:wrap\">"+
+        "<span style=\"font-size:10px;padding:1px 6px;border-radius:4px;background:rgba("+ (_pSales===0?"239,68,68":"16,185,129") +",.12);color:"+_salesColor+";font-weight:600\">ยอดขาย: "+_pSales+"</span>"+
+        "<span style=\"font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(99,102,241,.1);color:var(--a)\">สต็อก: "+_pStock+"</span>"+
+        (_pPrice?"<span style=\"font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(245,158,11,.1);color:#d97706\">฿"+_pPrice+"</span>":"")+
+      "</div>";
+    }
 
     h+="<tr class=\"grp\" data-base=\""+base+"\" onclick=\"toggleGrp('"+base+"')\">"+
       "<td><span class=\"dot "+st.d+"\"></span>"+st.l+"</td>"+
-      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?holdBadgeHtml(base):"")+"</td>"+
+      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?holdBadgeHtml(base):"")+_niInfo+"</td>"+
       "<td class=\"nm\">"+name+"</td>"+
       "<td>"+g.totalStock+"</td>"+
       "<td>"+(g.minDays===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":"~"+g.minDays)+"</td>"+
@@ -3467,7 +3649,50 @@ function rskDelSel(){var cbs=document.querySelectorAll(".skl-cb:checked");if(cbs
 function rskSelAll(v){document.querySelectorAll(".skl-cb").forEach(function(cb){cb.checked=v})}
 function rsk(){var h="";
   if(_s.length>1){h+="<div style=\"background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:10px\"><div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:8px\"><span style=\"font-size:13px;font-weight:700;color:var(--t)\">"+_s.length+" รายการ</span><div style=\"display:flex;gap:4px\"><button class=\"btn bs b2\" onclick=\"sortS('qty-d')\" title=\"จำนวน มาก→น้อย\" style=\"font-size:12px;padding:4px 10px\">&#9660;</button><button class=\"btn bs b2\" onclick=\"sortS('qty-a')\" title=\"จำนวน น้อย→มาก\" style=\"font-size:12px;padding:4px 10px\">&#9650;</button></div></div><div style=\"display:flex;gap:8px;align-items:center;flex-wrap:wrap\"><label style=\"font-size:12px;color:var(--t2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap\"><input type=\"checkbox\" onchange=\"rskSelAll(this.checked)\" style=\"width:17px;height:17px;accent-color:var(--p)\"> เลือกทั้งหมด</label><div style=\"height:16px;width:1px;background:var(--bd)\"></div><div style=\"display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:4px 8px\"><span style=\"font-size:11px;color:var(--t2);white-space:nowrap\">ใส่ที่เลือก:</span><input type=\"number\" id=\"saq\" min=\"1\" value=\"10\" style=\"width:45px;background:transparent;border:none;color:var(--t);text-align:center;font-size:13px;font-weight:600;padding:0\"><button class=\"btn bp bs\" onclick=\"setAll()\" style=\"font-size:11px;padding:3px 10px;border-radius:6px\">ตกลง</button></div><div style=\"height:16px;width:1px;background:var(--bd)\"></div><button class=\"btn brd bs\" onclick=\"rskDelSel()\" style=\"font-size:11px;padding:4px 12px;border-radius:6px\">&#128465; ลบที่เลือก</button></div></div>"}
-  _s.forEach(function(s,i){var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});var stk=fi?fi.stock:"-";var d=fi?fi.days:"-";var s30=fi?fi.s30:"-";var rec=fi?fi.rec:"-";var st=fi?gi(fi):{d:"",l:""};var vn=VN[s.sku]||"";var _sd=fi?(typeof fi.days==="number"?fi.days:parseInt(fi.days)):NaN;var _stag=fi?(!isNaN(_sd)&&_sd>=20?"<span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(59,130,246,.12);color:#3b82f6;font-weight:600\">🚢 เรือ</span>":"<span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(249,115,22,.12);color:#f97316;font-weight:600\">🚛 รถ</span>"):"";h+="<div style=\"background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px\"><div style=\"display:flex;align-items:center;gap:8px\">"+(_s.length>1?"<input type=\"checkbox\" class=\"skl-cb\" data-i=\""+i+"\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0\">":"")+(im?"<img src=\""+im+"\" class=\"sku-img\" onclick=\"_zoomImg(event)\" style=\"cursor:zoom-in\" onerror=\"this.style.display='none'\">":"")+"<div style=\"flex:1;min-width:0\"><strong>"+s.sku+"</strong>"+(fi&&fi.name?"<div class=\"sku-nm-wrap\"><div class=\"sku-nm-cp\" data-nm=\""+_escAttr(fi.name)+"\" onclick=\"cpNmToOrd(event,this.getAttribute('data-nm'))\" title=\"คลิกเพื่อใส่ชื่อนี้ในช่อง 'ชื่อรายการ'\">"+_escAttr(fi.name.length>30?fi.name.slice(0,30)+"…":fi.name)+"</div>"+(fi.name.length>30?"<button type=\"button\" class=\"sku-nm-tg\" onclick=\"tgSkuNm(event)\" title=\"ดูชื่อเต็ม\">&#9660;</button>":"")+"</div>":"")+(vn?"<div style=\"font-size:10px;color:var(--t2);margin-top:1px\">"+vn+"</div>":"")+"</div><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div><div style=\"display:flex;gap:6px;margin-top:4px;padding-left:"+((_s.length>1)?"26px":"0")+";flex-wrap:wrap\"><span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">สต็อก <b>"+stk+"</b></span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">เหลือ <b>"+d+"</b> วัน</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">ขาย30วัน <b>"+s30+"</b></span><span style=\"font-size:10px;color:var(--a);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px;font-weight:600\">แนะนำสั่ง <b>"+rec+"</b></span>"+_stag+"</div></div>"});
+  _s.forEach(function(s,i){var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});var stk=fi?fi.stock:"-";var d=fi?fi.days:"-";var s30=fi?fi.s30:"-";var rec=fi?fi.rec:"-";var st=fi?gi(fi):{d:"",l:""};var vn=VN[s.sku]||"";var _sd=fi?(typeof fi.days==="number"?fi.days:parseInt(fi.days)):NaN;var _stag=fi?(!isNaN(_sd)&&_sd>=20?"<span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(59,130,246,.12);color:#3b82f6;font-weight:600\">🚢 เรือ</span>":"<span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(249,115,22,.12);color:#f97316;font-weight:600\">🚛 รถ</span>"):"";h+="<div style=\"background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px\"><div style=\"display:flex;align-items:center;gap:8px\">"+(_s.length>1?"<input type=\"checkbox\" class=\"skl-cb\" data-i=\""+i+"\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0\">":"")+(im?"<img src=\""+im+"\" class=\"sku-img\" onclick=\"_zoomImg(event)\" style=\"cursor:zoom-in\" onerror=\"this.style.display='none'\">":"")+"<div style=\"flex:1;min-width:0\">"+skuW(s.sku,true)+(fi&&fi.name?"<div class=\"sku-nm-wrap\"><div class=\"sku-nm-cp\" data-nm=\""+_escAttr(fi.name)+"\" onclick=\"cpNmToOrd(event,this.getAttribute('data-nm'))\" title=\"คลิกเพื่อใส่ชื่อนี้ในช่อง 'ชื่อรายการ'\">"+_escAttr(fi.name.length>30?fi.name.slice(0,30)+"…":fi.name)+"</div>"+(fi.name.length>30?"<button type=\"button\" class=\"sku-nm-tg\" onclick=\"tgSkuNm(event)\" title=\"ดูชื่อเต็ม\">&#9660;</button>":"")+"</div>":"")+(vn?"<div style=\"font-size:10px;color:var(--t2);margin-top:1px\">"+vn+"</div>":"")+"</div><input type=\"number\" value=\""+s.qty+"\" min=\"1\" style=\"width:60px;background:var(--c1);border:1px solid var(--bd);border-radius:4px;padding:4px;color:var(--t);text-align:center\" onchange=\"_s["+i+"].qty=parseInt(this.value)\"> ชิ้น <button onclick=\"_s.splice("+i+",1);rsk()\" style=\"background:none;border:none;color:var(--r);cursor:pointer;font-size:16px\">&times;</button></div><div style=\"display:flex;gap:6px;margin-top:4px;padding-left:"+((_s.length>1)?"26px":"0")+";flex-wrap:wrap\"><span style=\"font-size:10px;padding:2px 6px;border-radius:4px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">สต็อก <b>"+stk+"</b></span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">เหลือ <b>"+d+"</b> วัน</span><span style=\"font-size:10px;color:var(--t2);background:var(--c1);padding:2px 6px;border-radius:4px\">ขาย30วัน <b>"+s30+"</b></span><span style=\"font-size:10px;color:var(--a);background:rgba(99,102,241,.08);padding:2px 6px;border-radius:4px;font-weight:600\">แนะนำสั่ง <b>"+rec+"</b></span>"+_stag+"</div></div>"});
+  // SKU Group picker — show other SKUs in same base group
+  if(_s.length>0){
+    var _grpBases={};var _grpInOrder={};
+    _s.forEach(function(s){var b=gb(s.sku);_grpBases[b]=true;_grpInOrder[s.sku]=true});
+    var _grpKeys=Object.keys(_grpBases);
+    _grpKeys.forEach(function(base){
+      var others=I.filter(function(it){return gb(it.sku)===base&&!_grpInOrder[it.sku]&&!isDisc(it.sku)});
+      var inOrder=_s.filter(function(s){return gb(s.sku)===base});
+      if(others.length===0&&inOrder.length<=1)return;
+      var _gpId="grpPick_"+base.replace(/[^a-zA-Z0-9]/g,"_");
+      h+="<div style=\"margin-top:12px;border-top:2px dashed var(--bd);padding-top:10px\">";
+      h+="<div onclick=\"var b=document.getElementById('"+_gpId+"');var a=this.querySelector('.gp-arrow');if(b.style.maxHeight==='0px'){b.style.maxHeight=b.scrollHeight+50+'px';a.textContent='▲';this.querySelector('.gp-txt').textContent='ซ่อน'}else{b.style.maxHeight='0px';a.textContent='▼';this.querySelector('.gp-txt').textContent='กดเพื่อดู'}\" style=\"display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;cursor:pointer;transition:all .15s\">";
+      h+="<span style=\"font-size:13px;font-weight:700;color:#f59e0b;display:flex;align-items:center;gap:6px\">&#128270; กลุ่ม "+_escAttr(base)+" — "+(others.length>0?"ยังไม่ได้เพิ่มอีก "+others.length+" SKU":"ครบแล้ว")+"</span>";
+      h+="<span style=\"font-size:12px;color:var(--a);font-weight:600\"><span class=\"gp-txt\">กดเพื่อดู</span> <span class=\"gp-arrow\">▼</span></span>";
+      h+="</div>";
+      h+="<div id=\""+_gpId+"\" style=\"max-height:0px;overflow:hidden;transition:max-height .3s\"><div style=\"padding-top:6px\">";
+      // Show items already in order (greyed)
+      inOrder.forEach(function(s){
+        var im=gimg(s.sku);var fi=I.find(function(x){return x.sku===s.sku});
+        h+="<div style=\"display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:8px;margin-bottom:3px;opacity:.45\">";
+        if(im)h+="<img src=\""+im+"\" onclick=\"_zoomImg(event)\" style=\"width:28px;height:28px;border-radius:5px;object-fit:cover;cursor:zoom-in\" onerror=\"this.style.display='none'\">";
+        h+="<div style=\"flex:1;min-width:0\"><span style=\"font-size:13px;font-weight:700;color:var(--t)\">"+s.sku+"</span>";
+        if(fi&&fi.name)h+=" <span style=\"font-size:11px;color:var(--t2)\">"+_escAttr(fi.name.length>25?fi.name.slice(0,25)+"…":fi.name)+"</span>";
+        h+="</div><span style=\"font-size:12px;color:var(--t2);background:var(--c1);padding:4px 12px;border-radius:6px\">✓ เพิ่มแล้ว</span></div>";
+      });
+      // Show available to add
+      others.forEach(function(it){
+        var im=gimg(it.sku);var st=gi(it);
+        h+="<div style=\"display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:8px;margin-bottom:3px;border:1px solid transparent;transition:all .15s\" onmouseover=\"this.style.borderColor='var(--bd)'\" onmouseout=\"this.style.borderColor='transparent'\">";
+        if(im)h+="<img src=\""+im+"\" onclick=\"_zoomImg(event)\" style=\"width:28px;height:28px;border-radius:5px;object-fit:cover;cursor:zoom-in\" onerror=\"this.style.display='none'\">";
+        h+="<div style=\"flex:1;min-width:0\"><span style=\"font-size:13px;font-weight:700;color:var(--t)\">"+it.sku+"</span>";
+        if(it.name)h+=" <span style=\"font-size:11px;color:var(--t2)\">"+_escAttr(it.name.length>25?it.name.slice(0,25)+"…":it.name)+"</span>";
+        h+="<div style=\"display:flex;gap:4px;margin-top:2px\">";
+        h+="<span style=\"font-size:9px;padding:1px 6px;border-radius:3px;background:"+(st.d==="dr"?"rgba(239,68,68,.1);color:var(--r)":st.d==="do"?"rgba(245,158,11,.1);color:#f59e0b":"rgba(34,197,94,.1);color:var(--g)")+"\">"+st.l+"</span>";
+        h+="<span style=\"font-size:9px;padding:1px 6px;border-radius:3px;background:var(--c1);color:var(--t2)\">สต็อก <b>"+it.stock+"</b></span>";
+        h+="<span style=\"font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(99,102,241,.08);color:var(--a);font-weight:600\">สั่ง <b>"+it.rec+"</b></span>";
+        h+="</div></div>";
+        h+="<button onclick=\"_s.push({sku:'"+it.sku+"',qty:"+(it.rec||1)+"});rsk()\" style=\"background:var(--a);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0\">+ เพิ่ม</button>";
+        h+="</div>";
+      });
+      h+="</div></div></div>";
+    });
+  }
   // Same-store suggestions
   if(_orderBase){
     var sugs=_buildStoreSuggestions(_orderBase);
@@ -4192,18 +4417,57 @@ function rl(){
   document.getElementById("lt2").textContent=mc;
   document.getElementById("lt3").textContent=umc;
   document.getElementById("lt4").textContent=imgc;
-  var h="";
+
+  // Build base-level data for sorting
+  var baseData={};
   items.forEach(function(it){
-    var b=gb(it.sku),lk=fl(it.sku);
+    var b=gb(it.sku);
+    if(!baseData[b]){
+      baseData[b]={base:b,skus:[],name:it.name,lk:fl(it.sku)};
+    }
+    baseData[b].skus.push(it.sku);
+  });
+
+  // Convert to array and sort
+  var basesArr=Object.keys(baseData).map(function(b){return baseData[b]});
+  basesArr.sort(function(a,b){
+    if(_lnkSort==="price"){
+      var av=(L[a.base]&&L[a.base].price)||0;
+      var bv=(L[b.base]&&L[b.base].price)||0;
+      return _lnkDir===1?av-bv:bv-av;
+    }else if(_lnkSort==="platformStock"){
+      var av=(L[a.base]&&L[a.base].platformStock)||0;
+      var bv=(L[b.base]&&L[b.base].platformStock)||0;
+      return _lnkDir===1?av-bv:bv-av;
+    }else if(_lnkSort==="sales"){
+      var av=(L[a.base]&&L[a.base].sales)||0;
+      var bv=(L[b.base]&&L[b.base].sales)||0;
+      return _lnkDir===1?av-bv:bv-av;
+    }
+    return 0;
+  });
+
+  var h="";
+  basesArr.forEach(function(bd){
+    var b=bd.base,lk=bd.lk;
     var l1=lk?(typeof lk==="string"?lk:(lk.link1||"")):"";
-    var l2=lk?(typeof lk==="string"?"":(lk.link2||"")):"";
-    var vn=VN[it.sku]||"";
-    h+="<tr><td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+(vn?"<div style=\"font-size:10px;color:var(--t2);font-weight:400;margin-top:2px;padding-left:2px\">"+vn+"</div>":"")+"</td><td style=\"color:var(--a2)\">"+b+"</td><td style=\"max-width:160px;overflow:hidden;text-overflow:ellipsis\">"+it.name+"</td>"+
+    var ldata=L[b]||{};
+    var price=(ldata.price||0),pstock=(ldata.platformStock||0),sales=(ldata.sales||0);
+    var skuList=bd.skus.map(function(s){var vn=VN[s]||"";return "<div style=\"font-size:10px;color:var(--t2);font-weight:400;padding-left:2px\">"+skuW(s,false)+(vn?" ("+vn+")":"")+"</div>"}).join("");
+    h+="<tr><td style=\"font-weight:600\">"+skuList+"</td><td style=\"color:var(--a2)\">"+b+"</td><td style=\"max-width:160px;overflow:hidden;text-overflow:ellipsis\">"+bd.name+"</td>"+
+      "<td>"+price+"</td>"+
+      "<td>"+pstock+"</td>"+
+      "<td>"+sales+"</td>"+
       "<td>"+(l1?"<a href=\""+l1+"\" class=\"lk\" onclick=\"_openWin(event,'"+l1+"')\" style=\"word-break:break-all\">&#128279; "+l1.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
-      "<td>"+(l2?"<a href=\""+l2+"\" class=\"lk\" onclick=\"_openWin(event,'"+l2+"')\" style=\"word-break:break-all\">&#128279; "+l2.substring(0,35)+"...</a>":"<span style=\"color:var(--t2);font-size:12px\">-</span>")+"</td>"+
-      "<td><button class=\"btn bs b2\" onclick=\"elf('"+it.sku+"')\">"+(l1?"แก้ไข":"+ เพิ่ม")+"</button></td></tr>";
+      "<td><button class=\"btn bs b2\" onclick=\"elf('"+b+"')\">"+(l1?"แก้ไข":"+ เพิ่ม")+"</button></td></tr>";
   });
   document.getElementById("ltb").innerHTML=h;
+
+  // Update sort arrows
+  ["price","platformStock","sales"].forEach(function(c){
+    var el=document.getElementById("lnkI_"+c);
+    if(el)el.textContent=_lnkSort===c?(_lnkDir===1?"▲":"▼"):"";
+  });
 }
 
 function elf(sku){
@@ -4212,13 +4476,159 @@ function elf(sku){
   document.getElementById("ptt").innerHTML="ลิงก์ SKU: "+b+" <button class=\"cb\" onclick=\"cp()\">&times;</button>";
   document.getElementById("pb").innerHTML=
     "<div style=\"background:var(--bg);padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px\">&#128161; "+sku+" → Base: <strong style=\"color:var(--a2)\">"+b+"</strong></div>"+
-    "<div class=\"fg\"><label>ชื่อสินค้า</label><input type=\"text\" id=\"ln\" value=\""+(ex.name||"")+"\"></div>"+
-    "<div class=\"fg\"><label>ลิงก์หลัก (1688)</label><input type=\"text\" id=\"l1\" value=\""+(ex.link1||"")+"\"></div>"+
-    "<div class=\"fg\"><label>ลิงก์เสริม</label><input type=\"text\" id=\"l2\" value=\""+(ex.link2||"")+"\"></div>"+
-    "<div class=\"fg\"><label>ลิงก์สำรอง</label><input type=\"text\" id=\"l3\" value=\""+(ex.link3||"")+"\"></div>"+
+    "<div class=\"fg\"><label>ชื่อสินค้า</label><input type=\"text\" id=\"ln\" value=\""+_escAttr(ex.name||"")+"\"></div>"+
+    "<div class=\"fg\"><label>ลิงก์หลัก (1688)</label><input type=\"text\" id=\"l1\" value=\""+_escAttr(ex.link1||"")+"\"></div>"+
+    "<div class=\"fg\"><label>ลิงก์เสริม</label><input type=\"text\" id=\"l2\" value=\""+_escAttr(ex.link2||"")+"\"></div>"+
+    "<div class=\"fg\"><label>ลิงก์สำรอง</label><input type=\"text\" id=\"l3\" value=\""+_escAttr(ex.link3||"")+"\"></div>"+
+    "<div class=\"fg\"><label>ราคา</label><input type=\"number\" id=\"lp\" value=\""+(ex.price||0)+"\" step=\"0.01\"></div>"+
+    "<div class=\"fg\"><label>ราคาพิเศษ</label><input type=\"number\" id=\"lsp\" value=\""+(ex.salePrice||0)+"\" step=\"0.01\"></div>"+
+    "<div class=\"fg\"><label>สต็อกในแพลตฟอร์ม</label><input type=\"number\" id=\"lpst\" value=\""+(ex.platformStock||0)+"\"></div>"+
+    "<div class=\"fg\"><label>เวลาสร้าง</label><input type=\"text\" id=\"lca\" value=\""+_escAttr(ex.createdAt||"")+"\"></div>"+
+    "<div class=\"fg\"><label>ยอดขาย</label><input type=\"number\" id=\"lsales\" value=\""+(ex.sales||0)+"\"></div>"+
+    "<div class=\"fg\"><label>ยอดชม</label><input type=\"number\" id=\"lviews\" value=\""+(ex.views||0)+"\"></div>"+
+    "<div class=\"fg\"><label>รายการที่ถูกใจ</label><input type=\"number\" id=\"llikes\" value=\""+(ex.likes||0)+"\"></div>"+
+    "<div class=\"fg\"><label>Item ID</label><input type=\"text\" id=\"litemid\" value=\""+_escAttr(ex.itemId||"")+"\"></div>"+
     "<button class=\"btn bp\" onclick=\"slf('"+b+"')\" style=\"width:100%\">&#128190; บันทึก</button>";
 }
-function slf(b){L[b]={name:document.getElementById("ln").value,link1:document.getElementById("l1").value,link2:document.getElementById("l2").value,link3:document.getElementById("l3").value};if(!L[b].link1&&!L[b].link2&&!L[b].link3)delete L[b];sv();cp();rl();rt()}
+function slf(b){
+  var existingLinks={};
+  if(L[b]){existingLinks.link1=L[b].link1||"";existingLinks.link2=L[b].link2||"";existingLinks.link3=L[b].link3||""}
+  L[b]={
+    name:document.getElementById("ln").value,
+    link1:document.getElementById("l1").value||existingLinks.link1||"",
+    link2:document.getElementById("l2").value||existingLinks.link2||"",
+    link3:document.getElementById("l3").value||existingLinks.link3||"",
+    price:parseFloat(document.getElementById("lp").value)||0,
+    salePrice:parseFloat(document.getElementById("lsp").value)||0,
+    platformStock:parseInt(document.getElementById("lpst").value)||0,
+    createdAt:document.getElementById("lca").value||"",
+    sales:parseInt(document.getElementById("lsales").value)||0,
+    views:parseInt(document.getElementById("lviews").value)||0,
+    likes:parseInt(document.getElementById("llikes").value)||0,
+    itemId:document.getElementById("litemid").value||""
+  };
+  if(!L[b].link1&&!L[b].link2&&!L[b].link3&&!L[b].price&&!L[b].sales&&!L[b].itemId)delete L[b];
+  sv();cp();rl();rt()
+}
+
+// ===== IMPORT PRODUCT DATA =====
+function importProductData(){
+  document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
+  document.getElementById("ptt").innerHTML="&#128202; Import ข้อมูลสินค้า <button class=\"cb\" onclick=\"cp()\">&times;</button>";
+  document.getElementById("pb").innerHTML=
+    "<div style=\"background:var(--bg);padding:14px;border-radius:10px;margin-bottom:14px\">"+
+      "<div style=\"font-size:14px;font-weight:700;margin-bottom:10px\">&#128161; นำเข้าข้อมูลสินค้า</div>"+
+      "<p style=\"font-size:13px;color:var(--t2);margin-bottom:10px\">เลือกไฟล์ Excel \"Online Products\" จาก BigSeller</p>"+
+    "</div>"+
+    "<div style=\"display:flex;gap:8px\"><button class=\"btn bp\" onclick=\"document.getElementById('prodDataInp').click()\" style=\"flex:1\">&#128202; เลือกไฟล์</button></div>"+
+    "<div id=\"pdpv\" style=\"margin-top:14px\"></div>"+
+    "<div id=\"pdac\" style=\"margin-top:12px;display:none\"><div style=\"display:flex;gap:8px\"><button class=\"btn bg\" onclick=\"doImportPd()\" style=\"flex:1;padding:12px;font-size:15px\">&#9989; ยืนยัน Import</button><button class=\"btn bs b2\" onclick=\"cp()\">&#128465; ยกเลิก</button></div></div>";
+}
+
+function processProductData(inp){
+  if(!inp.files||!inp.files[0])return;
+  var f=inp.files[0];
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var wb=XLSX.read(data,{type:"array"});
+      var sheet=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:""});
+      if(!rows||rows.length<2){alert("ไฟล์ว่างหรือไม่สามารถอ่านได้");return}
+      // หา header row (skip)
+      var startRow=0;
+      for(var hi=0;hi<Math.min(rows.length,10);hi++){
+        var hc=String(rows[hi][12]||"").toLowerCase();
+        if(hc.indexOf("sku")>-1){startRow=hi+1;break}
+      }
+      if(startRow===0)startRow=1;
+      rows=rows.slice(startRow);
+
+      // Preview mode: count matches
+      var matchCount=0,newBases=0,baseSet={};
+      rows.forEach(function(row){
+        if(!row)return;
+        var sku=String(row[12]||"").trim();
+        if(!sku)return;
+        var base=gb(sku);
+        matchCount++;
+        if(!L[base])newBases++;
+        baseSet[base]=true;
+      });
+
+      var html="<div style=\"background:var(--c1);padding:12px;border-radius:8px;margin-bottom:12px;border:1px solid var(--bd)\">";
+      html+="<div style=\"font-size:13px;margin-bottom:8px\"><b>&#128200; สรุป:</b></div>";
+      html+="<div style=\"font-size:12px;color:var(--t2);line-height:1.6\">";
+      html+="SKU ที่จับคู่: <b style=\"color:var(--a)\">"+matchCount+"</b><br>";
+      html+="Base ใหม่: <b style=\"color:var(--g)\">"+newBases+"</b><br>";
+      html+="Base ทั้งหมด: <b>"+Object.keys(baseSet).length+"</b>";
+      html+="</div></div>";
+
+      document.getElementById("pdpv").innerHTML=html;
+      document.getElementById("pdac").style.display="block";
+      window._pendPd={rows:rows,sku:f.name};
+    }catch(err){
+      alert("เกิดข้อผิดพลาด: "+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(f);
+  inp.value="";
+}
+
+function doImportPd(){
+  if(!window._pendPd||!window._pendPd.rows)return;
+  var rows=window._pendPd.rows;
+  var resetBases=new Set();
+
+  // First pass: collect bases to reset
+  rows.forEach(function(row){
+    if(!row)return;
+    var sku=String(row[12]||"").trim();
+    if(!sku)return;
+    var base=gb(sku);
+    resetBases.add(base);
+  });
+
+  // Reset platformStock for bases that will be processed
+  resetBases.forEach(function(base){
+    if(L[base]){L[base].platformStock=0}
+  });
+
+  // Process all rows
+  var added=0;
+  rows.forEach(function(row){
+    if(!row)return;
+    var sku=String(row[12]||"").trim();
+    var base=gb(sku);
+    if(!sku)return;
+    added++;
+
+    if(!L[base])L[base]={};
+    if(typeof L[base]==="string")L[base]={link1:L[base]};
+
+    L[base].price=parseFloat(row[14])||L[base].price||0;
+    L[base].salePrice=parseFloat(row[15])||L[base].salePrice||0;
+    L[base].platformStock=(parseInt(row[13])||0)+(L[base].platformStock||0);
+    L[base].sales=parseInt(row[6])||L[base].sales||0;
+    L[base].views=parseInt(row[8])||L[base].views||0;
+    L[base].likes=parseInt(row[7])||L[base].likes||0;
+    L[base].createdAt=String(row[17]||"").trim()||L[base].createdAt||"";
+    L[base].itemId=String(row[5]||"").trim()||L[base].itemId||"";
+    if(!L[base].name&&row[4])L[base].name=String(row[4]).trim();
+
+    var vname=String(row[10]||"").trim();
+    if(sku&&vname)VN[sku]=vname;
+  });
+
+  _tsSet("ts_l",JSON.stringify(L));
+  _tsSet("ts_vn",JSON.stringify(VN));
+  cloudSave(function(){
+    alert("นำเข้าสำเร็จ "+added+" รายการ");
+    cp();rl();
+  });
+  window._pendPd=null;
+}
 
 // ===== IMPORT =====
 function oim(){
@@ -7088,7 +7498,7 @@ function initApp(){
 // Auto-login: รอ IndexedDB พร้อมก่อน แล้วค่อย init
 _tsInitPromise.then(function(){
   // Reload data ที่อาจโหลดจาก localStorage ก่อน IDB พร้อม
-  try{var _sr=_tsGet("ts_r");if(_sr){var _pr=JSON.parse(_sr);if(_pr.length>0){R=_pr;I=R.map(function(r){return{sku:r[0],name:r[1],stock:r[2],days:r[3],avg:r[4],s7:r[5],s30:r[6],rec:r[7],pr:r[8],img:r[9]||"",src:r[10]||""}})}}}catch(e){}
+  try{var _sr=_tsGet("ts_r");if(_sr){var _pr=JSON.parse(_sr);if(_pr.length>0){R=_pr;I=R.map(_rowToItem)}}}catch(e){}
   try{var _so=_tsGet("ts_o");if(_so)O=JSON.parse(_so)}catch(e){}
   try{var _sl=_tsGet("ts_l");if(_sl)L=JSON.parse(_sl)}catch(e){}
   try{var _sv=_tsGet("ts_vn");if(_sv)VN=JSON.parse(_sv)}catch(e){}
