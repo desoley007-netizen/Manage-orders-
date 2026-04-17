@@ -860,8 +860,8 @@ html,body{overflow-x:hidden!important}
 <div id="t-rcv" style="display:none">
 <div class="tb">
 <div class="view-toggle">
-<button class="vt-btn act" id="rvCount" onclick="rcvMode='count';rrcv()">&#128221; <span class="m-hide">พนักงาน 1: </span>นับของ</button>
-<button class="vt-btn" id="rvCheck" onclick="rcvMode='check';rrcv()">&#128270; <span class="m-hide">พนักงาน 2: </span>ตรวจสอบ</button>
+<button class="vt-btn act" id="rvCount" onclick="_rcvSetMode('count')">&#128221; <span class="m-hide">พนักงาน 1: </span>นับของ</button>
+<button class="vt-btn" id="rvCheck" onclick="_rcvSetMode('check')">&#128270; <span class="m-hide">พนักงาน 2: </span>ตรวจสอบ</button>
 </div>
 <button onclick="var w=document.getElementById('rcvOrdWrap');var s=w.style.display==='none';w.style.display=s?'flex':'none';this.textContent=s?'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25b2':'\ud83d\udce6 \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e04\u0e33\u0e2a\u0e31\u0e48\u0e07\u0e0b\u0e37\u0e49\u0e2d \u25bc'" style="width:100%;background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--t2);cursor:pointer;text-align:center">&#128230; เลือกคำสั่งซื้อ &#9660;</button>
 <div id="rcvOrdWrap" style="display:none;flex:1;gap:6px">
@@ -3366,6 +3366,7 @@ function sw(t){
   if(t==="rcv"&&CUR_USER&&CUR_USER.role!=="admin"){
     if(hasPerm("rcv_count")&&!hasPerm("rcv_check")){rcvMode="count";rrcv()}
     else if(hasPerm("rcv_check")&&!hasPerm("rcv_count")){rcvMode="check";rrcv()}
+    else rrcv();
   }
 }
 // Hash router — เปิด tab ตาม URL hash
@@ -5190,13 +5191,35 @@ function cp(){document.getElementById("po").style.display="none";document.getEle
 var rcvMode="count";
 var _rcvItems=[];
 
+// Gatekeeper: เปลี่ยนโหมด rcv ตามสิทธิ์ — ถ้าไม่มีสิทธิ์ใดๆ จะไม่เปลี่ยน
+function _rcvSetMode(m){
+  if(CUR_USER&&CUR_USER.role!=="admin"){
+    if(m==="count"&&!hasPerm("rcv_count"))return;
+    if(m==="check"&&!hasPerm("rcv_check"))return;
+  }
+  rcvMode=m;rrcv();
+}
+// บังคับให้ rcvMode ตรงกับสิทธิ์ของผู้ใช้ก่อน render
+function _rcvEnforceMode(){
+  if(!CUR_USER||CUR_USER.role==="admin")return;
+  var hasC=hasPerm("rcv_count"),hasK=hasPerm("rcv_check");
+  if(rcvMode==="count"&&!hasC&&hasK)rcvMode="check";
+  else if(rcvMode==="check"&&!hasK&&hasC)rcvMode="count";
+}
+
 function rrcv(){
-  // Update mode buttons
-  document.getElementById("rvCount").className="vt-btn"+(rcvMode==="count"?" act":"");
-  document.getElementById("rvCheck").className="vt-btn"+(rcvMode==="check"?" act":"");
+  _rcvEnforceMode();
+  // Update mode buttons — รักษา perm-hide class ไว้ (applyPerms ตั้งไว้ตามสิทธิ์)
+  var btnC=document.getElementById("rvCount"),btnK=document.getElementById("rvCheck");
+  var hideC=btnC&&btnC.classList.contains("perm-hide");
+  var hideK=btnK&&btnK.classList.contains("perm-hide");
+  btnC.className="vt-btn"+(rcvMode==="count"?" act":"")+(hideC?" perm-hide":"");
+  btnK.className="vt-btn"+(rcvMode==="check"?" act":"")+(hideK?" perm-hide":"");
   document.getElementById("rcv-count").style.display=rcvMode==="count"?"block":"none";
   document.getElementById("rcv-check").style.display=rcvMode==="check"?"block":"none";
-  document.getElementById("siPanel").style.display=rcvMode==="check"?"block":"none";
+  // siPanel (รอ Export เข้าสต็อก) — แสดงเฉพาะเมื่ออยู่ใน check mode และมีสิทธิ์ rcv_check
+  var canSi=!CUR_USER||CUR_USER.role==="admin"||hasPerm("rcv_check");
+  document.getElementById("siPanel").style.display=(rcvMode==="check"&&canSi)?"block":"none";
   // Hide dropdowns in check mode
   document.getElementById("rcvOrd").style.display=rcvMode==="count"?"":"none";
   document.getElementById("rcvOrdNP").style.display="none";
@@ -7448,8 +7471,8 @@ function openUserModal(idx){
   document.getElementById("umSaveBtn").innerHTML=isNew?"\u2795 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49":"\u{1F4BE} \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01";
   // Avatar display
   _umUpdateAvatar();
-  // Perms
-  _umRoleChange();
+  // Perms — สำหรับผู้ใช้ใหม่ ให้ apply template ของ role เริ่มต้น (warehouse) ทันที
+  _umRoleChange(isNew);
   document.getElementById("usrModalOv").style.display="flex";
   setTimeout(function(){document.getElementById(isNew?"umUid":"umName").focus()},100);
 }
@@ -7571,6 +7594,10 @@ function saveUserModal(){
 function delUser(ui){
   var u=USERS[ui];
   if(!u||u.role==="admin")return;
+  // ป้องกันลบตัวเอง (defense-in-depth — UI ซ่อนปุ่มอยู่แล้ว)
+  if(CUR_USER&&CUR_USER.id===u.id){alert("\u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e25\u0e1a\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e17\u0e35\u0e48\u0e01\u0e33\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e2d\u0e22\u0e39\u0e48\u0e44\u0e14\u0e49");return}
+  // ป้องกันลบ admin คนสุดท้าย (แม้ว่า admin ถูก block ไปแล้วก็ตาม — เผื่อ logic เปลี่ยนในอนาคต)
+  if(u.role==="admin"&&USERS.filter(function(x){return x.role==="admin"}).length<=1){alert("\u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e25\u0e1a admin \u0e04\u0e19\u0e2a\u0e38\u0e14\u0e17\u0e49\u0e32\u0e22\u0e44\u0e14\u0e49");return}
   _showConfirm({
     icon:"\u{1F5D1}",
     title:"\u0e25\u0e1a\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49",
