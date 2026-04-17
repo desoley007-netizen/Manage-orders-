@@ -784,7 +784,7 @@ html,body{overflow-x:hidden!important}
 <div class="view-toggle"><button class="vt-btn" id="vFlat" onclick="setView('flat')">ทีละ SKU</button><button class="vt-btn act" id="vGrp" onclick="setView('group')">ตามสินค้า</button></div>
 <button class="btn bp bs" onclick="document.getElementById('impXlsx').click()" style="white-space:nowrap">&#128260; อัพเดทข้อมูลจาก BigSeller</button><input type="file" id="impXlsx" accept=".xlsx,.xls" multiple style="display:none" onchange="importBigSeller(this)">
 <select class="sel" id="srt" onchange="colSort='';colDir=1;rt()"><option value="u">เรียงตาม: ความเร่งด่วน</option><option value="s">ยอดขาย 30 วัน</option><option value="k">สต็อก น้อย→มาก</option><option value="d">วันคงเหลือ</option><option value="r">จำนวนแนะนำสั่ง</option></select>
-
+<button class="btn b2 bs" onclick="showShipSettings()" title="ตั้งค่า Lead Time (รถ/เรือ/Safety)" style="white-space:nowrap">&#128674; Lead Time</button>
 </div>
 <div id="fbar" class="fbar"></div>
 <div class="ss" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px"><span>แนะนำสั่งทั้งหมด: <b id="s1">0</b> ชิ้น</span><span>มูลค่าประมาณ: <b id="s2">0</b></span><span>กำลังแสดง: <b id="s3">0</b> รายการ</span></div>
@@ -993,6 +993,52 @@ function updateKPILabels(){
   var e4=document.getElementById("kl4");if(e4)e4.innerHTML="&#128994; ปลอดภัย >"+TH_L+"วัน";
 }
 
+// ============================================================
+// Lead time / Ship config settings UI
+//   รถ (truck): เวลานำเข้าทางรถ 1688 → TH (default 15 วัน)
+//   เรือ (ship): เวลานำเข้าทางเรือ 1688 → TH (default 35 วัน)
+//   Safety: จำนวนวันกันชน (default 7 วัน)
+// ============================================================
+function showShipSettings(){
+  var m=document.createElement("div");m.id="_shipModal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)";
+  var items=[
+    {key:"truck",icon:"\uD83D\uDE9B",label:"\u0e23\u0e16 (Truck)",desc:"\u0e40\u0e27\u0e25\u0e32\u0e19\u0e33\u0e40\u0e02\u0e49\u0e32\u0e17\u0e32\u0e07\u0e23\u0e16\u0e08\u0e32\u0e01 1688",color:"#e53e3e"},
+    {key:"ship",icon:"\uD83D\uDEA2",label:"\u0e40\u0e23\u0e37\u0e2d (Ship)",desc:"\u0e40\u0e27\u0e25\u0e32\u0e19\u0e33\u0e40\u0e02\u0e49\u0e32\u0e17\u0e32\u0e07\u0e40\u0e23\u0e37\u0e2d\u0e08\u0e32\u0e01 1688",color:"#3b82f6"},
+    {key:"safety",icon:"\uD83D\uDEE1\uFE0F",label:"Safety days (\u0e01\u0e31\u0e19\u0e0a\u0e19)",desc:"\u0e08\u0e33\u0e19\u0e27\u0e19\u0e27\u0e31\u0e19\u0e01\u0e31\u0e19\u0e0a\u0e19\u0e02\u0e2d\u0e07\u0e02\u0e32\u0e14",color:"#059669"}
+  ];
+  var body="<div style='background:var(--c1);border-radius:16px;padding:24px;max-width:440px;width:92%;box-shadow:0 20px 40px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto'>";
+  body+="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px'><div style='font-size:18px;font-weight:800'>\uD83D\uDEA2 \u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32 Lead Time</div><button onclick='document.getElementById(\"_shipModal\").remove()' style='background:none;border:none;font-size:20px;cursor:pointer;color:var(--t2)'>&times;</button></div>";
+  body+="<div style='font-size:12px;color:var(--t2);margin-bottom:14px;line-height:1.5'>\u0e23\u0e30\u0e1a\u0e1a\u0e43\u0e0a\u0e49\u0e04\u0e48\u0e32\u0e40\u0e2b\u0e25\u0e48\u0e32\u0e19\u0e35\u0e49\u0e04\u0e33\u0e19\u0e27\u0e13 \u0e08\u0e33\u0e19\u0e27\u0e19\u0e17\u0e35\u0e48\u0e04\u0e27\u0e23\u0e2a\u0e31\u0e48\u0e07 \u0e41\u0e25\u0e30\u0e15\u0e31\u0e14\u0e2a\u0e34\u0e19\u0e43\u0e08\u0e27\u0e48\u0e32\u0e08\u0e30\u0e2a\u0e48\u0e07\u0e17\u0e32\u0e07\u0e23\u0e16/\u0e40\u0e23\u0e37\u0e2d (\u0e2a\u0e15\u0e47\u0e2d\u0e01\u0e40\u0e2b\u0e25\u0e37\u0e2d &lt; 20 \u0e27\u0e31\u0e19 \u2192 \u0e23\u0e16)</div>";
+  items.forEach(function(s){
+    body+="<div style='display:flex;align-items:center;gap:10px;background:var(--bg);padding:12px 14px;border-radius:10px;margin-bottom:8px;border-left:4px solid "+s.color+"'>";
+    body+="<div style='font-size:22px;width:32px;text-align:center'>"+s.icon+"</div>";
+    body+="<div style='flex:1'><div style='font-weight:700;font-size:13px'>"+s.label+"</div><div style='font-size:11px;color:var(--t2)'>"+s.desc+"</div></div>";
+    body+="<div style='display:flex;align-items:center;gap:4px'><input type='number' id='_shipIn_"+s.key+"' value='"+SHIP_CFG[s.key]+"' min='0' max='365' style='width:60px;text-align:center;background:var(--c1);border:2px solid var(--bd);border-radius:8px;padding:6px;font-size:14px;font-weight:700;color:var(--t)'><span style='font-size:12px;color:var(--t2)'>\u0e27\u0e31\u0e19</span></div>";
+    body+="</div>";
+  });
+  body+="<div style='display:flex;gap:8px;margin-top:14px'>";
+  body+="<button onclick='_shipSaveSettings()' style='flex:2;padding:10px;background:var(--g);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer'>\u2705 \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button>";
+  body+="<button onclick='_shipResetSettings()' style='flex:1;padding:10px;background:var(--bg);color:var(--t2);border:1px solid var(--bd);border-radius:10px;font-size:12px;cursor:pointer'>\u21BA \u0e04\u0e48\u0e32\u0e40\u0e23\u0e34\u0e48\u0e21\u0e15\u0e49\u0e19</button>";
+  body+="</div></div>";
+  m.innerHTML=body;
+  m.onclick=function(e){if(e.target===m)m.remove()};
+  document.body.appendChild(m);
+}
+function _shipSaveSettings(){
+  ["truck","ship","safety"].forEach(function(k){
+    var inp=document.getElementById("_shipIn_"+k);
+    if(inp){var v=parseInt(inp.value);if(!isNaN(v)&&v>=0&&v<=365){SHIP_CFG[k]=v;_tsSet("ts_lt_"+k,v)}}
+  });
+  document.getElementById("_shipModal").remove();
+  rt();
+  alert("\u2705 \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01 Lead Time \u0e41\u0e25\u0e49\u0e27\n\u0e23\u0e16: "+SHIP_CFG.truck+" \u0e27\u0e31\u0e19 | \u0e40\u0e23\u0e37\u0e2d: "+SHIP_CFG.ship+" \u0e27\u0e31\u0e19 | Safety: "+SHIP_CFG.safety+" \u0e27\u0e31\u0e19");
+}
+function _shipResetSettings(){
+  SHIP_CFG={truck:15,ship:35,safety:7};
+  ["truck","ship","safety"].forEach(function(k){_tsSet("ts_lt_"+k,SHIP_CFG[k]);var inp=document.getElementById("_shipIn_"+k);if(inp)inp.value=SHIP_CFG[k]});
+}
+
 // ===== IndexedDB Storage Layer — ขยายพื้นที่เก็บข้อมูลจาก 5MB เป็นหลายร้อย MB =====
 var _idbDB=null,_idbCache={},_idbReady=false;
 var _IDB_KEYS=["ts_r","ts_o","ts_l","ts_vn","ts_np","ts_alog","ts_rc","ts_si",
@@ -1164,6 +1210,33 @@ function _getRecSmart(it){
   var needed=v*(lt+SHIP_CFG.safety);
   var available=(it.stock||0)+(it.inTransit||0);
   return Math.max(0,Math.ceil(needed-available));
+}
+
+// ============================================================
+// UI badge helpers — ใช้ใน renderFlat / renderGrouped / order form
+// ============================================================
+function _vitalityBadge(it){
+  var v=_getVitality(it);
+  var bs="display:inline-block;padding:1px 5px;font-size:9px;border-radius:8px;font-weight:700;margin-left:3px;vertical-align:middle;line-height:1.4";
+  if(v==="hot")return "<span class=\"vty-bdg\" title=\"HOT \u2014 \u0e02\u0e32\u0e22 7 \u0e27\u0e31\u0e19\u0e25\u0e48\u0e32\u0e2a\u0e38\u0e14\" style=\""+bs+";background:#fee2e2;color:#dc2626\">\ud83d\udd25</span>";
+  if(v==="active")return "<span class=\"vty-bdg\" title=\"ACTIVE \u2014 \u0e02\u0e32\u0e22\u0e43\u0e19 30 \u0e27\u0e31\u0e19\" style=\""+bs+";background:#d1fae5;color:#059669\">\u2705</span>";
+  if(v==="slow")return "<span class=\"vty-bdg\" title=\"SLOW \u2014 \u0e02\u0e32\u0e22\u0e43\u0e19 60-90 \u0e27\u0e31\u0e19 (\u0e0a\u0e49\u0e32\u0e41\u0e15\u0e48\u0e22\u0e31\u0e07\u0e21\u0e35\u0e0a\u0e35\u0e1e)\" style=\""+bs+";background:#fef3c7;color:#ca8a04\">\ud83d\udc22</span>";
+  return "<span class=\"vty-bdg\" title=\"DEAD \u2014 \u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e02\u0e32\u0e22 90 \u0e27\u0e31\u0e19\" style=\""+bs+";background:#e2e8f0;color:#64748b\">\ud83d\udc80</span>";
+}
+function _forgottenBadge(it){
+  if(!_isForgotten(it))return "";
+  return "<span class=\"fg-bdg\" title=\"\u26a0\ufe0f \u0e25\u0e37\u0e21\u0e2a\u0e31\u0e48\u0e07? \u0e2a\u0e15\u0e47\u0e2d\u0e01\u0e2b\u0e21\u0e14 + \u0e44\u0e21\u0e48\u0e21\u0e35\u0e22\u0e2d\u0e14\u0e43\u0e19 30 \u0e27\u0e31\u0e19 \u0e41\u0e15\u0e48\u0e40\u0e04\u0e22\u0e02\u0e32\u0e22\u0e43\u0e19 60-90 \u0e27\u0e31\u0e19\" style=\"display:inline-block;padding:1px 5px;font-size:9px;border-radius:8px;font-weight:700;margin-left:3px;vertical-align:middle;line-height:1.4;background:#fef2f2;color:#dc2626;border:1px solid #fecaca\">\ud83d\udd14 \u0e25\u0e37\u0e21?</span>";
+}
+// Badges for group row (best vitality + forgotten flag)
+function _groupBadges(g){
+  var bs="display:inline-block;padding:1px 5px;font-size:9px;border-radius:8px;font-weight:700;margin-left:3px;vertical-align:middle;line-height:1.4";
+  var v=g.bestVitality||"dead",html="";
+  if(v==="hot")html+="<span style=\""+bs+";background:#fee2e2;color:#dc2626\" title=\"HOT \u2014 \u0e21\u0e35 SKU \u0e02\u0e32\u0e22 7 \u0e27\u0e31\u0e19\u0e25\u0e48\u0e32\u0e2a\u0e38\u0e14\">\ud83d\udd25</span>";
+  else if(v==="active")html+="<span style=\""+bs+";background:#d1fae5;color:#059669\" title=\"ACTIVE \u2014 \u0e21\u0e35 SKU \u0e02\u0e32\u0e22\u0e43\u0e19 30 \u0e27\u0e31\u0e19\">\u2705</span>";
+  else if(v==="slow")html+="<span style=\""+bs+";background:#fef3c7;color:#ca8a04\" title=\"SLOW \u2014 \u0e02\u0e32\u0e22\u0e43\u0e19 60-90 \u0e27\u0e31\u0e19 \u0e41\u0e15\u0e48\u0e44\u0e21\u0e48\u0e43\u0e0a\u0e48 30 \u0e27\u0e31\u0e19\">\ud83d\udc22</span>";
+  else html+="<span style=\""+bs+";background:#e2e8f0;color:#64748b\" title=\"DEAD \u2014 \u0e44\u0e21\u0e48\u0e21\u0e35 SKU \u0e43\u0e14\u0e02\u0e32\u0e22 90 \u0e27\u0e31\u0e19\">\ud83d\udc80</span>";
+  if(g.anyForgotten)html+="<span style=\""+bs+";background:#fef2f2;color:#dc2626;border:1px solid #fecaca\" title=\"\u26a0\ufe0f \u0e21\u0e35 SKU \u0e43\u0e19\u0e01\u0e25\u0e38\u0e48\u0e21\u0e17\u0e35\u0e48 \u0e25\u0e37\u0e21\u0e2a\u0e31\u0e48\u0e07\">\ud83d\udd14</span>";
+  return html;
 }
 
 // Unpack compressed data → item objects (ใช้ _rowToItem เพื่อ backward-compat)
@@ -2897,7 +2970,7 @@ function renderGrouped(items){
   var groups={},order=[];
   items.forEach(function(it){
     var b=gb(it.sku);
-    if(!groups[b]){groups[b]={base:b,items:[],totalStock:0,totalRec:0,totalS30:0,totalS7:0,maxAvg:0,minDays:999,worstStatus:3};order.push(b)}
+    if(!groups[b]){groups[b]={base:b,items:[],totalStock:0,totalRec:0,totalS30:0,totalS7:0,maxAvg:0,minDays:999,worstStatus:3,bestVitality:"dead",anyForgotten:false};order.push(b)}
     var g=groups[b];
     g.items.push(it);
     g.totalStock+=it.stock;
@@ -2907,6 +2980,11 @@ function renderGrouped(items){
     if(it.avg>g.maxAvg)g.maxAvg=it.avg;
     if(it.days<g.minDays)g.minDays=it.days;
     var p=gi(it).p;if(p<g.worstStatus)g.worstStatus=p;
+    // Best vitality in group — hot > active > slow > dead
+    var vRank={hot:4,active:3,slow:2,dead:1};
+    var v=_getVitality(it);
+    if(vRank[v]>vRank[g.bestVitality])g.bestVitality=v;
+    if(_isForgotten(it))g.anyForgotten=true;
   });
 
   var so=document.getElementById("srt").value;
@@ -2957,7 +3035,7 @@ function renderGrouped(items){
 
     h+="<tr class=\"grp\" data-base=\""+base+"\" onclick=\"toggleGrp('"+base+"')\">"+
       "<td><span class=\"dot "+st.d+"\"></span>"+st.l+"</td>"+
-      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+(isHold(base)?holdBadgeHtml(base):"")+_niInfo+"</td>"+
+      "<td>"+(g.items[0].img?"<img src=\""+g.items[0].img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+"<span class=\"grp-expand "+(isOpen?"open":"")+"\">&#9654;</span> "+skuW(base,true)+"<span class=\"grp-badge\" style=\"background:rgba(59,130,246,.15);color:var(--a)\">"+g.items.length+" SKU</span>"+_groupBadges(g)+(isHold(base)?holdBadgeHtml(base):"")+_niInfo+"</td>"+
       "<td class=\"nm\">"+name+"</td>"+
       "<td>"+g.totalStock+"</td>"+
       "<td>"+(g.minDays===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":"~"+g.minDays)+"</td>"+
@@ -3112,7 +3190,7 @@ function renderFlat(items){
     var bc=s.d==="dr"?"var(--r)":s.d==="do"?"var(--o)":s.d==="dy"?"var(--y)":"var(--g)";
     var lk=fl(it.sku),lkUrl=lk?(typeof lk==="string"?lk:(lk.link1||"")):"";
     h+="<tr><td>"+(_mgrMode?"<input type=\"checkbox\" class=\"disc-cb\" data-sku=\""+it.sku+"\" onclick=\"event.stopPropagation();discSelToggle(this.dataset.sku)\" style=\"width:18px;height:18px;accent-color:var(--r);cursor:pointer;vertical-align:middle\" "+(_discSel[it.sku]?"checked":"")+">":" ")+" <span class=\"dot "+s.d+"\"></span>"+s.l+"</td>"+
-      "<td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+"</td>"+
+      "<td style=\"font-weight:600\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+_vitalityBadge(it)+_forgottenBadge(it)+"</td>"+
       "<td class=\"nm\" title=\""+it.name+"\">"+it.name+"</td>"+
       "<td>"+it.stock+"<div class=\"bar\"><div class=\"fill\" style=\"width:"+bw+"%;background:"+bc+"\"></div></div></td>"+
       "<td>"+(it.days===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":it.days)+"</td>"+
@@ -3145,7 +3223,7 @@ function _buildChildRows(base){
     var bc=s.d==="dr"?"var(--r)":s.d==="do"?"var(--o)":s.d==="dy"?"var(--y)":"var(--g)";
     h+="<tr class=\"child-row\" data-parent=\""+base+"\">"+
       "<td>"+(_mgrMode?"<input type=\"checkbox\" class=\"disc-cb\" data-sku=\""+it.sku+"\" onclick=\"event.stopPropagation();discSelToggle(this.dataset.sku)\" style=\"width:18px;height:18px;accent-color:var(--r);cursor:pointer;vertical-align:middle\" "+(_discSel[it.sku]?"checked":"")+">":" ")+" <span class=\"dot "+s.d+"\"></span>"+s.l+"</td>"+
-      "<td style=\"font-weight:600;padding-left:32px !important\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+"</td>"+
+      "<td style=\"font-weight:600;padding-left:32px !important\">"+(it.img?"<img src=\""+it.img+"\" class=\"sku-img\" onerror=\"this.style.display='none'\">":"")+skuW(it.sku,false)+_vitalityBadge(it)+_forgottenBadge(it)+"</td>"+
       "<td class=\"nm\">"+it.name+"</td>"+
       "<td>"+it.stock+"<div class=\"bar\"><div class=\"fill\" style=\"width:"+bw+"%;background:"+bc+"\"></div></div></td>"+
       "<td>"+(it.days===0?"<span style=\"color:var(--r);font-weight:700\">0</span>":it.days)+"</td>"+
