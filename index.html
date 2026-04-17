@@ -448,11 +448,25 @@ table:has(#ltb){display:block!important;width:100%!important}
 #ordSub-normal>.tb>.mt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px}
 #ordSub-normal>.tb>.mt .mtb{flex-shrink:0;font-size:12px;padding:8px 14px}
 
-/* --- ORDER SUB: new1688 toolbar — buttons in 1 row --- */
-#ordSub-new1688>.tb{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
-#ordSub-new1688>.tb .sb-wrap{width:100%!important;flex:none!important}#ordSub-new1688>.tb .sb{width:100%!important}
-#ordSub-new1688>.tb .sel{width:100%!important;flex:none!important;font-size:14px!important;padding:10px 12px!important}
-#ordSub-new1688>.tb .btn{flex:1 1 0!important;font-size:11px!important;padding:8px 6px!important;min-height:40px!important;text-align:center!important;white-space:nowrap!important}
+/* --- ORDER SUB: new1688 toolbar — full-width stacked buttons (mobile) --- */
+#ordSub-new1688>.tb{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;gap:8px!important;width:100%!important}
+#ordSub-new1688>.tb>*{width:100%!important;flex:none!important;box-sizing:border-box!important}
+#ordSub-new1688>.tb .sb-wrap,#ordSub-new1688>.tb .sb{width:100%!important}
+#ordSub-new1688>.tb .sel{width:100%!important;font-size:14px!important;padding:11px 12px!important}
+#ordSub-new1688>.tb .btn{width:100%!important;display:block!important;font-size:15px!important;padding:13px 12px!important;min-height:46px!important;text-align:center!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-weight:700!important;border-radius:12px!important}
+/* --- NP TYPE CARDS (ประเภท selector) — override .fg label --- */
+.fg label.np-type-card{cursor:pointer!important;padding:14px 10px!important;border:2px solid var(--bd)!important;border-radius:12px!important;background:var(--c1)!important;text-align:center!important;transition:all .15s!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;position:relative!important;box-sizing:border-box!important;margin-bottom:0!important;font-size:14px!important;font-weight:600!important;color:var(--t)!important;min-height:96px!important;-webkit-tap-highlight-color:rgba(0,0,0,0)!important}
+.fg label.np-type-card:hover{border-color:var(--p)!important;transform:translateY(-1px)}
+.fg label.np-type-card.sel-sale{border-color:#22c55e!important;background:rgba(34,197,94,.08)!important;box-shadow:0 2px 8px rgba(34,197,94,.15)!important}
+.fg label.np-type-card.sel-per{border-color:#eab308!important;background:rgba(234,179,8,.08)!important;box-shadow:0 2px 8px rgba(234,179,8,.15)!important}
+.np-type-card>.np-tc-icon{font-size:30px!important;line-height:1!important;margin-bottom:6px!important;display:block!important;color:initial!important}
+.np-type-card>.np-tc-ttl{font-weight:700!important;font-size:14px!important;color:var(--t)!important;white-space:nowrap!important;line-height:1.2!important;display:block!important}
+.np-type-card>.np-tc-desc{font-size:10px!important;color:var(--t2)!important;margin-top:3px!important;line-height:1.2!important;white-space:nowrap!important;display:block!important;font-weight:500!important}
+.np-type-card.sel-sale>.np-tc-ttl{color:#15803d!important}
+.np-type-card.sel-per>.np-tc-ttl{color:#a16207!important}
+.np-type-card>.np-tc-check{position:absolute!important;top:6px!important;right:6px!important;width:18px!important;height:18px!important;border-radius:50%!important;background:rgba(0,0,0,.15)!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:11px!important;color:#fff!important;opacity:0!important;transition:opacity .15s!important;margin:0!important}
+.np-type-card.sel-sale>.np-tc-check{background:#22c55e!important;opacity:1!important}
+.np-type-card.sel-per>.np-tc-check{background:#eab308!important;opacity:1!important}
 
 /* --- LINK TAB: toolbar — search full-width, buttons 2x2 grid --- */
 #lnk-tb{display:grid!important;grid-template-columns:1fr!important;gap:6px!important}
@@ -872,13 +886,18 @@ html,body{overflow-x:hidden!important}
 </div>
 <!-- Sub: New Products 1688 -->
 <div id="ordSub-new1688" style="display:none">
+<div class="view-toggle" style="margin-bottom:10px">
+<button class="vt-btn act" id="npTypeTabSale" onclick="swNpType('sale')">&#127978; ซื้อมาขาย <span class="badge" id="npTypeSaleBg" style="font-size:10px">0</span></button>
+<button class="vt-btn" id="npTypeTabPersonal" onclick="swNpType('personal')">&#128274; ใช้ส่วนตัว <span class="badge" id="npTypePersonalBg" style="font-size:10px;background:linear-gradient(135deg,#eab308,#f59e0b)">0</span></button>
+</div>
 <div class="tb">
 <div class="sb-wrap"><input class="sb" type="text" placeholder="&#128269; ค้นหาสินค้าใหม่..." id="npSi" oninput="rnp()"><button class="sb-x" type="button" onclick="var i=document.getElementById('npSi');i.value='';i.focus();rnp()">&times;</button></div>
 <select class="sel" id="npFl" onchange="rnp()"><option value="a">สถานะ: ทั้งหมด</option><option value="aging">&#128680; ค้างนาน (ทุกสถานะ)</option><option value="idea">รอตัดสินใจ</option><option value="ordered">สั่งแล้ว</option><option value="shipped">จัดส่งแล้ว</option><option value="arrived_th">ถึงไทย-รอตรวจ</option><option value="arrived">ของถึงแล้ว</option><option value="added">เพิ่มเข้าระบบแล้ว</option><option value="shortage">ของขาด-รอแก้ไข</option></select>
 <button class="btn bs" onclick="nnp()" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none">+ เพิ่มสินค้าใหม่</button>
 <button class="btn b2 bs" onclick="npImpDialog()">&#128229; นำเข้าจาก Excel</button>
 </div>
-<div class="ss"><span>ทั้งหมด: <b id="np1">0</b></span><span>รอตัดสินใจ: <b id="np2">0</b></span><span>สั่งแล้ว: <b id="np3">0</b></span><span>ของถึง: <b id="np4">0</b></span><span id="np5wrap" style="display:none;cursor:pointer" onclick="document.getElementById('npFl').value='aging';rnp()" title="กดเพื่อดูเฉพาะรายการค้าง">&#128680; ต้องเช็ค: <b id="np5" style="color:#ef4444">0</b></span><button onclick="showAgingSettings()" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px 6px" title="ตั้งค่าเตือนออเดอร์ค้าง">&#9881;&#65039;</button><button class="btn bs b2" onclick="toggleNpCollapse()" id="npColBtn" style="font-size:11px;padding:2px 10px;margin-left:auto">▼ ซ่อนรายละเอียด</button></div>
+<div class="ss" id="npSaleStats"><span>ทั้งหมด: <b id="np1">0</b></span><span>รอตัดสินใจ: <b id="np2">0</b></span><span>สั่งแล้ว: <b id="np3">0</b></span><span>ของถึง: <b id="np4">0</b></span><span id="np5wrap" style="display:none;cursor:pointer" onclick="document.getElementById('npFl').value='aging';rnp()" title="กดเพื่อดูเฉพาะรายการค้าง">&#128680; ต้องเช็ค: <b id="np5" style="color:#ef4444">0</b></span><button onclick="showAgingSettings()" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px 6px" title="ตั้งค่าเตือนออเดอร์ค้าง">&#9881;&#65039;</button><button class="btn bs b2" onclick="toggleNpCollapse()" id="npColBtn" style="font-size:11px;padding:2px 10px;margin-left:auto">▼ ซ่อนรายละเอียด</button></div>
+<div class="ss" id="npPersonalStats" style="display:none;background:linear-gradient(135deg,rgba(234,179,8,.08),rgba(234,179,8,.02));border:1px solid rgba(234,179,8,.3)"><span style="font-weight:700;color:#ca8a04">&#128274; ของใช้ส่วนตัว</span><span>&#128197; เดือนนี้: <b id="npPM1">0</b> รายการ / <b id="npPM2">0</b> ชิ้น</span><span>&#128202; ทั้งหมด: <b id="npPT1">0</b> รายการ / <b id="npPT2">0</b> ชิ้น</span><button class="btn bs b2" onclick="toggleNpCollapse()" style="font-size:11px;padding:2px 10px;margin-left:auto">▼ ซ่อนรายละเอียด</button></div>
 <div id="npl"></div>
 <div class="emp" id="npe" style="display:none"><div style="font-size:36px;margin-bottom:8px">&#127381;</div>ยังไม่มีสินค้าใหม่<br><button class="btn bs" onclick="nnp()" style="margin-top:8px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none">+ เพิ่มสินค้าใหม่</button></div>
 </div>
@@ -1539,7 +1558,7 @@ function showArchiveManager(){
   h+="<div>ออเดอร์: <b>"+O.length+"</b></div>";
   h+="<div>สินค้า: <b>"+I.length+"</b></div>";
   h+="<div>Archive แล้ว: <b>"+archData.length+"</b></div>";
-  h+="<div>สินค้าใหม่: <b>"+NP.length+"</b></div>";
+  h+="<div>สินค้าใหม่: <b>"+NP.filter(function(p){return _npType(p)==="sale"}).length+"</b>"+(NP.filter(function(p){return _npType(p)==="personal"}).length>0?" <span style='color:#ca8a04;font-size:11px'>(+"+NP.filter(function(p){return _npType(p)==="personal"}).length+" ส่วนตัว)</span>":"")+"</div>";
   h+="</div></div>";
   // Archive options
   h+="<div style='font-size:13px;font-weight:600;margin-bottom:10px'>🗂️ Archive ออเดอร์เสร็จแล้ว</div>";
@@ -2875,7 +2894,7 @@ function uk(){
   var k7El=document.getElementById("k7");
   if(k7El){
     var nO=O.filter(function(o){return o.status==="arrived_th"}).length;
-    var nNP=(typeof NP!=="undefined"?NP.filter(function(p){return p.status==="arrived_th"}).length:0);
+    var nNP=(typeof NP!=="undefined"?NP.filter(function(p){return p.status==="arrived_th"&&(typeof _npType!=="function"||_npType(p)==="sale")}).length:0);
     k7El.textContent=(nO+nNP).toLocaleString();
   }
 }
@@ -3471,7 +3490,8 @@ function swOrdSub(m){
 }
 function updateOrdSubBadges(){
   var e1=document.getElementById("ordSubNormBg");if(e1)e1.textContent=O.length;
-  var e2=document.getElementById("ordSubNewBg");if(e2)e2.textContent=NP.length;
+  // Header badge shows sale count only (personal items have their own sub-tab counter)
+  var e2=document.getElementById("ordSubNewBg");if(e2)e2.textContent=NP.filter(function(p){return _npType(p)==="sale"}).length;
 }
 var STS={pending:{c:"osp",l:"สั่งแล้ว-รอจัดส่ง",i:"&#9203;"},shipped:{c:"oss",l:"จัดส่งแล้ว",i:"&#128666;"},arrived_th:{c:"osa",l:"ถึงไทย-รอตรวจ",i:"&#128747;"},received:{c:"osr",l:"ได้รับครบ",i:"&#9989;"},partial:{c:"osx",l:"ได้รับ-ขาด",i:"&#9888;&#65039;"},negotiate:{c:"osn",l:"รอเจรจา",i:"&#128172;"},refunded:{c:"osrf",l:"ร้านคืนเงินแล้ว",i:"&#128176;"},resolved:{c:"osrs",l:"เคลียร์แล้ว",i:"&#9989;"}};
 
@@ -3969,7 +3989,7 @@ function ss2(i){
 }
 
 // ===== NEW PRODUCTS FROM 1688 =====
-var NP_STS={idea:{l:"รอตัดสินใจ",i:"&#128161;",c:"var(--y)"},ordered:{l:"สั่งแล้ว",i:"&#128230;",c:"var(--a)"},shipped:{l:"จัดส่งแล้ว",i:"&#128666;",c:"var(--p)"},arrived_th:{l:"ถึงไทย-รอตรวจ",i:"&#128747;",c:"#06b6d4"},arrived:{l:"ของถึงแล้ว",i:"&#9989;",c:"var(--g)"},added:{l:"เพิ่มเข้าระบบแล้ว",i:"&#127775;",c:"var(--g)"},shortage:{l:"ของขาด-รอแก้ไข",i:"&#9888;&#65039;",c:"var(--r)"}};
+var NP_STS={idea:{l:"รอตัดสินใจ",i:"&#128161;",c:"var(--y)"},ordered:{l:"สั่งแล้ว",i:"&#128230;",c:"var(--a)"},shipped:{l:"จัดส่งแล้ว",i:"&#128666;",c:"var(--p)"},arrived_th:{l:"ถึงไทย-รอตรวจ",i:"&#128747;",c:"#06b6d4"},arrived:{l:"ของถึงแล้ว",i:"&#9989;",c:"var(--g)"},added:{l:"เพิ่มเข้าระบบแล้ว",i:"&#127775;",c:"var(--g)"},shortage:{l:"ของขาด-รอแก้ไข",i:"&#9888;&#65039;",c:"var(--r)"},personal_done:{l:"บันทึกใช้ส่วนตัว",i:"&#128274;",c:"#eab308"}};
 
 function hasChinese(s){return/[\u4e00-\u9fff]/.test(s)}
 function checkNpNmLang(){
@@ -4051,10 +4071,64 @@ document.addEventListener("paste",function(e){
   }
 });
 
+// === NP TYPE HELPERS (sale vs personal) ===
+function _npType(p){return (p&&p.type)||"sale"}
+function _npTypeBadge(p){
+  return _npType(p)==="personal"
+    ? "<span style='margin-left:6px;background:rgba(234,179,8,.18);color:#ca8a04;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;border:1px solid rgba(234,179,8,.35)'>&#128274; ส่วนตัว</span>"
+    : "<span style='margin-left:6px;background:rgba(34,197,94,.12);color:var(--g);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;border:1px solid rgba(34,197,94,.25)'>&#127978; ขาย</span>";
+}
+// Hidden field stores current type (avoids CSS/radio quirks entirely)
+var _npTypeVal="sale";
+function _npTypeUI(v){
+  _npTypeVal=v;
+  var hid=document.getElementById("npTypeHidden");if(hid)hid.value=v;
+  var s=document.getElementById("npTypeSaleLb"),pe=document.getElementById("npTypePerLb");
+  if(!s||!pe)return;
+  // Apply inline styles directly — no CSS class dependency
+  var baseS="cursor:pointer;padding:16px 10px;border:3px solid #d1d5db;border-radius:14px;background:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:110px;box-sizing:border-box;transition:all .15s;position:relative;margin:0";
+  var selS="cursor:pointer;padding:16px 10px;border:3px solid #22c55e;border-radius:14px;background:rgba(34,197,94,.1);text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:110px;box-sizing:border-box;transition:all .15s;position:relative;margin:0;box-shadow:0 3px 10px rgba(34,197,94,.25)";
+  var selP="cursor:pointer;padding:16px 10px;border:3px solid #eab308;border-radius:14px;background:rgba(234,179,8,.1);text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:110px;box-sizing:border-box;transition:all .15s;position:relative;margin:0;box-shadow:0 3px 10px rgba(234,179,8,.25)";
+  s.setAttribute("style",v==="sale"?selS:baseS);
+  pe.setAttribute("style",v==="personal"?selP:baseS);
+  // Show/hide checkmark badges
+  var sc=s.querySelector(".np-tc-check"),pc=pe.querySelector(".np-tc-check");
+  if(sc)sc.style.display=(v==="sale")?"flex":"none";
+  if(pc)pc.style.display=(v==="personal")?"flex":"none";
+}
+// Sub-tab inside สินค้าใหม่ 1688: sale | personal
+var _npTypeView="sale";
+function swNpType(t){
+  _npTypeView=t;
+  var s=document.getElementById("npTypeTabSale"),p=document.getElementById("npTypeTabPersonal");
+  if(s)s.className="vt-btn"+(t==="sale"?" act":"");
+  if(p)p.className="vt-btn"+(t==="personal"?" act":"");
+  // clear selection when switching (avoid deleting items from other tab accidentally)
+  _npSel={};
+  rnp();
+}
+
 function nnp(){
   document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
   document.getElementById("ptt").innerHTML="&#127381; สั่งสินค้าใหม่จาก 1688 <button class=\"cb\" onclick=\"cp()\">&times;</button>";
+  // Default to current tab type so creating in "ใช้ส่วนตัว" tab defaults to personal
+  var _defType=(_npTypeView==="personal")?"personal":"sale";
   document.getElementById("pb").innerHTML=
+    "<input type=\"hidden\" id=\"npTypeHidden\" value=\""+_defType+"\">"+
+    "<div class=\"fg\" style=\"margin-bottom:14px\"><label style=\"display:block;margin-bottom:8px\">ประเภทสินค้า <span style=\"color:var(--r)\">*เลือก 1 อย่าง</span></label><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px\">"+
+      "<div id=\"npTypeSaleLb\" onclick=\"_npTypeUI('sale')\">"+
+        "<span class=\"np-tc-check\" style=\"position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;font-size:14px;font-weight:900;display:none;align-items:center;justify-content:center\">&#10003;</span>"+
+        "<span style=\"font-size:34px;line-height:1;display:block;margin-bottom:6px\">&#127978;</span>"+
+        "<span style=\"font-weight:700;font-size:15px;color:#111;display:block;line-height:1.2;white-space:nowrap\">ซื้อมาขาย</span>"+
+        "<span style=\"font-size:11px;color:#6b7280;display:block;margin-top:4px;line-height:1.2;white-space:nowrap\">สร้าง SKU + Export</span>"+
+      "</div>"+
+      "<div id=\"npTypePerLb\" onclick=\"_npTypeUI('personal')\">"+
+        "<span class=\"np-tc-check\" style=\"position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:#eab308;color:#fff;font-size:14px;font-weight:900;display:none;align-items:center;justify-content:center\">&#10003;</span>"+
+        "<span style=\"font-size:34px;line-height:1;display:block;margin-bottom:6px\">&#128274;</span>"+
+        "<span style=\"font-weight:700;font-size:15px;color:#111;display:block;line-height:1.2;white-space:nowrap\">ใช้ส่วนตัว</span>"+
+        "<span style=\"font-size:11px;color:#6b7280;display:block;margin-top:4px;line-height:1.2;white-space:nowrap\">ไม่เข้าสต๊อกขาย</span>"+
+      "</div>"+
+    "</div></div>"+
     "<div class=\"fg\"><label>หมายเลขคำสั่งซื้อ <span style=\"color:var(--r)\">*บังคับ</span></label><input type=\"text\" id=\"npOid\" placeholder=\"เช่น 51057314660... หรือ PO-001\" style=\"border:2px solid var(--p);font-weight:700\"></div>"+
     "<div class=\"fg\"><label>ชื่อสินค้า <span style=\"color:var(--r)\">*บังคับ</span> <span style=\"font-size:11px;color:var(--t2);font-weight:normal\">วางชื่อจีนได้ แปลไทยอัตโนมัติ</span></label><input type=\"text\" id=\"npNm\" placeholder=\"เช่น ซองกันน้ำรุ่นใหม่ หรือวางชื่อภาษาจีน\" oninput=\"checkNpNmLang()\" onpaste=\"setTimeout(checkNpNmLang,100)\"></div>"+
     "<div class=\"fg\"><label>ลิงก์ 1688</label><input type=\"text\" id=\"npLk\" placeholder=\"https://detail.1688.com/...\"></div>"+
@@ -4064,6 +4138,7 @@ function nnp(){
     "<div class=\"fg\"><label>วันที่สั่ง</label><input type=\"date\" id=\"npDt\" value=\""+new Date().toISOString().slice(0,10)+"\"></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"npNote\" rows=\"2\" placeholder=\"บันทึกเพิ่มเติม เช่น ซัพพลายเออร์, MOQ, เงื่อนไข\"></textarea></div>"+
     "<button class=\"btn bp\" onclick=\"saveNP()\" style=\"width:100%\">&#128190; บันทึกสินค้าใหม่</button>";
+  _npTypeUI(_defType);
 }
 
 function saveNP(){
@@ -4072,9 +4147,13 @@ function saveNP(){
   var nm=document.getElementById("npNm").value.trim();
   if(!nm){alert("กรุณากรอกชื่อสินค้า");document.getElementById("npNm").focus();return}
   var dt=document.getElementById("npDt").value||new Date().toISOString().slice(0,10);
+  var tType="sale";
+  var hid=document.getElementById("npTypeHidden");
+  if(hid&&hid.value)tType=hid.value;
   NP.unshift({
     id:oid,
     name:nm,
+    type:tType,
     link:document.getElementById("npLk").value.trim(),
     img:document.getElementById("npImg").value.trim(),
     price:parseFloat(document.getElementById("npPr").value)||0,
@@ -4087,6 +4166,9 @@ function saveNP(){
     addedSKU:"",
     _lm:Date.now()
   });
+  // Switch to the tab the user just saved to
+  if(tType==="personal")_npTypeView="personal";
+  else _npTypeView="sale";
   sv();cp();swOrdSub("new1688");rnp();ro();
 }
 
@@ -4108,30 +4190,64 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&_npSelCount
 
 function rnp(){
   var el=document.getElementById("npl");if(!el)return;
-  // Update stats
-  var cIdea=0,cOrd=0,cShip=0,cArr=0,cAdd=0;
-  NP.forEach(function(p){if(p.status==="idea")cIdea++;else if(p.status==="ordered")cOrd++;else if(p.status==="shipped")cShip++;else if(p.status==="arrived")cArr++;else if(p.status==="added")cAdd++});
-  var e1=document.getElementById("np1");if(e1)e1.textContent=NP.length;
-  var e2=document.getElementById("np2");if(e2)e2.textContent=cIdea;
-  var e3=document.getElementById("np3");if(e3)e3.textContent=cOrd+cShip;
-  var e4=document.getElementById("np4");if(e4)e4.textContent=cArr+cAdd;
+  // Split by type for tab badges
+  var saleItems=NP.filter(function(p){return _npType(p)==="sale"});
+  var personalItems=NP.filter(function(p){return _npType(p)==="personal"});
+  var tSaleBg=document.getElementById("npTypeSaleBg");if(tSaleBg)tSaleBg.textContent=saleItems.length;
+  var tPerBg=document.getElementById("npTypePersonalBg");if(tPerBg)tPerBg.textContent=personalItems.length;
+  // View-specific stats
+  var isPersonalView=(_npTypeView==="personal");
+  var viewItems=isPersonalView?personalItems:saleItems;
+  // Toggle stats blocks
+  var saleStatsEl=document.getElementById("npSaleStats");
+  var personalStatsEl=document.getElementById("npPersonalStats");
+  if(saleStatsEl)saleStatsEl.style.display=isPersonalView?"none":"";
+  if(personalStatsEl)personalStatsEl.style.display=isPersonalView?"":"none";
+  // Filter dropdown — hide status filter for personal view (no business statuses)
+  var npFlEl=document.getElementById("npFl");
+  if(npFlEl)npFlEl.style.display=isPersonalView?"none":"";
+  if(!isPersonalView){
+    // Update business stats (sale items only)
+    var cIdea=0,cOrd=0,cShip=0,cArr=0,cAdd=0;
+    saleItems.forEach(function(p){if(p.status==="idea")cIdea++;else if(p.status==="ordered")cOrd++;else if(p.status==="shipped")cShip++;else if(p.status==="arrived")cArr++;else if(p.status==="added")cAdd++});
+    var e1=document.getElementById("np1");if(e1)e1.textContent=saleItems.length;
+    var e2=document.getElementById("np2");if(e2)e2.textContent=cIdea;
+    var e3=document.getElementById("np3");if(e3)e3.textContent=cOrd+cShip;
+    var e4=document.getElementById("np4");if(e4)e4.textContent=cArr+cAdd;
+    var npAgCnt=_agingCount(saleItems);
+    var np5w=document.getElementById("np5wrap"),np5b=document.getElementById("np5");
+    if(np5w){np5w.style.display=npAgCnt>0?"inline":"none"}
+    if(np5b)np5b.textContent=npAgCnt;
+  }else{
+    // Update personal mini-stats
+    var nowMo=new Date().toISOString().slice(0,7);
+    var moCnt=0,moQty=0,totCnt=personalItems.length,totQty=0;
+    personalItems.forEach(function(p){
+      var q=p.qty||0;totQty+=q;
+      if((p.month||p.date||"").slice(0,7)===nowMo){moCnt++;moQty+=q}
+    });
+    var m1=document.getElementById("npPM1");if(m1)m1.textContent=moCnt;
+    var m2=document.getElementById("npPM2");if(m2)m2.textContent=moQty;
+    var t1=document.getElementById("npPT1");if(t1)t1.textContent=totCnt;
+    var t2=document.getElementById("npPT2");if(t2)t2.textContent=totQty;
+  }
   updateOrdSubBadges();
   // Filter
   var q=(document.getElementById("npSi")?document.getElementById("npSi").value:"").toLowerCase().trim();
   var sf=(document.getElementById("npFl")?document.getElementById("npFl").value:"a");
-  var npAgCnt=_agingCount(NP);
-  var np5w=document.getElementById("np5wrap"),np5b=document.getElementById("np5");
-  if(np5w){np5w.style.display=npAgCnt>0?"inline":"none"}
-  if(np5b)np5b.textContent=npAgCnt;
-  var filtered=NP.filter(function(p){
-    if(sf==="aging"){if(!_agingLevel(p))return false}
-    else if(sf!=="a"&&p.status!==sf)return false;
+  var filtered=viewItems.filter(function(p){
+    if(!isPersonalView){
+      if(sf==="aging"){if(!_agingLevel(p))return false}
+      else if(sf!=="a"&&p.status!==sf)return false;
+    }
     if(q){var m=p.name.toLowerCase().indexOf(q)>=0||p.id.toLowerCase().indexOf(q)>=0||(p.note||"").toLowerCase().indexOf(q)>=0||(p.addedSKU||"").toLowerCase().indexOf(q)>=0;if(!m)return false}
     return true;
   });
-  if(sf==="aging"){filtered.sort(function(a,b){return _agingDays(b)-_agingDays(a)})}
+  if(!isPersonalView&&sf==="aging"){filtered.sort(function(a,b){return _agingDays(b)-_agingDays(a)})}
+  // Personal view: sort newest first by date
+  if(isPersonalView){filtered.sort(function(a,b){return (b.date||"").localeCompare(a.date||"")})}
   var npe=document.getElementById("npe");
-  if(filtered.length===0){el.innerHTML="";if(npe)npe.style.display=NP.length===0?"block":"none";window._npPageIds=[];return}
+  if(filtered.length===0){el.innerHTML=isPersonalView?"<div class='emp' style='padding:24px'><div style='font-size:36px;margin-bottom:8px'>&#128274;</div>ยังไม่มีของใช้ส่วนตัว<br><button class=\"btn bs\" onclick=\"nnp()\" style=\"margin-top:8px;background:linear-gradient(135deg,#eab308,#f59e0b);color:#000;border:none\">+ เพิ่มสินค้าส่วนตัว</button></div>":"";if(npe)npe.style.display=(viewItems.length===0&&!isPersonalView)?"block":"none";window._npPageIds=[];return}
   if(npe)npe.style.display="none";
   window._npPageIds=filtered.map(function(p){return p.id});
   var selCnt=_npSelCount();
@@ -4157,14 +4273,21 @@ function rnp(){
     h+="<div class=\"och\"><div style=\"display:flex;align-items:center;gap:8px;flex:1;min-width:0\">";
     h+="<input type=\"checkbox\" "+(isSel?"checked":"")+" onclick=\"tgNpSel('"+_pidEsc+"',event)\" style=\"width:18px;height:18px;accent-color:var(--r);flex-shrink:0;cursor:pointer\" title=\"เลือกเพื่อลบ\">";
     if(p.img)h+="<img src=\""+p.img+"\" class=\"sku-img\" style=\"width:40px;height:40px;border-radius:6px;border:1px solid var(--bd)\" onerror=\"this.style.display='none'\">";
-    h+="<div><strong>#"+p.id+"</strong> "+p.name+"</div></div>";
+    h+="<div><strong>#"+p.id+"</strong> "+p.name+_npTypeBadge(p)+"</div></div>";
     h+="<span class=\"os\" style=\"background:"+sti.c+";color:#fff;font-size:11px;padding:3px 10px;border-radius:20px\">"+sti.i+" "+sti.l+"</span>"+_agingBadgeHtml(p)+"</div>";
     if(!npCollapsed){
-      h+="<div style=\"font-size:12px;color:var(--t2);margin:4px 0\">"+p.date+" | "+p.qty+" ชิ้น"+(p.price?" | มูลค่า ¥"+p.price.toFixed(2):"")+(p.tracking?" | &#128230; "+p.tracking:"")+(p.addedSKU?" | SKU: <span style=\"color:var(--g);font-weight:600\">"+p.addedSKU+"</span>":"")+"</div>";
-      // Flow progress bar
+      var _isPer=_npType(p)==="personal";
+      h+="<div style=\"font-size:12px;color:var(--t2);margin:4px 0\">"+p.date+" | "+p.qty+" ชิ้น"+(p.price?" | มูลค่า ¥"+p.price.toFixed(2):"")+(p.tracking?" | &#128230; "+p.tracking:"")+(!_isPer&&p.addedSKU?" | SKU: <span style=\"color:var(--g);font-weight:600\">"+p.addedSKU+"</span>":"")+(_isPer&&p._personalDoneBy?" | &#128274; อนุมัติโดย <b>"+p._personalDoneBy+"</b>":"")+"</div>";
+      // Flow progress bar (different steps for personal)
       var rcKey2="NP_"+p.id;var hasCount=!!RC[rcKey2];
-      var steps=["นับ","ตรวจ","ลงระบบ","Export"];
-      var curStep=p._exported?4:p.status==="added"?3:p._verified?2:hasCount?1:0;
+      var steps,curStep;
+      if(_isPer){
+        steps=["นับ","ตรวจ","บันทึก"];
+        curStep=p.status==="personal_done"?3:p._verified?2:hasCount?1:0;
+      }else{
+        steps=["นับ","ตรวจ","ลงระบบ","Export"];
+        curStep=p._exported?4:p.status==="added"?3:p._verified?2:hasCount?1:0;
+      }
       h+="<div style=\"display:flex;gap:2px;margin:6px 0;font-size:10px\">";
       steps.forEach(function(s,si){
         var done=si<curStep;var active=si===curStep;
@@ -4178,9 +4301,13 @@ function rnp(){
       // Flow buttons based on state
       var rcKey="NP_"+p.id;
       if(p._verified&&p.status==="arrived"){
-        h+="<button class=\"btn bs\" style=\"background:var(--p);color:#fff\" onclick=\"npRegister("+ri+")\">&#128221; ลงสินค้าเข้าระบบ</button>";
+        if(_isPer){
+          h+="<button class=\"btn bs\" style=\"background:#eab308;color:#000;font-weight:700\" onclick=\"npPersonalComplete("+ri+")\">&#128274; บันทึกใช้ส่วนตัว</button>";
+        }else{
+          h+="<button class=\"btn bs\" style=\"background:var(--p);color:#fff\" onclick=\"npRegister("+ri+")\">&#128221; ลงสินค้าเข้าระบบ</button>";
+        }
       }
-      if(p.status==="added"&&p.addedSKU){
+      if(!_isPer&&p.status==="added"&&p.addedSKU){
         h+="<button class=\"btn bs\" style=\"background:var(--g);color:#fff\" onclick=\"npToExport("+ri+")\">&#128230; ส่งเข้า Export</button>";
       }
       h+="</div>";
@@ -4194,7 +4321,23 @@ function enpf(i){
   var p=NP[i];if(!p)return;
   document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
   document.getElementById("ptt").innerHTML="&#9999;&#65039; แก้ไขสินค้าใหม่ <button class=\"cb\" onclick=\"cp()\">&times;</button>";
+  var _curT=_npType(p);
   document.getElementById("pb").innerHTML=
+    "<input type=\"hidden\" id=\"npTypeHidden\" value=\""+_curT+"\">"+
+    "<div class=\"fg\" style=\"margin-bottom:14px\"><label style=\"display:block;margin-bottom:8px\">ประเภทสินค้า</label><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px\">"+
+      "<div id=\"npTypeSaleLb\" onclick=\"_npTypeUI('sale')\">"+
+        "<span class=\"np-tc-check\" style=\"position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:#22c55e;color:#fff;font-size:14px;font-weight:900;display:none;align-items:center;justify-content:center\">&#10003;</span>"+
+        "<span style=\"font-size:34px;line-height:1;display:block;margin-bottom:6px\">&#127978;</span>"+
+        "<span style=\"font-weight:700;font-size:15px;color:#111;display:block;line-height:1.2;white-space:nowrap\">ซื้อมาขาย</span>"+
+        "<span style=\"font-size:11px;color:#6b7280;display:block;margin-top:4px;line-height:1.2;white-space:nowrap\">สร้าง SKU + Export</span>"+
+      "</div>"+
+      "<div id=\"npTypePerLb\" onclick=\"_npTypeUI('personal')\">"+
+        "<span class=\"np-tc-check\" style=\"position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:#eab308;color:#fff;font-size:14px;font-weight:900;display:none;align-items:center;justify-content:center\">&#10003;</span>"+
+        "<span style=\"font-size:34px;line-height:1;display:block;margin-bottom:6px\">&#128274;</span>"+
+        "<span style=\"font-weight:700;font-size:15px;color:#111;display:block;line-height:1.2;white-space:nowrap\">ใช้ส่วนตัว</span>"+
+        "<span style=\"font-size:11px;color:#6b7280;display:block;margin-top:4px;line-height:1.2;white-space:nowrap\">ไม่เข้าสต๊อกขาย</span>"+
+      "</div>"+
+    "</div></div>"+
     "<div class=\"fg\"><label>หมายเลขคำสั่งซื้อ</label><input type=\"text\" id=\"npOid\" value=\""+p.id+"\" style=\"border:2px solid var(--p);font-weight:700\"></div>"+
     "<div class=\"fg\"><label>ชื่อสินค้า <span style=\"font-size:11px;color:var(--t2);font-weight:normal\">วางชื่อจีนได้ แปลไทยอัตโนมัติ</span></label><input type=\"text\" id=\"npNm\" value=\""+p.name+"\" oninput=\"checkNpNmLang()\" onpaste=\"setTimeout(checkNpNmLang,100)\"></div>"+
     "<div class=\"fg\"><label>ลิงก์ 1688</label><input type=\"text\" id=\"npLk\" value=\""+(p.link||"")+"\"></div>"+
@@ -4206,12 +4349,15 @@ function enpf(i){
     "<div class=\"fg\"><label>SKU (หลังเพิ่มเข้าระบบ)</label><input type=\"text\" id=\"npSku\" value=\""+(p.addedSKU||"")+"\" placeholder=\"กรอกเมื่อสินค้าเข้าระบบแล้ว\"></div>"+
     "<div class=\"fg\"><label>หมายเหตุ</label><textarea id=\"npNote\" rows=\"2\">"+(p.note||"")+"</textarea></div>"+
     "<button class=\"btn bp\" onclick=\"saveENP("+i+")\" style=\"width:100%\">&#128190; บันทึก</button>";
+  _npTypeUI(_curT);
 }
 
 function saveENP(i){
   var p=NP[i];if(!p)return;
   var oldTrk=(p.tracking||"").trim();
   var oldSt=p.status;
+  var hid=document.getElementById("npTypeHidden");
+  if(hid&&hid.value)p.type=hid.value;
   var nid=document.getElementById("npOid").value.trim();if(nid)p.id=nid;
   p.name=document.getElementById("npNm").value.trim();
   p.link=document.getElementById("npLk").value.trim();
@@ -4234,6 +4380,7 @@ function saveENP(i){
 
 function npRegister(i){
   var p=NP[i];if(!p)return;
+  if(_npType(p)==="personal"){alert("&#128274; สินค้าใช้ส่วนตัวไม่ต้องลงระบบ/สร้าง SKU\nกดปุ่ม \"บันทึกใช้ส่วนตัว\" แทน");return}
   document.getElementById("po").style.display="block";document.getElementById("pp").style.display="block";
   document.getElementById("ptt").innerHTML="&#128221; ลงสินค้าเข้าระบบ <button class=\"cb\" onclick=\"cp()\">&times;</button>";
   // Show RC items for reference
@@ -4263,9 +4410,29 @@ function npDoRegister(i){
   sv();cp();rnp();
   alert("ลงสินค้าเข้าระบบแล้ว! SKU: "+sku+"\nกดปุ่ม \"ส่งเข้า Export\" ได้เลย");
 }
+// Personal-use completion: no SKU, no Export, just log + mark done
+function npPersonalComplete(i){
+  var p=NP[i];if(!p)return;
+  if(_npType(p)!=="personal"){alert("สินค้านี้ไม่ใช่ประเภทใช้ส่วนตัว");return}
+  if(!p._verified){alert("กรุณาให้พนักงาน 2 ตรวจสอบก่อน");return}
+  if(!confirm("ยืนยันบันทึก \""+p.name+"\" เป็นของใช้ส่วนตัว?\n\n⚠️ รายการนี้จะไม่ถูกสร้าง SKU และไม่เข้าสต๊อกขาย"))return;
+  var rcKey="NP_"+p.id;var rc=RC[rcKey];
+  var totalQty=rc&&rc.items?rc.items.reduce(function(s,x){return s+(x.qty||0)},0):(p.qty||0);
+  p.status="personal_done";
+  p.statusChangedAt=new Date().toISOString().slice(0,10);
+  p._personalDoneAt=Date.now();
+  p._personalDoneBy=(CUR_USER&&CUR_USER.name)||"-";
+  p._personalDoneQty=totalQty;
+  p._lm=Date.now();
+  sv();rnp();rrcv();
+  if(typeof logActivity==="function")logActivity("บันทึกใช้ส่วนตัว",p.name+" "+totalQty+" ชิ้น");
+  alert("✅ บันทึกใช้ส่วนตัวแล้ว: "+p.name+" "+totalQty+" ชิ้น\n\n🔒 รายการอยู่ในแท็บ \"ใช้ส่วนตัว\"");
+}
+
 function npToExport(i){
   if(!CUR_USER){alert("\u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e47\u0e2d\u0e01\u0e2d\u0e34\u0e19\u0e01\u0e48\u0e2d\u0e19\u0e2a\u0e48\u0e07\u0e2d\u0e2d\u0e01");return}
   var p=NP[i];if(!p)return;
+  if(_npType(p)==="personal"){alert("&#128274; สินค้าใช้ส่วนตัวไม่ต้อง Export เข้าสต๊อก");return}
   if(!p.addedSKU){alert("ยังไม่ได้ลงสินค้าเข้าระบบ กรุณาลงสินค้าก่อน");return}
   var rcKey="NP_"+p.id;var rc=RC[rcKey];
   if(!rc||!rc.items){alert("ไม่พบข้อมูลการนับ");return}
@@ -4574,6 +4741,7 @@ function doNPImp(){
     NP.unshift({
       id:it.id||("NP-"+Date.now().toString(36).toUpperCase()),
       name:it.name,
+      type:"sale",
       link:it.link||"",
       img:"",
       price:it.price||0,
@@ -6985,7 +7153,7 @@ function renderRcvCheckNP(npi){
   // Header with product info
   var h="<div style='display:flex;gap:12px;align-items:center;margin-bottom:14px;background:var(--bg);border-radius:10px;padding:12px'>";
   if(p.img)h+="<img src='"+p.img+"' style='width:50px;height:50px;object-fit:cover;border-radius:8px'>";
-  h+="<div><div style='font-weight:700;font-size:15px'>&#127381; สินค้าใหม่: "+p.name+"</div>";
+  h+="<div><div style='font-weight:700;font-size:15px'>&#127381; สินค้าใหม่: "+p.name+_npTypeBadge(p)+"</div>";
   h+="<div style='font-size:12px;color:var(--t2)'>#"+p.id+" | สั่ง "+p.qty+" ชิ้น | "+p.date+"</div></div></div>";
   // Stats
   var totalCnt=rc.items.reduce(function(s,x){return s+x.qty},0);
@@ -7014,6 +7182,10 @@ function renderRcvCheckNP(npi){
     if(p.status==="shortage"){
       ah+="<div style='flex:1;padding:12px;background:rgba(239,68,68,.1);border-radius:10px;color:var(--r);font-weight:700;text-align:center'>&#9888;&#65039; ของขาด-รอแก้ไข"+(p._shortageNote?" | "+p._shortageNote:"")+"</div>";
       ah+="<button class='btn bg' onclick='rcvApproveNP("+npi+")' style='padding:12px'>&#9989; ร้านแก้แล้ว — ยอมรับ</button>";
+    }else if(p.status==="personal_done"){
+      ah+="<div style='flex:1;padding:12px;text-align:center;background:rgba(234,179,8,.12);border-radius:10px;color:#ca8a04;font-weight:700'>&#128274; บันทึกใช้ส่วนตัวแล้ว"+(p._personalDoneBy?" — โดย "+p._personalDoneBy:"")+"</div>";
+    }else if(_npType(p)==="personal"){
+      ah+="<div style='flex:1;padding:12px;text-align:center;background:rgba(234,179,8,.1);border-radius:10px;color:#ca8a04;font-weight:700'>&#9989; ตรวจสอบแล้ว — ไปแท็บ \"&#128274; ใช้ส่วนตัว\" แล้วกด \"บันทึกใช้ส่วนตัว\"</div>";
     }else{
       ah+="<div style='flex:1;padding:12px;text-align:center;background:rgba(34,197,94,.1);border-radius:10px;color:var(--g);font-weight:700'>&#9989; ตรวจสอบแล้ว — ไปลงสินค้าเข้าระบบที่แท็บ \"สินค้าใหม่ 1688\"</div>";
     }
@@ -7035,9 +7207,13 @@ function rcvApproveNP(npi){
   _chkOpen=null;
   p._verified=true;
   if(p.status==="shortage")p.status="arrived";
-  if(p.status!=="added")p.status="arrived";
+  if(p.status!=="added"&&p.status!=="personal_done")p.status="arrived";
   sv();rrcv();rnp();
-  alert("\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e41\u0e25\u0e49\u0e27! \u0e2a\u0e16\u0e32\u0e19\u0e30\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e40\u0e1b\u0e47\u0e19 \"\u0e02\u0e2d\u0e07\u0e16\u0e36\u0e07\u0e41\u0e25\u0e49\u0e27\" \u2014 \u0e25\u0e07\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e40\u0e02\u0e49\u0e32\u0e23\u0e30\u0e1a\u0e1a\u0e44\u0e14\u0e49\u0e17\u0e35\u0e48\u0e41\u0e17\u0e47\u0e1a \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48 1688");
+  if(_npType(p)==="personal"){
+    alert("\u2705 \u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e41\u0e25\u0e49\u0e27! (\u0e43\u0e0a\u0e49\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e31\u0e27)\n\n\uD83D\uDD12 \u0e44\u0e1b\u0e41\u0e17\u0e47\u0e1a \"\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48 1688\" \u2192 \"\u0e43\u0e0a\u0e49\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e31\u0e27\" \u0e41\u0e25\u0e49\u0e27\u0e01\u0e14 \"\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e43\u0e0a\u0e49\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e31\u0e27\"\n\n(\u0e44\u0e21\u0e48\u0e15\u0e49\u0e2d\u0e07\u0e2a\u0e23\u0e49\u0e32\u0e07 SKU \u0e41\u0e25\u0e30\u0e44\u0e21\u0e48 Export)");
+  }else{
+    alert("\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34\u0e41\u0e25\u0e49\u0e27! \u0e2a\u0e16\u0e32\u0e19\u0e30\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e40\u0e1b\u0e47\u0e19 \"\u0e02\u0e2d\u0e07\u0e16\u0e36\u0e07\u0e41\u0e25\u0e49\u0e27\" \u2014 \u0e25\u0e07\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e40\u0e02\u0e49\u0e32\u0e23\u0e30\u0e1a\u0e1a\u0e44\u0e14\u0e49\u0e17\u0e35\u0e48\u0e41\u0e17\u0e47\u0e1a \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48 1688");
+  }
 }
 function rcvShortageNP(npi){
   var p=NP[npi];if(!p)return;
