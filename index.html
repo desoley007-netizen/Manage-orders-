@@ -3369,12 +3369,9 @@ function sw(t){
   cf="a";
   // อัปเดต URL hash เพื่อให้คลิกขวา "Open in new tab" ใช้ได้
   if(history.replaceState)history.replaceState(null,"","#"+t);
-  // Auto-set rcv mode based on perms
-  if(t==="rcv"&&CUR_USER&&CUR_USER.role!=="admin"){
-    if(hasPerm("rcv_count")&&!hasPerm("rcv_check")){rcvMode="count";rrcv()}
-    else if(hasPerm("rcv_check")&&!hasPerm("rcv_count")){rcvMode="check";rrcv()}
-    else rrcv();
-  }
+  // rcv tab — ปล่อยให้ _rcvEnforceMode (ภายใน rrcv) เป็นตัวจัดการโหมดตามสิทธิ์
+  // ไม่บังคับ mode ซ้ำซ้อน เพื่อไม่ให้ user choice ถูก overwrite
+  if(t==="rcv")rrcv();
 }
 // Hash router — เปิด tab ตาม URL hash
 var _curTab="inv";
@@ -5449,19 +5446,19 @@ function rcvToggleStrip(i){
 }
 function rcvAddVariant(sku){
   var ex=_rcvItems.find(function(r){return r.sku===sku});
-  if(ex){ex.qty+=1}else{_rcvItems.push({sku:sku,qty:1})}
+  if(ex){ex.qty+=1}else{_rcvItems.push({sku:sku,qty:0})}
   _rcvVarOpen=-1;renderRcvCount();
 }
 function rcvQuickAddVar(sku,parentIdx){
   var idx=_rcvItems.findIndex(function(r){return r.sku===sku});
-  if(idx>-1){_rcvItems.splice(idx,1)}else{_rcvItems.push({sku:sku,qty:1})}
+  if(idx>-1){_rcvItems.splice(idx,1)}else{_rcvItems.push({sku:sku,qty:0})}
   renderRcvCount();
 }
 function rcvAddAllVars(parentIdx){
   var r=_rcvItems[parentIdx];if(!r)return;
   var vars=rcvGetVariants(r.sku);var added=0;
   vars.forEach(function(v){
-    if(!_rcvItems.some(function(x){return x.sku===v.sku})){_rcvItems.push({sku:v.sku,qty:1});added++}
+    if(!_rcvItems.some(function(x){return x.sku===v.sku})){_rcvItems.push({sku:v.sku,qty:0});added++}
   });
   if(added>0){_rcvVarOpen=-1;renderRcvCount()}
 }
@@ -5486,7 +5483,7 @@ function rcvVarAddChecked(itemIdx){
     var vi=parseInt(cb.getAttribute("data-vi"));
     var v=vars[vi];if(!v)return;
     var ex=_rcvItems.find(function(x){return x.sku===v.sku});
-    if(!ex){_rcvItems.push({sku:v.sku,qty:1});added++}
+    if(!ex){_rcvItems.push({sku:v.sku,qty:0});added++}
   });
   if(added){_rcvVarOpen=-1;renderRcvCount()}
   else alert("\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 \u0e2b\u0e23\u0e37\u0e2d\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e41\u0e25\u0e49\u0e27");
@@ -5739,7 +5736,7 @@ function rcvSearch(){
       matchedOIs[oi]=true;
       o.items.forEach(function(x){
         var it=imap[x.sku]||imap[gb(x.sku)];
-        _rcvSearchResults.push({sku:x.sku,name:it?it.name:"",img:gimg(x.sku),oi:oi,oid:o.name||o.id,odate:o.date,ostatus:o.status,checked:true});
+        _rcvSearchResults.push({sku:x.sku,name:it?it.name:"",img:gimg(x.sku),oi:oi,oid:o.name||o.id,odate:o.date,ostatus:o.status,checked:false});
       });
     });
     // Auto-pick PO on banner if exactly one tracking match
@@ -5778,7 +5775,7 @@ function rcvSearch(){
         matched=bl===q||bl.indexOf(q)>-1;
       }
       if(matched){
-        _rcvSearchResults.push({sku:x.sku,name:it?it.name:"",img:gimg(x.sku),oi:oi,oid:o.name||o.id,odate:o.date,ostatus:o.status,checked:true});
+        _rcvSearchResults.push({sku:x.sku,name:it?it.name:"",img:gimg(x.sku),oi:oi,oid:o.name||o.id,odate:o.date,ostatus:o.status,checked:false});
       }
     });
   });
@@ -6663,9 +6660,17 @@ function rcvRecountNP(npi){
   var p=NP[npi];if(!p)return;
   _chkOpen=null;
   var rcKey="NP_"+p.id;
-  delete RC[rcKey];sv();
+  // \u0e40\u0e01\u0e47\u0e1a RC entry \u0e44\u0e27\u0e49\u0e40\u0e1b\u0e47\u0e19 partial \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e43\u0e2b\u0e49\u0e41\u0e2a\u0e14\u0e07\u0e43\u0e19\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 "\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19" \u0e02\u0e2d\u0e07\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1
+  if(RC[rcKey]){
+    RC[rcKey].partial=true;
+    RC[rcKey]._lm=Date.now();
+    if(CUR_USER)RC[rcKey].recountBy=CUR_USER.name;
+  }else{
+    RC[rcKey]={items:[],date:new Date().toISOString().slice(0,10),by:CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a",partial:true};
+  }
+  sv();
   rcvMode="count";rrcv();
-  alert("\u0e25\u0e49\u0e32\u0e07\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e02\u0e2d\u0e07\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48");
+  alert("\u0e2a\u0e48\u0e07\u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e08\u0e30\u0e2d\u0e22\u0e39\u0e48\u0e43\u0e19 '\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19'");
 }
 
 function rcvGoTrack(oid,statusLabel){
@@ -6750,10 +6755,18 @@ function rcvNegotiate(idx){
 function rcvRecount(idx){
   var o=O[idx];if(!o)return;
   _chkOpen=null;
-  delete RC[o.id];sv();
+  // \u0e40\u0e01\u0e47\u0e1a RC entry \u0e44\u0e27\u0e49\u0e40\u0e1b\u0e47\u0e19 partial \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e43\u0e2b\u0e49\u0e41\u0e2a\u0e14\u0e07\u0e43\u0e19\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 "\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19" \u0e02\u0e2d\u0e07\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1
+  if(RC[o.id]){
+    RC[o.id].partial=true;
+    RC[o.id]._lm=Date.now();
+    if(CUR_USER)RC[o.id].recountBy=CUR_USER.name;
+  }else{
+    RC[o.id]={items:[],date:new Date().toISOString().slice(0,10),by:CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a",partial:true};
+  }
+  sv();
   _rcvItems=[];
   rcvMode="count";rrcv();
-  alert("\u0e25\u0e49\u0e32\u0e07\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e02\u0e2d\u0e07\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48");
+  alert("\u0e2a\u0e48\u0e07\u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e08\u0e30\u0e2d\u0e22\u0e39\u0e48\u0e43\u0e19 '\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19'");
 }
 
 // ===== STOCK-IN EXPORT =====
