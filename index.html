@@ -6674,10 +6674,38 @@ function rcvNegotiate(idx){
   _chkOpen=null;
   var rc=RC[o.id];
   var shorts=[];
-  o.items.forEach(function(x){
-    var cnt=0;if(rc)rc.items.forEach(function(r){if(r.sku===x.sku)cnt=r.qty});
-    var d=x.qty-cnt;if(d>0)shorts.push(x.sku+" ขาด "+d);
-  });
+  if(rc){
+    // 2-pass matching (consistent with renderRcvCheckNormal verify view)
+    var cntMap={};
+    o.items.forEach(function(x){cntMap[x.sku]=0});
+    var claimed={};
+    var unmatched=[];
+    // Pass 1: exact match
+    rc.items.forEach(function(r){
+      if(cntMap.hasOwnProperty(r.sku)&&!claimed[r.sku]){
+        cntMap[r.sku]+=r.qty;
+        claimed[r.sku]=true;
+      }else{
+        unmatched.push(r);
+      }
+    });
+    // Pass 2: fuzzy match to unclaimed PO slots
+    unmatched.forEach(function(r){
+      if(typeof _rcvSkuEq!=="function")return;
+      for(var i=0;i<o.items.length;i++){
+        var pk=o.items[i].sku;
+        if(!claimed[pk]&&_rcvSkuEq(pk,r.sku)){
+          cntMap[pk]+=r.qty;
+          claimed[pk]=true;
+          break;
+        }
+      }
+    });
+    o.items.forEach(function(x){
+      var d=x.qty-(cntMap[x.sku]||0);
+      if(d>0)shorts.push(x.sku+" ขาด "+d);
+    });
+  }
   o.status="partial";o._lm=Date.now();
   o.note=(o.note?o.note+" | ":"")+"ของขาด: "+shorts.join(", ");
   sv();cp();uk();ro();rt();rrcv();
