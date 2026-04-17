@@ -718,13 +718,24 @@ html,body{overflow-x:hidden!important}
 <div class="fg"><label>ชื่อแสดง</label><input type="text" id="umName" placeholder="เช่น พนักงาน 1"></div>
 <div class="fg"><label>รหัสผ่าน</label><div style="position:relative"><input type="password" id="umPass" placeholder="ตั้งรหัสผ่าน"><button onclick="_umTogglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px" id="umPassEye">&#128065;</button></div></div>
 <div class="fg"><label>บทบาท (Role)</label>
-<select id="umRole" onchange="_umRoleChange()">
+<select id="umRole" onchange="_umRoleChange(true)">
 <option value="admin">&#128081; แอดมิน — เข้าถึงทุกฟังก์ชัน</option>
 <option value="warehouse">&#128230; พนักงานคลัง</option>
 <option value="checker">&#128270; พนักงานตรวจสอบ</option>
 <option value="all">&#9989; ทุกสิทธิ์ (ไม่ใช่แอดมิน)</option>
 <option value="custom">&#9881; กำหนดเอง</option>
 </select></div>
+<div class="fg" id="umRcvWrap" style="display:none"><label>&#128230; สิทธิ์หน้ารับสินค้า <span style="color:var(--t2);font-weight:400;font-size:11px">(เลือกได้มากกว่า 1)</span></label>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+<label style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;cursor:pointer">
+<input type="checkbox" id="umRcvCount" onchange="_umToggleRcv('rcv_count',this.checked)" style="width:16px;height:16px;cursor:pointer">
+<div style="flex:1"><div style="font-weight:600;font-size:13px">&#128221; พนักงาน 1: นับของ</div><div style="font-size:11px;color:var(--t2)">นับสินค้าที่รับเข้าคลัง</div></div>
+</label>
+<label style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;cursor:pointer">
+<input type="checkbox" id="umRcvCheck" onchange="_umToggleRcv('rcv_check',this.checked)" style="width:16px;height:16px;cursor:pointer">
+<div style="flex:1"><div style="font-weight:600;font-size:13px">&#128270; พนักงาน 2: ตรวจสอบ</div><div style="font-size:11px;color:var(--t2)">ตรวจสอบและอนุมัติรับสินค้า</div></div>
+</label>
+</div></div>
 <div class="fg" id="umPermWrap" style="display:none"><label>สิทธิ์การใช้งาน</label><div class="perm-grid-m" id="umPerms"></div></div>
 </div>
 <div class="usr-modal-ft">
@@ -5506,11 +5517,10 @@ function _rcvUpdateBanner(){
       b.style.background="linear-gradient(135deg,rgba(234,179,8,.18),rgba(234,179,8,.05))";
       b.style.borderColor="rgba(234,179,8,.5)";
       b.style.display="block";
-      var resumeHtml="<div style='font-size:13px;color:#eab308;font-weight:700;margin-bottom:6px'>\u23F8 \u0e04\u0e38\u0e13\u0e21\u0e35\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e04\u0e49\u0e32\u0e07\u0e44\u0e27\u0e49 "+partials.length+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23:</div><div style='display:flex;flex-direction:column;gap:4px'>";
-      partials.slice(0,3).forEach(function(p){
+      var resumeHtml="<div style='font-size:13px;color:#eab308;font-weight:700;margin-bottom:6px'>\u23F8 \u0e04\u0e38\u0e13\u0e21\u0e35\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e04\u0e49\u0e32\u0e07\u0e44\u0e27\u0e49 "+partials.length+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23:</div><div style='display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;padding-right:4px'>";
+      partials.forEach(function(p){
         resumeHtml+="<div style='display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(0,0,0,.08);padding:6px 10px;border-radius:8px'><div style='flex:1;min-width:0;font-size:12px'><b>"+(p.o.name||p.o.id)+"</b> <span style='color:var(--t2)'>\u2022 "+p.skus+" SKU \u2022 "+p.qty+" \u0e0a\u0e34\u0e49\u0e19</span></div><button onclick='_rcvResumePartial("+p.idx+")' style='background:#eab308;color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>\u25B6 \u0e19\u0e31\u0e1a\u0e15\u0e48\u0e2d</button></div>";
       });
-      if(partials.length>3)resumeHtml+="<div style='font-size:11px;color:var(--t2);padding:4px 8px'>\u0e41\u0e25\u0e30\u0e2d\u0e35\u0e01 "+(partials.length-3)+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</div>";
       resumeHtml+="</div>";
       b.innerHTML=resumeHtml;
       return;
@@ -7245,14 +7255,21 @@ var _avColors=["#6366f1","#3b82f6","#8b5cf6","#ec4899","#f59e0b","#10b981","#ef4
 function _avColor(str){var h=0;for(var i=0;i<str.length;i++){h=str.charCodeAt(i)+((h<<5)-h)}return _avColors[Math.abs(h)%_avColors.length]}
 function _avInitial(name){return(name||"?").charAt(0).toUpperCase()}
 function _isEmoji(s){return s&&/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]/u.test(s)}
-// Detect role from permissions
+// Detect role from permissions (rcv_count/rcv_check are flexible — don't affect detection)
 function _detectRole(u){
   if(u.role==="admin")return"admin";
-  var p=(u.perms||[]).slice().sort().join(",");
-  var wh=PERM_TEMPLATES.warehouse.slice().sort().join(",");
-  var ch=PERM_TEMPLATES.checker.slice().sort().join(",");
-  var al=PERM_TEMPLATES.all.slice().sort().join(",");
-  if(p===al)return"all";if(p===wh)return"warehouse";if(p===ch)return"checker";return"custom";
+  function nonRcv(arr){var o={};(arr||[]).forEach(function(k){if(k!=="rcv_count"&&k!=="rcv_check")o[k]=1});return o}
+  function match(tpl){
+    var a=nonRcv(u.perms),b=nonRcv(PERM_TEMPLATES[tpl]);
+    var ak=Object.keys(a),bk=Object.keys(b);
+    if(ak.length!==bk.length)return false;
+    for(var i=0;i<bk.length;i++){if(!a[bk[i]])return false}
+    return true;
+  }
+  if(match("all"))return"all";
+  if(match("warehouse"))return"warehouse";
+  if(match("checker"))return"checker";
+  return"custom";
 }
 function _roleName(r){return{admin:"\u0e41\u0e2d\u0e14\u0e21\u0e34\u0e19",warehouse:"\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e04\u0e25\u0e31\u0e07",checker:"\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a",all:"\u0e17\u0e38\u0e01\u0e2a\u0e34\u0e17\u0e18\u0e34\u0e4c",custom:"\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e40\u0e2d\u0e07"}[r]||"\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49"}
 function _roleCls(r){return{admin:"admin",warehouse:"warehouse",checker:"checker",all:"user",custom:"user"}[r]||"user"}
@@ -7401,21 +7418,41 @@ function _umTogglePass(){
   var eye=document.getElementById("umPassEye");
   if(inp.type==="password"){inp.type="text";eye.textContent="\u2716"}else{inp.type="password";eye.textContent="\ud83d\udc41"}
 }
-function _umRoleChange(){
+function _umRoleChange(fromChange){
   var role=document.getElementById("umRole").value;
   var wrap=document.getElementById("umPermWrap");
-  if(role==="admin"){wrap.style.display="none";return}
-  if(role!=="custom"){
-    _umPerms=(PERM_TEMPLATES[role]||[]).slice();
-    wrap.style.display="none";
-  }else{
+  var rcvWrap=document.getElementById("umRcvWrap");
+  if(role==="admin"){wrap.style.display="none";rcvWrap.style.display="none";return}
+  if(role==="custom"){
     wrap.style.display="block";
+    rcvWrap.style.display="block";
+  }else if(role==="all"){
+    if(fromChange)_umPerms=(PERM_TEMPLATES.all||[]).slice();
+    wrap.style.display="none";
+    rcvWrap.style.display="block";
+  }else{
+    // warehouse / checker — อนุญาตให้ toggle rcv_count/rcv_check เพิ่มเติมได้
+    if(fromChange)_umPerms=(PERM_TEMPLATES[role]||[]).slice();
+    wrap.style.display="none";
+    rcvWrap.style.display="block";
   }
+  _umRenderRcvChecks();
   _umRenderPerms();
+}
+function _umRenderRcvChecks(){
+  var c=document.getElementById("umRcvCount"),k=document.getElementById("umRcvCheck");
+  if(c)c.checked=_umPerms.indexOf("rcv_count")>=0;
+  if(k)k.checked=_umPerms.indexOf("rcv_check")>=0;
+}
+function _umToggleRcv(key,on){
+  var idx=_umPerms.indexOf(key);
+  if(on&&idx<0)_umPerms.push(key);
+  else if(!on&&idx>=0)_umPerms.splice(idx,1);
 }
 function _umRenderPerms(){
   var h="";
   PERMS_LIST.forEach(function(p){
+    if(p.key==="rcv_count"||p.key==="rcv_check")return; // controlled by checkboxes in umRcvWrap
     var on=_umPerms.indexOf(p.key)>=0;
     h+="<span class='perm-chip"+(on?" on":"")+"' onclick='_umTogglePerm(\""+p.key+"\",this)'>"+p.label+"</span>";
   });
@@ -7459,10 +7496,10 @@ function saveUserModal(){
   var dup=USERS.find(function(x,xi){return x.id.toLowerCase()===uid&&(isNew||xi!==_umIdx)});
   if(dup){alert("\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e19\u0e35\u0e49\u0e21\u0e35\u0e41\u0e25\u0e49\u0e27");return}
   // Determine perms based on role
+  // สำหรับ warehouse/checker/all/custom → _umPerms ถูกตั้งไว้แล้ว (template + rcv overrides ของ user)
   var perms;
   if(role==="admin"){perms=PERMS_LIST.map(function(p){return p.key})}
-  else if(role==="custom"){perms=_umPerms.slice()}
-  else{perms=(PERM_TEMPLATES[role]||[]).slice()}
+  else{perms=_umPerms.slice()}
   var realRole=role==="admin"?"admin":"user";
   if(isNew){
     USERS.push({id:uid,name:uname,pass:upass,role:realRole,perms:perms,avatar:_umAvatar});
