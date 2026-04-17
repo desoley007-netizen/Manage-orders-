@@ -584,6 +584,28 @@ table:has(#ltb){display:block!important;width:100%!important}
 html,body{overflow-x:hidden!important}
 .mn{overflow-x:hidden}
 }
+/* Compact check rows (new UX) — outside media query so it applies on all widths */
+.chk-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--c1);border:1px solid var(--bd);border-left:3px solid var(--bd);border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:6px}
+.chk-row:hover{background:var(--c2);border-color:var(--a);transform:translateX(2px)}
+.chk-row.ok{border-left-color:var(--g)}
+.chk-row.bad{border-left-color:var(--r)}
+.chk-row.warn{border-left-color:var(--y)}
+.chk-row-img{width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.chk-row-nm{flex:1;min-width:0;font-size:13px;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.chk-row-meta{font-size:11px;color:var(--t2);white-space:nowrap}
+.chk-row-stat{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;white-space:nowrap}
+.chk-row .s-ok{background:rgba(34,197,94,.15);color:var(--g)}
+.chk-row .s-bad{background:rgba(239,68,68,.15);color:var(--r)}
+.chk-row .s-warn{background:rgba(234,179,8,.15);color:#ca8a04}
+.chk-row-c{font-size:12px;color:var(--t2);flex-shrink:0}
+.chk-row:hover .chk-row-c{color:var(--a)}
+.chk-pill{padding:6px 11px;background:var(--c2);border:1px solid var(--bd);border-radius:18px;font-size:11px;cursor:pointer;color:var(--t2);transition:.15s;white-space:nowrap;user-select:none}
+.chk-pill:hover{background:var(--bd);color:var(--t)}
+.chk-pill.act{background:var(--a);color:#fff;border-color:var(--a)}
+.chk-pill.act.ok{background:var(--g);border-color:var(--g)}
+.chk-pill.act.bad{background:var(--r);border-color:var(--r)}
+.chk-pill b{margin-left:4px}
+@media(max-width:640px){.chk-row-meta{display:none}}
 .grp{background:var(--glass);cursor:pointer;transition:.15s}
 .grp:hover{background:var(--glow)}
 .grp td{border-bottom:2px solid var(--a) !important;padding:11px 14px}
@@ -923,9 +945,34 @@ html,body{overflow-x:hidden!important}
 <div style="font-size:15px;font-weight:700">&#128270; ตรวจสอบ: สั่ง vs นับ</div>
 <div style="font-size:12px;color:var(--t2)">รายการทั้งหมดที่พนักงาน 1 นับแล้ว — กดเพื่อตรวจสอบ</div>
 </div>
+<!-- Filter bar -->
+<div id="chkFilterBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;padding:10px;background:var(--c1);border:1px solid var(--bd);border-radius:10px">
+<div style="flex:1;min-width:180px;position:relative">
+<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--t2)">&#128269;</span>
+<input id="chkSearch" type="text" placeholder="ค้นหา SKU / ชื่อสินค้า..." oninput="renderRcvCheck()" style="width:100%;padding:8px 10px 8px 32px;background:var(--c2);border:1px solid var(--bd);border-radius:8px;color:var(--t);font-size:13px">
+</div>
+<div id="chkPills" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+</div>
 <div id="rcvCheckList" style="margin-top:12px"></div>
-<div id="rcvCompare" style="margin-top:12px;display:none"></div>
-<div id="rcvVerifyActions" style="margin-top:12px;display:none"></div>
+<!-- Modal overlay (compare + actions moved inside) -->
+<div id="rcvCheckModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9990;align-items:center;justify-content:center;padding:12px" onclick="if(event.target===this)chkClose()">
+<div style="background:var(--bg);border:1px solid var(--bd);border-radius:14px;width:100%;max-width:900px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--c1);border-bottom:1px solid var(--bd);flex-shrink:0">
+<span id="chkPos" style="font-size:11px;color:var(--t2);background:var(--c2);padding:4px 10px;border-radius:10px;white-space:nowrap">1/1</span>
+<div id="chkTitle" style="flex:1;font-size:14px;font-weight:700;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+<button onclick="chkClose()" style="background:none;border:none;color:var(--t2);font-size:22px;cursor:pointer;padding:4px 10px;border-radius:6px" title="ปิด (Esc)">&#10005;</button>
+</div>
+<div style="padding:14px 16px;overflow-y:auto;flex:1">
+<div id="rcvCompare"></div>
+<div id="rcvVerifyActions" style="margin-top:12px"></div>
+</div>
+<div style="display:flex;gap:8px;padding:12px 16px;background:var(--c1);border-top:1px solid var(--bd);flex-shrink:0">
+<button onclick="chkPrev()" style="background:var(--c2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;color:var(--t);font-size:13px;font-weight:600;cursor:pointer" title="ก่อนหน้า (←)">&#9664;</button>
+<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t2)">&#9000; ← → ข้ามออเดอร์ | Esc ปิด</div>
+<button onclick="chkNext()" style="background:var(--a);border:none;border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;font-weight:600;cursor:pointer" title="ถัดไป (→)">&#9654;</button>
+</div>
+</div>
+</div>
 </div>
 
 <!-- Export Stock-In Panel -->
@@ -4329,34 +4376,76 @@ function pvOrd(){
     document.getElementById("oipv").innerHTML="<div style=\"background:rgba(239,68,68,.1);border:1px solid var(--r);padding:12px;border-radius:8px;color:var(--r);font-size:13px\">&#10060; ไม่พบข้อมูลที่ถูกต้อง<br><span style=\"color:var(--t2);font-size:12px\">ตรวจสอบว่า Col E (เลขสั่ง) ไม่ว่าง และใช้ TAB คั่นคอลัมน์</span></div>";
     return;
   }
+  // Preserve previous _forceNew flags if re-previewing (user toggled)
+  var prevForce={};
+  if(window._pendOrd&&window._pendOrd.orders){
+    Object.keys(window._pendOrd.orders).forEach(function(k){
+      if(window._pendOrd.orders[k]._forceNew)prevForce[k]=true;
+    });
+  }
   // Check duplicates against existing O[]
   var addN=0,updN=0;
   orderList.forEach(function(k){
     var o=orders[k];
     var ex=O.find(function(e){return String(e.id)===String(o.id)});
     o._dup=!!ex;
-    if(ex)updN++;else addN++;
+    o._ex=ex||null; // keep ref to existing for preview
+    o._forceNew=!!prevForce[k];
+    if(ex&&!o._forceNew)updN++;else addN++;
   });
   // Show preview
   var h="<div style=\"display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap\">"+
-    "<div style=\"flex:1;min-width:100px;background:rgba(16,185,129,.12);border:1px solid var(--g);padding:8px 12px;border-radius:8px;text-align:center\"><div style=\"font-size:11px;color:var(--t2)\">เพิ่มใหม่</div><div style=\"font-size:20px;font-weight:700;color:var(--g)\">"+addN+"</div></div>"+
-    "<div style=\"flex:1;min-width:100px;background:rgba(99,102,241,.12);border:1px solid var(--a);padding:8px 12px;border-radius:8px;text-align:center\"><div style=\"font-size:11px;color:var(--t2)\">อัพเดท</div><div style=\"font-size:20px;font-weight:700;color:var(--a)\">"+updN+"</div></div>"+
+    "<div style=\"flex:1;min-width:100px;background:rgba(16,185,129,.12);border:1px solid var(--g);padding:8px 12px;border-radius:8px;text-align:center\"><div style=\"font-size:11px;color:var(--t2)\">เพิ่มใหม่</div><div id=\"impCntAdd\" style=\"font-size:20px;font-weight:700;color:var(--g)\">"+addN+"</div></div>"+
+    "<div style=\"flex:1;min-width:100px;background:rgba(99,102,241,.12);border:1px solid var(--a);padding:8px 12px;border-radius:8px;text-align:center\"><div style=\"font-size:11px;color:var(--t2)\">อัพเดท</div><div id=\"impCntUpd\" style=\"font-size:20px;font-weight:700;color:var(--a)\">"+updN+"</div></div>"+
     "<div style=\"flex:1;min-width:100px;background:var(--bg);border:1px solid var(--bd);padding:8px 12px;border-radius:8px;text-align:center\"><div style=\"font-size:11px;color:var(--t2)\">ทั้งหมด</div><div style=\"font-size:20px;font-weight:700\">"+orderList.length+"</div></div>"+
     "</div>";
-  h+="<div style=\"max-height:300px;overflow-y:auto\">";
+  h+="<div style=\"max-height:340px;overflow-y:auto\">";
   orderList.forEach(function(k,i){
     var o=orders[k];
-    var badge=o._dup?"<span style=\"background:rgba(99,102,241,.15);color:var(--a);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700\">&#8635; อัพเดท</span>":"<span style=\"background:rgba(16,185,129,.15);color:var(--g);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700\">+ ใหม่</span>";
+    var isUpd=o._dup&&!o._forceNew;
+    var badge=isUpd?"<span style=\"background:rgba(99,102,241,.15);color:var(--a);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700\">&#8635; อัพเดท</span>":"<span style=\"background:rgba(16,185,129,.15);color:var(--g);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700\">+ ใหม่</span>";
     h+="<div class=\"oc\" style=\"padding:10px\"><div class=\"och\"><div><strong style=\"font-size:12px;color:var(--t2)\">#"+o.id+"</strong>"+(o.link1688&&o.link1688.indexOf("http")===0?" <span style=\"color:var(--a)\">&#128279;</span>":"")+"</div>"+badge+"</div>";
     h+="<div style=\"font-size:12px;color:var(--t2);margin-top:2px\">"+o.date+" &middot; <span style=\"color:var(--g);font-weight:600\">¥"+o.amount.toFixed(2)+"</span>"+(o.name?" &middot; "+(o.name.length>40?o.name.slice(0,40)+"…":o.name):"")+"</div>";
     h+="<div style=\"display:flex;gap:4px;flex-wrap:wrap;margin-top:4px\">";
     o.items.forEach(function(x){h+="<span style=\"background:var(--bg);padding:2px 8px;border-radius:4px;font-size:11px\">"+x.sku+"</span>"});
-    h+="</div></div>";
+    h+="</div>";
+    // Show existing order info if duplicate — helps user verify
+    if(o._dup&&o._ex){
+      var ex=o._ex;
+      var stLabel={pending:"รอจัดส่ง",shipped:"จัดส่งแล้ว",arrived_th:"ถึงไทย",partial:"นับบางส่วน",done:"เสร็จ",cancelled:"ยกเลิก"}[ex.status]||ex.status;
+      var exSkus=(ex.items||[]).map(function(x){return x.sku}).slice(0,5).join(", ");
+      if((ex.items||[]).length>5)exSkus+=" +"+((ex.items.length)-5);
+      h+="<div style=\"margin-top:8px;padding:8px 10px;background:rgba(99,102,241,.06);border-left:3px solid var(--a);border-radius:6px;font-size:11px\">";
+      h+="<div style=\"color:var(--a);font-weight:700;margin-bottom:3px\">&#128269; ข้อมูลเดิมในระบบ:</div>";
+      h+="<div style=\"color:var(--t2)\">วันที่: <b style=\"color:var(--t)\">"+(ex.date||"-")+"</b> &middot; สถานะ: <b style=\"color:var(--t)\">"+stLabel+"</b> &middot; ยอด: <b style=\"color:var(--g)\">"+(ex.currency==="CNY"?"¥":"฿")+((ex.amount||0).toFixed(2))+"</b></div>";
+      if(exSkus)h+="<div style=\"color:var(--t2);margin-top:2px\">SKU: "+exSkus+"</div>";
+      // Toggle: force as new (rare edge case)
+      h+="<div style=\"margin-top:6px;display:flex;gap:6px;align-items:center\">";
+      if(o._forceNew){
+        h+="<button onclick=\"_impToggleForceNew("+i+")\" style=\"background:var(--g);color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700\">&#10003; สร้างใหม่แทน (กดอีกครั้งเพื่อยกเลิก)</button>";
+      }else{
+        h+="<button onclick=\"_impToggleForceNew("+i+")\" style=\"background:var(--c2);color:var(--t2);border:1px solid var(--bd);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer\">&#8594; ฝืนสร้างเป็นออเดอร์ใหม่</button>";
+      }
+      h+="</div>";
+      h+="</div>";
+    }
+    h+="</div>";
   });
   h+="</div>";
-  h+="<button class=\"btn bg\" onclick=\"doOrdImp()\" style=\"width:100%;margin-top:12px\">&#128190; นำเข้าทั้งหมด (เพิ่ม "+addN+" / อัพเดท "+updN+")</button>";
+  h+="<button id=\"impGoBtn\" class=\"btn bg\" onclick=\"doOrdImp()\" style=\"width:100%;margin-top:12px\">&#128190; นำเข้าทั้งหมด (เพิ่ม "+addN+" / อัพเดท "+updN+")</button>";
   document.getElementById("oipv").innerHTML=h;
   window._pendOrd={orders:orders,list:orderList};
+}
+
+// Toggle "force new" on a duplicate order in the import preview
+function _impToggleForceNew(idx){
+  if(!window._pendOrd)return;
+  var k=window._pendOrd.list[idx];
+  if(!k)return;
+  var o=window._pendOrd.orders[k];
+  if(!o||!o._dup)return;
+  o._forceNew=!o._forceNew;
+  pvOrd();
 }
 
 function doOrdImp(){
@@ -4365,6 +4454,13 @@ function doOrdImp(){
   d.list.forEach(function(k){
     var o=d.orders[k];
     var exIdx=O.findIndex(function(e){return String(e.id)===String(o.id)});
+    // If user forced as new, give it a unique suffix so it doesn't collide
+    if(exIdx>=0&&o._forceNew){
+      var sfx=2;
+      while(O.findIndex(function(e){return String(e.id)===String(o.id)+"-"+sfx})>=0)sfx++;
+      o.id=o.id+"-"+sfx;
+      exIdx=-1;
+    }
     if(exIdx>=0){
       // UPDATE: merge - เก็บ status/tracking/note/qty เดิม
       var ex=O[exIdx];
@@ -5551,7 +5647,8 @@ function _rcvUpdateBanner(){
       b.style.display="block";
       var resumeHtml="<div style='font-size:13px;color:#eab308;font-weight:700;margin-bottom:6px'>\u23F8 \u0e04\u0e38\u0e13\u0e21\u0e35\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e04\u0e49\u0e32\u0e07\u0e44\u0e27\u0e49 "+partials.length+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23:</div><div style='display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;padding-right:4px'>";
       partials.forEach(function(p){
-        resumeHtml+="<div style='display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(0,0,0,.08);padding:6px 10px;border-radius:8px'><div style='flex:1;min-width:0;font-size:12px'><b>"+(p.o.name||p.o.id)+"</b> <span style='color:var(--t2)'>\u2022 "+p.skus+" SKU \u2022 "+p.qty+" \u0e0a\u0e34\u0e49\u0e19</span></div><button onclick='_rcvResumePartial("+p.idx+")' style='background:#eab308;color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>\u25B6 \u0e19\u0e31\u0e1a\u0e15\u0e48\u0e2d</button></div>";
+        var reasonHtml=p.reason?"<div style='margin-top:4px;padding:6px 8px;background:rgba(239,68,68,.1);border-left:3px solid var(--r);border-radius:4px;font-size:11px;color:var(--r);font-weight:600'>&#8617;&#65039; \u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 2 \u0e15\u0e35\u0e01\u0e25\u0e31\u0e1a: "+p.reason.replace(/</g,"&lt;")+(p.recountBy?" <span style=\"opacity:.7;font-weight:400\">(\u0e42\u0e14\u0e22 "+p.recountBy+")</span>":"")+"</div>":"";
+        resumeHtml+="<div style='background:rgba(0,0,0,.08);padding:8px 10px;border-radius:8px'><div style='display:flex;justify-content:space-between;align-items:center;gap:8px'><div style='flex:1;min-width:0;font-size:12px'><b>"+(p.o.name||p.o.id)+"</b> <span style='color:var(--t2)'>\u2022 "+p.skus+" SKU \u2022 "+p.qty+" \u0e0a\u0e34\u0e49\u0e19</span></div><button onclick='_rcvResumePartial("+p.idx+")' style='background:#eab308;color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>\u25B6 \u0e19\u0e31\u0e1a\u0e15\u0e48\u0e2d</button></div>"+reasonHtml+"</div>";
       });
       resumeHtml+="</div>";
       b.innerHTML=resumeHtml;
@@ -6050,18 +6147,55 @@ function rcvRenderSug(){
   h+="<div style='font-size:12px;color:var(--t2)'>&#128204; พบ <b>"+rs.length+"</b> รายการ — ติ๊กเลือก แล้วกดเพิ่ม</div>";
   h+="<label style='font-size:12px;color:var(--p);cursor:pointer;white-space:nowrap'><input type='checkbox' "+(checkedN===rs.length?"checked":"")+" onchange='rcvToggleAll(this.checked)' style='margin-right:4px;width:16px;height:16px;accent-color:var(--p)'>เลือกทั้งหมด</label></div>";
   // Group by order
-  var groups={};
-  rs.forEach(function(r,i){if(!groups[r.oi])groups[r.oi]={oid:r.oid,odate:r.odate,ostatus:r.ostatus,items:[]};groups[r.oi].items.push({r:r,i:i})});
+  var groupsMap={},groupsArr=[];
+  rs.forEach(function(r,i){
+    if(!groupsMap[r.oi]){
+      groupsMap[r.oi]={oi:r.oi,oid:r.oid,odate:r.odate,ostatus:r.ostatus,items:[]};
+      groupsArr.push(groupsMap[r.oi]);
+    }
+    groupsMap[r.oi].items.push({r:r,i:i});
+  });
+  // Priority sort: arrived_th > shipped > pending; within each status, oldest date first
+  var _stPri={arrived_th:0,partial:1,shipped:2,pending:3};
+  groupsArr.sort(function(a,b){
+    var pa=_stPri[a.ostatus];if(pa===undefined)pa=9;
+    var pb=_stPri[b.ostatus];if(pb===undefined)pb=9;
+    if(pa!==pb)return pa-pb;
+    return (a.odate||"").localeCompare(b.odate||""); // oldest first
+  });
   var totalShown=0;var hitLimit=false;
-  Object.keys(groups).forEach(function(oi){
+  var multi=groupsArr.length>1;
+  groupsArr.forEach(function(g,gIdx){
     if(hitLimit)return;
-    var g=groups[oi];
     var stl=STS[g.ostatus];
-    h+="<div style='background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;margin-bottom:8px'>";
+    var isArrived=g.ostatus==="arrived_th";
+    var isShipped=g.ostatus==="shipped";
+    var isPending=g.ostatus==="pending";
+    // First group with status arrived_th = top priority
+    var isTop=gIdx===0&&multi&&isArrived;
+    // Dim orders not yet arrived when multiple groups present
+    var dim=multi&&!isArrived;
+    var boxStyle="background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;margin-bottom:8px;transition:.15s";
+    if(isTop)boxStyle="background:linear-gradient(135deg,rgba(34,197,94,.08),var(--c1));border:2px solid var(--g);border-radius:10px;padding:10px 14px;margin-bottom:8px;box-shadow:0 0 0 3px rgba(34,197,94,.1)";
+    else if(dim)boxStyle+=";opacity:.55;filter:grayscale(.3)";
+    h+="<div style='"+boxStyle+"'>";
+    // Priority badge (only when there are multiple groups AND this is top arrived)
+    if(isTop){
+      h+="<div style='display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:4px 10px;background:var(--g);color:#fff;border-radius:6px;font-size:12px;font-weight:700;width:fit-content'>&#127942; ควรนับอันนี้ก่อน &mdash; ของถึงไทยแล้ว</div>";
+    }
     h+="<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap'>";
     h+="<span style='font-size:13px;font-weight:700;color:var(--p)'>"+g.oid+"</span>";
     h+="<span style='font-size:11px;color:var(--t2)'>"+g.odate+"</span>";
-    if(stl)h+="<span style='font-size:10px;padding:2px 8px;border-radius:99px;background:var(--c2);color:var(--t2)'>"+stl.i+" "+stl.l+"</span>";
+    if(stl){
+      var stBg=isArrived?"background:rgba(34,197,94,.15);color:var(--g);font-weight:700":isShipped?"background:rgba(234,179,8,.15);color:#ca8a04;font-weight:600":"background:var(--c2);color:var(--t2)";
+      h+="<span style='font-size:10px;padding:2px 8px;border-radius:99px;"+stBg+"'>"+stl.i+" "+stl.l+"</span>";
+    }
+    // Warning label for not-yet-arrived orders when alternative exists
+    if(dim&&isShipped){
+      h+="<span style='font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(234,179,8,.12);color:#b45309;font-weight:600'>&#128666; ยังไม่ถึงไทย</span>";
+    }else if(dim&&isPending){
+      h+="<span style='font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(148,163,184,.15);color:var(--t2);font-weight:600'>&#9203; ยังไม่ออกจากจีน</span>";
+    }
     h+="</div>";
     g.items.forEach(function(gi){
       if(hitLimit)return;
@@ -6127,6 +6261,31 @@ function _rcvSkuEq(a,b){
   }
   return false;
 }
+// Match score for a specific order vs counted items (0-100).
+// Used by worker 2 review screen to detect wrong-order selections.
+function _rcvScoreFor(o,items){
+  if(!o||!o.items||!items||!items.length)return {score:0,skuHit:0,skuMiss:o&&o.items?o.items.length:0,extra:items?items.length:0,qtyOrd:0,qtyCnt:0};
+  var skuHit=0,claimed={};
+  o.items.forEach(function(it){
+    var hit=items.some(function(r){
+      if(claimed[r.sku])return false;
+      if(_rcvSkuEq(it.sku,r.sku)){claimed[r.sku]=true;return true}
+      return false;
+    });
+    if(hit)skuHit++;
+  });
+  var extra=items.length-Object.keys(claimed).length;
+  var skuMiss=o.items.length-skuHit;
+  var qtyOrd=o.items.reduce(function(s,x){return s+(x.qty||0)},0);
+  var qtyCnt=items.reduce(function(s,x){return s+(x.qty||0)},0);
+  var cov=o.items.length?(skuHit/o.items.length)*100:0;
+  var qd=qtyOrd?Math.min(100,Math.abs(qtyCnt-qtyOrd)/qtyOrd*100):100;
+  var qs=100-qd;
+  var extraPen=items.length?(extra/items.length)*30:0;
+  var score=Math.max(0,Math.round(cov*0.7+qs*0.3-extraPen));
+  return {score:score,skuHit:skuHit,skuMiss:skuMiss,extra:extra,qtyOrd:qtyOrd,qtyCnt:qtyCnt};
+}
+
 // Score each PO by how many counted SKUs match (exact / parent-variant).
 // Returns sorted array of {idx, o, matched, total, pct, coverCounted, score}
 function _rcvFindMatchingPOs(items){
@@ -6245,7 +6404,7 @@ function _rcvDoSave(idx,opts){
     try{_chkOpen="N_"+idx}catch(e){}
     rrcv();
     setTimeout(function(){
-      var el=document.querySelector("#rcvCheckList .oc");
+      var el=document.querySelector("#rcvCheckList .chk-row,#rcvCheckList .oc");
       if(el&&el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"center"});
     },150);
   }
@@ -6318,7 +6477,7 @@ function _rcvListPartials(){
     if(!RC[o.id]||!RC[o.id].partial)return;
     if(o.status==="received"||o.status==="verified"||o.status==="cancelled")return;
     var rc=RC[o.id];
-    out.push({idx:idx,o:o,rc:rc,qty:rc.items.reduce(function(s,x){return s+x.qty},0),skus:rc.items.length});
+    out.push({idx:idx,o:o,rc:rc,qty:rc.items.reduce(function(s,x){return s+x.qty},0),skus:rc.items.length,reason:rc.recountReason||"",recountBy:rc.recountBy||""});
   });
   return out;
 }
@@ -6348,11 +6507,16 @@ function rcvSave(){
   _rcvPickPO(_rcvItems,"multi");
 }
 
-var _chkOpen=null; // track which card is expanded: "N_3" or "NP_2"
+var _chkOpen=null; // track which card is open: "N_3" or "NP_2"
+var _chkFilter="all"; // "all" | "bad" | "ok"
+var _chkNavList=[]; // flat ordered array of keys for prev/next inside modal
+function _chkSetFilter(f){_chkFilter=f;renderRcvCheck()}
 function renderRcvCheck(){
   var listEl=document.getElementById("rcvCheckList");
-  var detEl=document.getElementById("rcvCompare");
-  var actEl=document.getElementById("rcvVerifyActions");
+  if(!listEl)return;
+  var pillsEl=document.getElementById("chkPills");
+  var searchEl=document.getElementById("chkSearch");
+  var q=searchEl?searchEl.value.trim().toLowerCase():"";
   // Collect normal orders with counts
   var normals=[];
   O.forEach(function(o,i){
@@ -6361,7 +6525,7 @@ function renderRcvCheck(){
     var rc=RC[o.id];
     var tq=o.items.reduce(function(s,x){return s+x.qty},0);
     var cq=rc.items.reduce(function(s,x){return s+x.qty},0);
-    normals.push({idx:i,o:o,rc:rc,totalOrd:tq,totalCnt:cq,skus:o.items.length});
+    normals.push({idx:i,o:o,rc:rc,totalOrd:tq,totalCnt:cq,skus:o.items.length,match:tq===cq});
   });
   // Collect NP with counts
   var nps=[];
@@ -6370,67 +6534,166 @@ function renderRcvCheck(){
     if(!RC[rcKey])return;
     var rc=RC[rcKey];
     var cq=rc.items.reduce(function(s,x){return s+x.qty},0);
-    nps.push({idx:i,p:p,rc:rc,totalOrd:p.qty||0,totalCnt:cq});
+    var tq=p.qty||0;
+    nps.push({idx:i,p:p,rc:rc,totalOrd:tq,totalCnt:cq,match:tq===cq,verified:!!p._verified,shortage:p.status==="shortage"});
   });
-  if(normals.length===0&&nps.length===0){
-    listEl.innerHTML="<div class='emp'><div style='font-size:36px;margin-bottom:8px'>&#9203;</div>\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1 \u0e19\u0e31\u0e1a\u0e41\u0e25\u0e49\u0e27</div>";
-    detEl.style.display="none";actEl.style.display="none";return;
+  // Counts for pills (pre-filter, so pills always show totals)
+  var totalN=normals.length+nps.length;
+  var okN=normals.filter(function(n){return n.match}).length+nps.filter(function(n){return n.match&&!n.shortage}).length;
+  var badN=totalN-okN;
+  // Render pills
+  if(pillsEl){
+    var ph="";
+    ph+="<span class='chk-pill"+(_chkFilter==="all"?" act":"")+"' onclick='_chkSetFilter(\"all\")'>\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14<b>"+totalN+"</b></span>";
+    ph+="<span class='chk-pill"+(_chkFilter==="bad"?" act bad":"")+"' onclick='_chkSetFilter(\"bad\")'>\u26A0 \u0e44\u0e21\u0e48\u0e15\u0e23\u0e07<b>"+badN+"</b></span>";
+    ph+="<span class='chk-pill"+(_chkFilter==="ok"?" act ok":"")+"' onclick='_chkSetFilter(\"ok\")'>\u2705 \u0e04\u0e23\u0e1a<b>"+okN+"</b></span>";
+    pillsEl.innerHTML=ph;
   }
+  // Apply filter + search
+  function matchFilter(m,isShortage){
+    if(_chkFilter==="all")return true;
+    if(_chkFilter==="ok")return m&&!isShortage;
+    if(_chkFilter==="bad")return !m||isShortage;
+    return true;
+  }
+  function matchSearch(text){
+    if(!q)return true;
+    return (text||"").toLowerCase().indexOf(q)>-1;
+  }
+  var fNormals=normals.filter(function(n){
+    if(!matchFilter(n.match,false))return false;
+    var hay=(n.o.name||"")+" "+(n.o.id||"")+" "+n.o.items.map(function(x){return x.sku}).join(" ");
+    return matchSearch(hay);
+  });
+  var fNps=nps.filter(function(n){
+    if(!matchFilter(n.match,n.shortage))return false;
+    var hay=(n.p.name||"")+" "+(n.p.id||"")+" "+n.rc.items.map(function(x){return x.sku}).join(" ");
+    return matchSearch(hay);
+  });
+  if(totalN===0){
+    listEl.innerHTML="<div class='emp'><div style='font-size:36px;margin-bottom:8px'>&#9203;</div>\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e17\u0e35\u0e48\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1 \u0e19\u0e31\u0e1a\u0e41\u0e25\u0e49\u0e27</div>";
+    _chkNavList=[];
+    return;
+  }
+  if(fNormals.length===0&&fNps.length===0){
+    listEl.innerHTML="<div class='emp' style='padding:20px'><div style='font-size:28px;margin-bottom:6px'>&#128269;</div>\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e15\u0e32\u0e21\u0e40\u0e07\u0e37\u0e48\u0e2d\u0e19\u0e44\u0e02</div>";
+    _chkNavList=[];
+    return;
+  }
+  // Build nav list in render order (normals first, then NP)
+  _chkNavList=[];
   var h="";
-  // --- Normal Orders Section ---
-  if(normals.length>0){
-    h+="<div style='font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px'>&#128230; \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e1b\u0e01\u0e15\u0e34 \u0e23\u0e2d\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a <span style='background:var(--a);color:#fff;border-radius:10px;padding:2px 10px;font-size:11px'>"+normals.length+"</span></div>";
-    normals.forEach(function(n){
-      var match=n.totalOrd===n.totalCnt;
-      var isOpen=_chkOpen==="N_"+n.idx;
-      h+="<div class='oc' onclick='chkOpen(\"N_"+n.idx+"\")' style='cursor:pointer;margin-bottom:8px;border-left:3px solid "+(match?"var(--g)":"var(--r)")+";transition:all .2s"+(isOpen?";border-color:var(--a);box-shadow:0 0 0 2px var(--glow)":"")+"'>";
-      h+="<div style='display:flex;justify-content:space-between;align-items:center'>";
-      h+="<div><div style='font-weight:700;font-size:14px'>"+(n.o.name||n.o.id)+"</div>";
-      h+="<div style='font-size:11px;color:var(--t2)'>"+n.o.date+" | "+n.skus+" SKU | \u0e2a\u0e31\u0e48\u0e07 "+n.totalOrd+" \u0e0a\u0e34\u0e49\u0e19 | \u0e19\u0e31\u0e1a\u0e44\u0e14\u0e49 "+n.totalCnt+" \u0e0a\u0e34\u0e49\u0e19 | \u0e42\u0e14\u0e22 "+n.rc.by+"</div></div>";
-      h+="<div style='display:flex;align-items:center;gap:8px'>"+(match?"<span style='color:var(--g);font-size:13px;font-weight:600'>&#9989; \u0e04\u0e23\u0e1a</span>":"<span style='color:var(--r);font-size:13px;font-weight:600'>&#9888; \u0e44\u0e21\u0e48\u0e15\u0e23\u0e07</span>")+"<span style='color:var(--t2);font-size:18px'>"+(isOpen?"\u25B2":"\u25BC")+"</span></div>";
-      h+="</div></div>";
+  if(fNormals.length>0){
+    h+="<div style='font-size:13px;font-weight:700;margin:6px 0 8px;display:flex;align-items:center;gap:6px;color:var(--t2)'>&#128230; \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e1b\u0e01\u0e15\u0e34 \u0e23\u0e2d\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a <span style='background:var(--a);color:#fff;border-radius:10px;padding:1px 8px;font-size:10px'>"+fNormals.length+"</span></div>";
+    fNormals.forEach(function(n){
+      var key="N_"+n.idx;
+      _chkNavList.push(key);
+      var cls=n.match?"ok":"bad";
+      var statusTxt=n.match?"<span class='chk-row-stat s-ok'>&#9989; \u0e04\u0e23\u0e1a</span>":"<span class='chk-row-stat s-bad'>&#9888; \u0e44\u0e21\u0e48\u0e15\u0e23\u0e07</span>";
+      h+="<div class='chk-row "+cls+"' onclick='chkOpen(\""+key+"\")'>";
+      h+="<div class='chk-row-nm'>"+(n.o.name||n.o.id)+"</div>";
+      h+=statusTxt;
+      h+="<span class='chk-row-meta'>"+(n.o.date||"")+" \u00B7 "+n.skus+" SKU \u00B7 "+n.totalOrd+"/"+n.totalCnt+"</span>";
+      h+="<span class='chk-row-c'>&#9654;</span>";
+      h+="</div>";
     });
   }
-  // --- NP Section ---
-  if(nps.length>0){
-    h+="<div style='font-size:14px;font-weight:700;margin:16px 0 10px;display:flex;align-items:center;gap:6px'>&#127381; \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48 1688 \u0e23\u0e2d\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a <span style='background:var(--y);color:#000;border-radius:10px;padding:2px 10px;font-size:11px'>"+nps.length+"</span></div>";
-    nps.forEach(function(n){
-      var p=n.p;
-      var verified=p._verified;
-      var shortage=p.status==="shortage";
-      var borderC=shortage?"var(--r)":verified?"var(--g)":"var(--y)";
-      var statusTxt=shortage?"&#9888;&#65039; \u0e02\u0e2d\u0e07\u0e02\u0e32\u0e14":verified?"&#9989; \u0e15\u0e23\u0e27\u0e08\u0e41\u0e25\u0e49\u0e27":"&#128203; \u0e23\u0e2d\u0e15\u0e23\u0e27\u0e08";
-      var statusClr=shortage?"var(--r)":verified?"var(--g)":"var(--y)";
-      var isOpen=_chkOpen==="NP_"+n.idx;
-      h+="<div class='oc' onclick='chkOpen(\"NP_"+n.idx+"\")' style='cursor:pointer;margin-bottom:8px;border-left:3px solid "+borderC+";transition:all .2s"+(isOpen?";border-color:var(--a);box-shadow:0 0 0 2px var(--glow)":"")+"'>";
-      h+="<div style='display:flex;justify-content:space-between;align-items:center'>";
-      h+="<div style='display:flex;gap:10px;align-items:center'>";
-      if(p.img)h+="<img src='"+p.img+"' style='width:40px;height:40px;object-fit:cover;border-radius:6px' onerror=\"this.style.display='none'\">";
-      h+="<div><div style='font-weight:700;font-size:14px'>"+p.name+"</div>";
-      h+="<div style='font-size:11px;color:var(--t2)'>#"+p.id+" | \u0e2a\u0e31\u0e48\u0e07 "+n.totalOrd+" \u0e0a\u0e34\u0e49\u0e19 | \u0e19\u0e31\u0e1a\u0e44\u0e14\u0e49 "+n.totalCnt+" \u0e0a\u0e34\u0e49\u0e19 | "+n.rc.items.length+" \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01</div></div></div>";
-      h+="<div style='display:flex;align-items:center;gap:8px'><span style='color:"+statusClr+";font-size:12px;font-weight:600'>"+statusTxt+"</span><span style='color:var(--t2);font-size:18px'>"+(isOpen?"\u25B2":"\u25BC")+"</span></div>";
-      h+="</div></div>";
+  if(fNps.length>0){
+    h+="<div style='font-size:13px;font-weight:700;margin:14px 0 8px;display:flex;align-items:center;gap:6px;color:var(--t2)'>&#127381; \u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48 1688 <span style='background:var(--y);color:#000;border-radius:10px;padding:1px 8px;font-size:10px'>"+fNps.length+"</span></div>";
+    fNps.forEach(function(n){
+      var p=n.p;var key="NP_"+n.idx;
+      _chkNavList.push(key);
+      var cls=n.shortage?"bad":n.verified?"ok":"warn";
+      var statusTxt=n.shortage?"<span class='chk-row-stat s-bad'>&#9888; \u0e02\u0e32\u0e14</span>":n.verified?"<span class='chk-row-stat s-ok'>&#9989; \u0e15\u0e23\u0e27\u0e08\u0e41\u0e25\u0e49\u0e27</span>":"<span class='chk-row-stat s-warn'>&#128203; \u0e23\u0e2d\u0e15\u0e23\u0e27\u0e08</span>";
+      h+="<div class='chk-row "+cls+"' onclick='chkOpen(\""+key+"\")'>";
+      if(p.img)h+="<img class='chk-row-img' src='"+p.img+"' onerror=\"this.style.display='none'\">";
+      h+="<div class='chk-row-nm'>"+p.name+"</div>";
+      h+=statusTxt;
+      h+="<span class='chk-row-meta'>#"+p.id+" \u00B7 "+n.totalOrd+"/"+n.totalCnt+" \u00B7 "+n.rc.items.length+" \u0e15\u0e31\u0e27\u0e40\u0e25\u0e37\u0e2d\u0e01</span>";
+      h+="<span class='chk-row-c'>&#9654;</span>";
+      h+="</div>";
     });
   }
   listEl.innerHTML=h;
-  // If something is open, render detail
+  // Sync modal state with _chkOpen
+  var mdl=document.getElementById("rcvCheckModal");
   if(_chkOpen){
-    if(_chkOpen.indexOf("NP_")===0){
-      detEl.style.display="block";
-      renderRcvCheckNP(parseInt(_chkOpen.replace("NP_","")));
-    }else if(_chkOpen.indexOf("N_")===0){
-      detEl.style.display="block";
-      renderRcvCheckNormal(parseInt(_chkOpen.replace("N_","")));
+    if(_chkNavList.indexOf(_chkOpen)<0){
+      // current item filtered out or completed \u2014 close the modal
+      _chkOpen=null;
+      if(mdl)mdl.style.display="none";
+    }else{
+      _chkRenderOpen();
     }
   }else{
-    detEl.style.display="none";actEl.style.display="none";
+    // No open key \u2014 hide modal if visible
+    if(mdl&&mdl.style.display==="flex")mdl.style.display="none";
+  }
+}
+function _chkRenderOpen(){
+  if(!_chkOpen)return;
+  var det=document.getElementById("rcvCompare");
+  var act=document.getElementById("rcvVerifyActions");
+  if(_chkOpen.indexOf("NP_")===0){
+    renderRcvCheckNP(parseInt(_chkOpen.replace("NP_","")));
+  }else if(_chkOpen.indexOf("N_")===0){
+    renderRcvCheckNormal(parseInt(_chkOpen.replace("N_","")));
+  }
+  if(det)det.style.display="";
+  // Update modal title/position
+  var pos=_chkNavList.indexOf(_chkOpen);
+  var total=_chkNavList.length;
+  var posEl=document.getElementById("chkPos");
+  var titleEl=document.getElementById("chkTitle");
+  if(posEl)posEl.textContent=(pos>=0?(pos+1):"-")+"/"+total;
+  if(titleEl){
+    var title="";
+    if(_chkOpen.indexOf("N_")===0){
+      var o=O[parseInt(_chkOpen.replace("N_",""))];
+      if(o)title=o.name||o.id;
+    }else if(_chkOpen.indexOf("NP_")===0){
+      var p=NP[parseInt(_chkOpen.replace("NP_",""))];
+      if(p)title="\uD83C\uDD95 "+(p.name||("#"+p.id));
+    }
+    titleEl.textContent=title;
   }
 }
 function chkOpen(key){
-  _chkOpen=_chkOpen===key?null:key;
-  renderRcvCheck();
-  if(_chkOpen){setTimeout(function(){var el=document.getElementById("rcvCompare");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},100)}
+  _chkOpen=key;
+  var mdl=document.getElementById("rcvCheckModal");
+  if(mdl){mdl.style.display="flex"}
+  _chkRenderOpen();
 }
+function chkClose(){
+  _chkOpen=null;
+  var mdl=document.getElementById("rcvCheckModal");
+  if(mdl)mdl.style.display="none";
+}
+function chkPrev(){
+  if(_chkNavList.length===0)return;
+  var i=_chkNavList.indexOf(_chkOpen);
+  i=(i<=0?_chkNavList.length-1:i-1);
+  _chkOpen=_chkNavList[i];
+  _chkRenderOpen();
+}
+function chkNext(){
+  if(_chkNavList.length===0)return;
+  var i=_chkNavList.indexOf(_chkOpen);
+  i=(i>=_chkNavList.length-1?0:i+1);
+  _chkOpen=_chkNavList[i];
+  _chkRenderOpen();
+}
+// Keyboard nav (only when modal open)
+document.addEventListener("keydown",function(e){
+  var mdl=document.getElementById("rcvCheckModal");
+  if(!mdl||mdl.style.display!=="flex")return;
+  // Ignore when typing in input/textarea
+  var tg=e.target;
+  if(tg&&(tg.tagName==="INPUT"||tg.tagName==="TEXTAREA"||tg.isContentEditable))return;
+  if(e.key==="Escape"){chkClose();e.preventDefault()}
+  else if(e.key==="ArrowLeft"){chkPrev();e.preventDefault()}
+  else if(e.key==="ArrowRight"){chkNext();e.preventDefault()}
+});
 function renderRcvCheckNormal(idx){
   var o=O[idx];
   var el=document.getElementById("rcvCompare");
@@ -6488,6 +6751,35 @@ function renderRcvCheckNormal(idx){
   h+="<div class='st'><div style='font-size:24px;font-weight:800;color:var(--a)'>"+totalOrd+"</div><div style='font-size:11px;color:var(--t2)'>\u0e2a\u0e31\u0e48\u0e07(\u0e0a\u0e34\u0e49\u0e19)</div></div>";
   h+="<div class='st'><div style='font-size:24px;font-weight:800;color:"+(totalCnt===totalOrd?"var(--g)":"var(--r)")+"'>"+totalCnt+"</div><div style='font-size:11px;color:var(--t2)'>\u0e19\u0e31\u0e1a\u0e44\u0e14\u0e49(\u0e0a\u0e34\u0e49\u0e19)</div></div></div>";
   h+="<div style='font-size:12px;color:var(--t2);margin-bottom:8px'>\u0e19\u0e31\u0e1a\u0e42\u0e14\u0e22: "+rc.by+" | \u0e27\u0e31\u0e19\u0e17\u0e35\u0e48\u0e19\u0e31\u0e1a: "+rc.date+"</div>";
+  // === Sanity-check: does this count actually match this order? ===
+  var _curFit=_rcvScoreFor(o,rc.items);
+  var _allCands=(typeof _rcvFindMatchingPOs==="function")?_rcvFindMatchingPOs(rc.items):[];
+  var _better=_allCands.filter(function(c){return c.idx!==idx&&c.o.id!==o.id}).slice(0,3);
+  var _top=_better[0];
+  var _showWarn=_top&&_curFit.score<80&&_top.coverCounted>_curFit.score+10;
+  if(_showWarn){
+    h+="<div style='margin-bottom:14px;padding:14px;background:linear-gradient(135deg,rgba(239,68,68,.14),rgba(239,68,68,.04));border:2px solid var(--r);border-radius:12px'>";
+    h+="<div style='display:flex;align-items:center;gap:10px;margin-bottom:10px'>";
+    h+="<div style='font-size:22px'>&#9888;&#65039;</div>";
+    h+="<div style='flex:1'><div style='font-weight:800;font-size:14px;color:var(--r)'>\u0e2d\u0e32\u0e08\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e1c\u0e34\u0e14</div>";
+    h+="<div style='font-size:11px;color:var(--t2);margin-top:2px'>\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19\u0e40\u0e02\u0e49\u0e32\u0e01\u0e31\u0e1a\u0e17\u0e35\u0e48\u0e19\u0e31\u0e1a\u0e40\u0e1e\u0e35\u0e22\u0e07 <b style='color:var(--r)'>"+_curFit.score+"%</b> &mdash; \u0e21\u0e35\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e2d\u0e37\u0e48\u0e19\u0e17\u0e35\u0e48\u0e40\u0e02\u0e49\u0e32\u0e01\u0e31\u0e19\u0e14\u0e35\u0e01\u0e27\u0e48\u0e32</div></div></div>";
+    h+="<div style='font-size:11px;color:var(--t2);font-weight:600;margin-bottom:6px'>&#128073; \u0e25\u0e2d\u0e07\u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e44\u0e1b\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e40\u0e2b\u0e25\u0e48\u0e32\u0e19\u0e35\u0e49:</div>";
+    h+="<div style='display:flex;flex-direction:column;gap:6px'>";
+    _better.forEach(function(c){
+      var _ms=_rcvScoreFor(c.o,rc.items);
+      var col=_ms.score>=80?"var(--g)":_ms.score>=60?"#eab308":"#6b7280";
+      h+="<div style='background:var(--c1);border:1px solid var(--bd);border-left:4px solid "+col+";border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap'>";
+      h+="<div style='flex:1;min-width:150px'><div style='font-weight:700;font-size:13px'>#"+c.o.id+"</div>";
+      h+="<div style='font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px'>"+((c.o.name||"-").substring(0,60))+" | "+c.total+" SKU | "+(c.o.date||"")+"</div></div>";
+      h+="<div style='text-align:right'><div style='font-weight:800;font-size:16px;color:"+col+"'>"+_ms.score+"%</div><div style='font-size:10px;color:var(--t2)'>\u0e15\u0e23\u0e07 "+_ms.skuHit+"/"+c.total+"</div></div>";
+      h+="<button class='btn bp' onclick='event.stopPropagation();rcvSwapOrder("+idx+","+c.idx+")' style='padding:8px 12px;font-size:12px;font-weight:700'>&#128260; \u0e22\u0e49\u0e32\u0e22\u0e44\u0e1b\u0e19\u0e35\u0e48</button>";
+      h+="</div>";
+    });
+    h+="</div></div>";
+  }else{
+    var _fc=_curFit.score>=80?"var(--g)":_curFit.score>=60?"#eab308":"var(--r)";
+    h+="<div style='margin-bottom:10px;font-size:11px;color:var(--t2)'>&#127919; \u0e04\u0e27\u0e32\u0e21\u0e40\u0e02\u0e49\u0e32\u0e01\u0e31\u0e19\u0e02\u0e2d\u0e07\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e19\u0e35\u0e49\u0e01\u0e31\u0e1a\u0e17\u0e35\u0e48\u0e19\u0e31\u0e1a: <b style='color:"+_fc+"'>"+_curFit.score+"%</b> <span style='color:var(--t2)'>(\u0e15\u0e23\u0e07 "+_curFit.skuHit+"/"+(o.items?o.items.length:0)+" SKU"+(_curFit.extra>0?", \u0e40\u0e01\u0e34\u0e19 "+_curFit.extra:"")+")</span></div>";
+  }
   h+="<div class='tw'><div class='ts'><table><thead><tr><th></th><th>SKU</th><th>\u0e25\u0e34\u0e07\u0e01\u0e4c</th><th>\u0e2a\u0e31\u0e48\u0e07</th><th>\u0e19\u0e31\u0e1a\u0e44\u0e14\u0e49</th><th>\u0e1c\u0e25\u0e15\u0e48\u0e32\u0e07</th><th>\u0e2a\u0e16\u0e32\u0e19\u0e30</th></tr></thead><tbody>";
   keys.sort(function(a,b){var da=allSkus[a].ordered-allSkus[a].counted,db=allSkus[b].ordered-allSkus[b].counted;return Math.abs(db)-Math.abs(da)});
   keys.forEach(function(k,ki){
@@ -6535,10 +6827,92 @@ function renderRcvCheckNormal(idx){
     ah+="<button class='btn bp' onclick='event.stopPropagation();rcvApprove("+idx+")' style='flex:1;padding:12px'>&#9989; \u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34 (\u0e22\u0e2d\u0e21\u0e23\u0e31\u0e1a\u0e15\u0e32\u0e21\u0e17\u0e35\u0e48\u0e19\u0e31\u0e1a)</button>";
     ah+="<button class='btn bs' style='background:#a855f7;color:#fff;padding:12px' onclick='event.stopPropagation();rcvNegotiate("+idx+")'>&#128172; \u0e02\u0e2d\u0e07\u0e02\u0e32\u0e14 \u2014 \u0e2a\u0e48\u0e07\u0e40\u0e08\u0e23\u0e08\u0e32</button>";
   }
-  ah+="<button class='btn bs brd' onclick='event.stopPropagation();rcvRecount("+idx+")' style='padding:12px'>&#128260; \u0e43\u0e2b\u0e49\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48</button>";
+  ah+="<button class='btn bs brd' onclick='event.stopPropagation();rcvOpenSwap("+idx+")' style='padding:12px;background:rgba(59,130,246,.08);color:#3b82f6;border:1px solid #3b82f6'>&#128260; \u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c</button>";
+  ah+="<button class='btn bs brd' onclick='event.stopPropagation();rcvRecount("+idx+")' style='padding:12px'>&#8617;&#65039; \u0e15\u0e35\u0e01\u0e25\u0e31\u0e1a \u2014 \u0e43\u0e2b\u0e49\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48</button>";
   ah+="</div>";
   act.innerHTML=ah;
 }
+
+// Open picker modal to swap the count from one order to another (Worker 2 safety-net)
+function rcvOpenSwap(fromIdx){
+  var from=O[fromIdx];if(!from)return;
+  var rc=RC[from.id];if(!rc){alert("\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e49\u0e22\u0e49\u0e32\u0e22");return}
+  var cands=(typeof _rcvFindMatchingPOs==="function")?_rcvFindMatchingPOs(rc.items):[];
+  cands=cands.filter(function(c){return c.idx!==fromIdx&&c.o.id!==from.id});
+  var top=cands.slice(0,8);
+  var old=document.getElementById("_rcvSwapModal");if(old)old.remove();
+  var m=document.createElement("div");m.id="_rcvSwapModal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px";
+  var candsHtml="";
+  if(top.length>0){
+    candsHtml+="<div style='margin-bottom:8px;font-size:12px;color:var(--t2);font-weight:600'>\uD83C\uDFAF \u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e17\u0e35\u0e48\u0e19\u0e48\u0e32\u0e08\u0e30\u0e43\u0e0a\u0e48 (\u0e40\u0e23\u0e35\u0e22\u0e07\u0e15\u0e32\u0e21\u0e04\u0e27\u0e32\u0e21\u0e40\u0e02\u0e49\u0e32\u0e01\u0e31\u0e19):</div>";
+    candsHtml+="<div style='display:flex;flex-direction:column;gap:8px;margin-bottom:12px'>";
+    top.forEach(function(c,i){
+      var _ms=_rcvScoreFor(c.o,rc.items);
+      var medal=i===0?"\uD83E\uDD47":i===1?"\uD83E\uDD48":i===2?"\uD83E\uDD49":"\u2022";
+      var col=_ms.score>=80?"#22c55e":_ms.score>=60?"#eab308":"#6b7280";
+      candsHtml+="<div onclick='rcvSwapOrder("+fromIdx+","+c.idx+")' style='cursor:pointer;background:var(--c1);border:2px solid var(--bd);border-left:4px solid "+col+";border-radius:12px;padding:12px 14px;transition:all .15s' onmouseover='this.style.borderColor=\"var(--a)\";this.style.background=\"var(--glow)\"' onmouseout='this.style.borderColor=\"var(--bd)\";this.style.background=\"var(--c1)\"'>";
+      candsHtml+="<div style='display:flex;justify-content:space-between;align-items:center;gap:10px'>";
+      candsHtml+="<div style='flex:1;min-width:0'><div style='font-weight:700;font-size:14px'>"+medal+" #"+c.o.id+"</div>";
+      candsHtml+="<div style='font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+((c.o.name||"-").substring(0,70))+"</div>";
+      candsHtml+="<div style='font-size:10px;color:var(--t2);margin-top:2px'>"+(c.o.date||"")+" | "+c.total+" SKU</div></div>";
+      candsHtml+="<div style='text-align:right;flex:0 0 auto'><div style='font-weight:800;font-size:18px;color:"+col+"'>"+_ms.score+"%</div><div style='font-size:10px;color:var(--t2)'>\u0e15\u0e23\u0e07 "+_ms.skuHit+"/"+c.total+"</div></div>";
+      candsHtml+="</div></div>";
+    });
+    candsHtml+="</div>";
+  }else{
+    candsHtml+="<div style='padding:20px;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);border-radius:10px;text-align:center;color:#eab308;margin-bottom:12px;font-size:13px'>\u26A0 \u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e2d\u0e37\u0e48\u0e19\u0e17\u0e35\u0e48\u0e21\u0e35 SKU \u0e15\u0e23\u0e07\u0e01\u0e31\u0e19 &mdash; \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e14\u0e49\u0e32\u0e19\u0e25\u0e48\u0e32\u0e07</div>";
+  }
+  m.innerHTML="<div style='background:var(--c);border-radius:16px;max-width:600px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)'><div style='padding:16px 18px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;gap:10px'><div><div style='font-size:15px;font-weight:700'>&#128260; \u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c</div><div style='font-size:11px;color:var(--t2);margin-top:3px'>\u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e08\u0e32\u0e01 #"+from.id+" \u0e44\u0e1b\u0e22\u0e31\u0e07\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e17\u0e35\u0e48\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07</div></div><button onclick='document.getElementById(\"_rcvSwapModal\").remove()' style='background:var(--c2);border:1px solid var(--bd);border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer;color:var(--t)'>\u2715</button></div><div style='padding:14px 16px;overflow-y:auto;flex:1'>"+candsHtml+"<div style='font-size:12px;color:var(--t2);font-weight:600;margin-bottom:6px'>&#128269; \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e2d\u0e37\u0e48\u0e19 (\u0e1e\u0e34\u0e21\u0e1e\u0e4c\u0e0a\u0e37\u0e48\u0e2d/ID/\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48):</div><input id='_rcvSwapSearchInp' type='text' placeholder='\u0e1e\u0e34\u0e21\u0e1e\u0e4c\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e04\u0e49\u0e19\u0e2b\u0e32...' oninput='_rcvSwapSearchPO("+fromIdx+")' style='width:100%;padding:12px 14px;font-size:14px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;color:var(--t);margin-bottom:8px'><div id='_rcvSwapSearchRes' style='max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:4px'></div></div></div>";
+  document.body.appendChild(m);
+  setTimeout(function(){var i=document.getElementById("_rcvSwapSearchInp");if(i)i.focus()},100);
+}
+
+function _rcvSwapSearchPO(fromIdx){
+  var q=(document.getElementById("_rcvSwapSearchInp").value||"").trim().toLowerCase();
+  var res=document.getElementById("_rcvSwapSearchRes");
+  if(!q){res.innerHTML="";return}
+  var from=O[fromIdx];
+  var list=[];
+  O.forEach(function(o,idx){
+    if(idx===fromIdx)return;
+    if(o.status==="received"||o.status==="verified"||o.status==="cancelled")return;
+    var hay=((o.name||"")+" "+(o.id||"")+" "+(o.date||"")+" "+(o.tracking||"")).toLowerCase();
+    if(hay.indexOf(q)>=0)list.push({idx:idx,o:o});
+  });
+  if(list.length===0){res.innerHTML="<div style='padding:10px;font-size:12px;color:var(--t2);text-align:center'>\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e17\u0e35\u0e48\u0e15\u0e23\u0e07\u0e01\u0e31\u0e1a \""+q.replace(/"/g,"")+"\"</div>";return}
+  var h="";
+  list.slice(0,15).forEach(function(x){
+    h+="<div onclick='rcvSwapOrder("+fromIdx+","+x.idx+")' style='cursor:pointer;padding:10px 12px;background:var(--c1);border:1px solid var(--bd);border-radius:8px;transition:all .15s' onmouseover='this.style.borderColor=\"var(--a)\";this.style.background=\"var(--glow)\"' onmouseout='this.style.borderColor=\"var(--bd)\";this.style.background=\"var(--c1)\"'>";
+    h+="<div style='font-weight:600;font-size:13px'>#"+x.o.id+"</div>";
+    h+="<div style='font-size:11px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+((x.o.name||"-").substring(0,70))+" | "+(x.o.items?x.o.items.length:0)+" SKU | "+(x.o.date||"")+"</div></div>";
+  });
+  if(list.length>15)h+="<div style='padding:6px;font-size:11px;color:var(--t2);text-align:center'>... \u0e41\u0e25\u0e30\u0e2d\u0e35\u0e01 "+(list.length-15)+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</div>";
+  res.innerHTML=h;
+}
+
+function rcvSwapOrder(fromIdx,toIdx){
+  var from=O[fromIdx],to=O[toIdx];
+  if(!from||!to)return;
+  var rc=RC[from.id];
+  if(!rc){alert("\u0e44\u0e21\u0e48\u0e21\u0e35\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e01\u0e32\u0e23\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e49\u0e22\u0e49\u0e32\u0e22");return}
+  if(!confirm("\u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e08\u0e32\u0e01 #"+from.id+"\n\u0e44\u0e1b\u0e22\u0e31\u0e07 #"+to.id+"\n\n("+(to.name||"-").substring(0,50)+")\n\n\u0e22\u0e37\u0e19\u0e22\u0e31\u0e19\u0e01\u0e32\u0e23\u0e22\u0e49\u0e32\u0e22?"))return;
+  if(RC[to.id]&&RC[to.id].items&&RC[to.id].items.length>0){
+    if(!confirm("\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e40\u0e1b\u0e49\u0e32\u0e2b\u0e21\u0e32\u0e22\u0e21\u0e35\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e2d\u0e22\u0e39\u0e48\u0e41\u0e25\u0e49\u0e27\n\n\u0e17\u0e31\u0e1a\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e40\u0e14\u0e34\u0e21?"))return;
+  }
+  // Move RC
+  RC[to.id]=rc;
+  delete RC[from.id];
+  // Log
+  if(typeof logActivity==="function")logActivity("\u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a",from.id+" \u2192 "+to.id+(CUR_USER?" \u0e42\u0e14\u0e22 "+CUR_USER.name:""));
+  sv();
+  var mm=document.getElementById("_rcvSwapModal");if(mm)mm.remove();
+  // Open the new order's check view
+  _chkOpen="N_"+toIdx;
+  if(typeof rrcv==="function")rrcv();
+  alert("\u2705 \u0e22\u0e49\u0e32\u0e22\u0e1c\u0e25\u0e19\u0e31\u0e1a\u0e40\u0e23\u0e35\u0e22\u0e1a\u0e23\u0e49\u0e2d\u0e22 \u2014 \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e43\u0e2b\u0e21\u0e48\u0e44\u0e14\u0e49\u0e40\u0e25\u0e22");
+}
+
 function rcvEditCount(ordId,sku,newQty,ordIdx){
   if(!RC[ordId])return;
   var item=RC[ordId].items.find(function(x){return x.sku===sku});
@@ -6754,19 +7128,24 @@ function rcvNegotiate(idx){
 
 function rcvRecount(idx){
   var o=O[idx];if(!o)return;
+  // Prompt for reason (Idea 4: tell worker 1 why it was bounced back)
+  var reason=prompt("\u0e2a\u0e32\u0e40\u0e2b\u0e15\u0e38\u0e17\u0e35\u0e48\u0e15\u0e35\u0e01\u0e25\u0e31\u0e1a\u0e43\u0e2b\u0e49\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48 (\u0e44\u0e21\u0e48\u0e1a\u0e31\u0e07\u0e04\u0e31\u0e1a):\n\u0e15\u0e31\u0e27\u0e2d\u0e22\u0e48\u0e32\u0e07: \u0e2d\u0e2d\u0e40\u0e14\u0e2d\u0e23\u0e4c\u0e44\u0e21\u0e48\u0e15\u0e23\u0e07, \u0e19\u0e31\u0e1a\u0e02\u0e32\u0e14\u0e44\u0e1b, \u0e40\u0e0a\u0e47\u0e04\u0e25\u0e39\u0e01\u0e04\u0e49\u0e32","");
+  if(reason===null)return; // user cancelled
   _chkOpen=null;
   // \u0e40\u0e01\u0e47\u0e1a RC entry \u0e44\u0e27\u0e49\u0e40\u0e1b\u0e47\u0e19 partial \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e43\u0e2b\u0e49\u0e41\u0e2a\u0e14\u0e07\u0e43\u0e19\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 "\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19" \u0e02\u0e2d\u0e07\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19 1
   if(RC[o.id]){
     RC[o.id].partial=true;
     RC[o.id]._lm=Date.now();
     if(CUR_USER)RC[o.id].recountBy=CUR_USER.name;
+    if(reason)RC[o.id].recountReason=reason;
   }else{
-    RC[o.id]={items:[],date:new Date().toISOString().slice(0,10),by:CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a",partial:true};
+    RC[o.id]={items:[],date:new Date().toISOString().slice(0,10),by:CUR_USER?CUR_USER.name:"\u0e44\u0e21\u0e48\u0e17\u0e23\u0e32\u0e1a",partial:true,recountReason:reason||""};
   }
   sv();
+  if(typeof logActivity==="function")logActivity("\u0e15\u0e35\u0e01\u0e25\u0e31\u0e1a\u0e43\u0e2b\u0e49\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48",o.id+(reason?" \u2014 "+reason:""));
   _rcvItems=[];
   rcvMode="count";rrcv();
-  alert("\u0e2a\u0e48\u0e07\u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27 \u2014 \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e08\u0e30\u0e2d\u0e22\u0e39\u0e48\u0e43\u0e19 '\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19'");
+  alert("\u2705 \u0e2a\u0e48\u0e07\u0e43\u0e2b\u0e49\u0e1e\u0e19\u0e31\u0e01\u0e07\u0e32\u0e19\u0e19\u0e31\u0e1a\u0e43\u0e2b\u0e21\u0e48\u0e41\u0e25\u0e49\u0e27"+(reason?"\n\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38: "+reason:"")+"\n\n\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e08\u0e30\u0e2d\u0e22\u0e39\u0e48\u0e43\u0e19 '\u0e19\u0e31\u0e1a\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19'");
 }
 
 // ===== STOCK-IN EXPORT =====
